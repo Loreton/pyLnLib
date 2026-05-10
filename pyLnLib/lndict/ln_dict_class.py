@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 01-05-2026 15.07.17
+# Date .........: 10-05-2026 10.16.46
 #
 
 import sys; sys.dont_write_bytecode=True; this=sys.modules[__name__]
@@ -15,13 +15,7 @@ from datetime   import datetime
 
 
 
-# Tentativo di importare il logger globale
-from pyLnLib import gVars as ctx
-# except ImportError:
-#     class DummyLogger:
-#         def error(self, msg, *args, **kwargs): print(f"ERROR: {msg % args}")
-#         def notify(self, msg, *args, **kwargs): print(f"INFO: {msg % args}")
-#     getGlobalVars = lambda: type('obj', (object,), {'logger': DummyLogger()})
+from ..context import gVars as ctx
 
 
 ### --------------------

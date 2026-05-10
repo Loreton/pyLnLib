@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 01-05-2026 15.18.56
+# Date .........: 10-05-2026 09.59.41
 #
 
 
@@ -51,7 +51,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 
-from .colors import Color as C
+from ..colors import Color as C
 
 class lnRunStream_Class:
     def __init__(self, logger):
@@ -163,9 +163,6 @@ class lnRunStream_Class:
 
         ###. prepare linea con colori
         display_line = self._apply_colors(line)
-
-
-
 
 
         return display_line

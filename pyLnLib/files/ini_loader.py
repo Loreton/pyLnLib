@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 30-04-2026 18.19.23
+# Date .........: 10-05-2026 10.00.36
 #
 
 
@@ -16,7 +16,7 @@ import os
 ### --------------------
 ### --- project modules
 ### --------------------
-from .context    import gVars as gv
+from ..context    import gVars as gv
 from .file_utils import getFileContent
 
 

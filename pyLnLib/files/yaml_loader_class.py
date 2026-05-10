@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 03-05-2026 20.17.07
+# Date .........: 10-05-2026 15.35.28
 #
 
 import sys; sys.dont_write_bytecode=True;
@@ -10,6 +10,9 @@ import yaml
 import zipfile
 from typing import Any, List, Optional, Tuple
 
+
+from .file_utils     import searchingFile
+from .zip_file_utils import searchingZipFile
 
 #################################
 # --- Loader Personalizzato ---
@@ -82,8 +85,7 @@ class YamlEngine:
         self.recursive = recursive
 
         ### - prepare search paths
-        s_paths = search_paths or [".", "conf"]
-        s_paths.extend(['.', 'conf'])
+        s_paths = search_paths or ["conf"] ### non mettere '.'
         self.search_paths = list(dict.fromkeys(s_paths))
 
 
@@ -100,46 +102,24 @@ class YamlEngine:
 
 
 
+
+
+
     #################################
     # -
     #################################
     def find_file(self, filename: str) -> Tuple[Optional[str], bool]:
-        """
-        Cerca il file prima nel filesystem esterno, poi dentro il .pyz.
-        Ritorna: (path_o_nome, is_inside_zip)
-        """
-        # --- 1. Ricerca Esterna (Filesystem) ---
-        for base_path in self.search_paths:
-            if os.path.exists(base_path):
-                self.logger.debug("searching file: %s/%s on Filesystem", base_path, filename)
-                if self.recursive:
-                    for root, _, files in os.walk(base_path):
-                        if filename in files:
-                            return os.path.join(root, filename), False
-                else:
-                    full_path = os.path.join(base_path, filename)
-                    if os.path.exists(full_path):
-                        return full_path, False
+        result = searchingFile(filename=filename, search_paths=["conf"], recursive=False)
+        if not result.filepath:
+            if zipfile.is_zipfile(sys.argv[0]):
+                result = searchingZipFile(filename=filename, archive_file=sys.argv[0], search_paths=search_paths, recursive=recursive)
+                if not result.filepath:
+                    self.logger.error("filename: %s not found on filesysten neither in zipfile", filename, exit=True)
+            else:
+                self.logger.error("filename: %s not found on fileSystem", filename, exit=True)
 
+        return result.content
 
-
-        # --- 2. Ricerca Interna (ZIP/PYZ) ---
-        if self.isZIP:
-            # Cerchiamo nei search_paths interni allo zip
-            for base_path in self.search_paths:
-                self.logger.debug("searching file: %s/%s inside zip: %s", base_path, filename, self.script_path)
-                # Normalizziamo il path interno (niente drive letter, slash avanti)
-                target_in_zip = os.path.join(base_path, filename).replace('\\', '/')
-                if target_in_zip in self.zip_contents:
-                    return target_in_zip, True
-
-                # Se ricorsivo, cerchiamo corrispondenze parziali
-                if self.recursive:
-                    for member in self.zip_contents:
-                        if member.startswith(base_path) and member.endswith(filename):
-                            return member, True
-
-        return None, False
 
     #################################
     # -
@@ -164,65 +144,26 @@ class YamlEngine:
         else:
             target_file, keypath = filename_with_pointer, None
 
-        # Ricerca file (ritorna path e flag zip)
-        filepath, is_in_zip = self.find_file(target_file)
+        content = self.find_file(target_file)
 
-        if filepath:
-            self.logger.info("file: %s FOUND (in_zip: %s)", filepath, is_in_zip)
-        else:
-            self.logger.error("File '%s' non trovato (Esterno o PYZ)", target_file)
-            return {}
+        content = os.path.expandvars(content)
+        data = yaml.load(content, Loader=lnYamlLoader)
 
-        ### - lettura del contenuto
-        try:
-            if is_in_zip:
-                # Lettura da ZIP
-                with zipfile.ZipFile(self.script_path, 'r') as z:
-                    with z.open(filepath) as f:
-                        content = f.read().decode('utf-8')
-                self.logger.trace("Caricato dallo ZIP: %s", filepath)
-            else:
-                # Lettura da Filesystem
-                with open(filepath, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                self.logger.trace("Caricato dal Filesystem: %s", filepath)
+        return self._get_keypath(data, keypath) if keypath else data
 
-            content = os.path.expandvars(content)
-            data = yaml.load(content, Loader=lnYamlLoader)
-
-            return self._get_keypath(data, keypath) if keypath else data
-
-        except Exception as e:
-            self.logger.error("Errore nel caricamento di %s: %s", target_file, str(e))
-            return {}
 
 
 #################################
 # -
 #################################
 class lnYamlEnvironment:
-    def __init__(self, logger, paths: list=["conf"], recursive=True):
+    def __init__(self, logger, search_paths: list=["conf"], recursive=True):
         self.logger = logger
 
         # Inizializziamo l'engine con i parametri richiesti
-        self.yaml_engine = YamlEngine(self, search_paths=paths, recursive=recursive)
+        self.yaml_engine = YamlEngine(self, search_paths=search_paths, recursive=recursive)
+
 
 # Test
 if __name__ == "__main__":
-    # --- Logger Personalizzato ---
-    class DummyLogger:
-        def critical(self, msg, *args): print(f"CRITICAL: {msg % args if args else msg}")
-        def error(self, msg, *args):    print(f"ERROR:    {msg % args if args else msg}")
-        def warning(self, msg, *args):  print(f"WARNING:  {msg % args if args else msg}")
-        def info(self, msg, *args):     print(f"INFO:     {msg % args if args else msg}")
-        def debug(self, msg, *args):    print(f"DEBUG:    {msg % args if args else msg}")
-        def function(self, msg, *args): print(f"FUNCTION: {msg % args if args else msg}")
-        def notify(self, msg, *args):   print(f"NOTIFY:   {msg % args if args else msg}")
-        def trace(self, msg, *args):    print(f"TRACE:    {msg % args if args else msg}")
-
-
-    # Esempio di chiamata
-    env = lnYamlEnvironment(logger=DummyLogger, paths=["conf", "conf/profiles"], recursive=False)
-    config = env.yaml_engine.load("@lnSync_config.yaml#myDirs")
-
-    print(config)
+    ...

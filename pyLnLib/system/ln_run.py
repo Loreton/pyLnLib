@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 05-05-2026 18.37.52
+# Date .........: 10-05-2026 09.59.16
 #
 
 
@@ -14,8 +14,10 @@ from typing        import Callable, Optional, Any
 
 
 ### - project modules
-from pyLnLib import DummyPrintLogger
-from pyLnLib       import Color
+# from pyLnLib import DummyPrintLogger
+# from pyLnLib import Color
+from ..colors import Color
+from ..logger.dummy_logger import DummyPrintLogger
 
 
 # ##################################################

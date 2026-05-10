@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 30-04-2026 18.22.01
+# Date .........: 10-05-2026 10.02.18
 #
 
 import sys; sys.dont_write_bytecode=True; this=sys.modules[__name__]
@@ -16,9 +16,7 @@ from types import SimpleNamespace
 ### --------------------
 ### --- project modules
 ### --------------------
-from .context  import gVars as gv; logger = gv.logger
-
-
+from ..context  import gVars as gv; logger = gv.logger
 
 
 ##############################################################

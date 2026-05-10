@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 05-05-2026 18.46.16
+# Date .........: 10-05-2026 15.13.27
 #
 
 #!/usr/bin/env python3
@@ -25,7 +25,8 @@ from typing import Optional
 #     white      = '\033[37m'; whiteH     = '\033[97m'
 #     reset      = '\033[0m'
 
-from .colors import Color
+# from pyLnLib import Color
+from ..colors import Color
 
 
 '''
@@ -108,6 +109,8 @@ class lnLoggerColored:
         self.add_custom_levels()
         self.logger.setLevel(logging.TRACE)
         self.logger.propagate = False
+        self.name = name
+        self.test = testLogger
 
         # Evita handler duplicati
         if self.logger.handlers:
@@ -214,6 +217,7 @@ class lnLoggerColored:
     def _log(self, level_name: str, msg: str, *args, color: Optional[str] = None, **kwargs):
         stacklevel = kwargs.pop("stacklevel", 0)
         forceLog = kwargs.pop("force_log", False)
+        forceExit = kwargs.pop("exit", False)
         kwargs["stacklevel"] = stacklevel + 3
         # print(stacklevel, kwargs["stacklevel"])
 
@@ -242,6 +246,8 @@ class lnLoggerColored:
         kwargs["extra"] = extra
 
         self.logger.log(level_value, msg, *args, **kwargs)
+        if forceExit:
+            sys.exit(1)
 
     #########################################################################
     #
@@ -294,6 +300,12 @@ class lnLoggerColored:
 
 
 def testLogger(logger):
+    print("\n")
+    print("*"*60)
+    print(f"--- Logger name: {logger.name}")
+    print("*"*60)
+
+    print("\n--- base colors ---")
     logger.debug("DEBUG default")
     logger.info("INFO default")
     logger.warning("WARNING default")
@@ -301,13 +313,13 @@ def testLogger(logger):
     logger.critical("CRITICAL default")
     logger.notify("NOTIFY default")
 
-    print("\n--- custom colors ---\n")
 
+    print("\n--- custom colors ---")
     logger.info("INFO in magenta", color=Color.magenta)
     logger.warning("WARNING in cyan", color=Color.cyan)
     logger.error("ERROR in yellowH", color=Color.yellowH)
+    print("\n")
 
-    print("\n--- dry run ---\n")
 
 
 
@@ -315,25 +327,6 @@ def testLogger(logger):
 # Test
 # -------------------------------
 if __name__ == "__main__":
+    ... ### see ../_test_modules/test_logger.py
 
-    logger = lnLoggerColored("DemoLogger", console_logger_level="DEBUG")
-
-    testLogger(logger=logger)
-
-    logger.debug("DEBUG default")
-    logger.info("INFO default")
-    logger.warning("WARNING default")
-    logger.error("ERROR default")
-    logger.critical("CRITICAL default")
-    logger.notify("NOTIFY default")
-
-    print("\n--- custom colors ---\n")
-
-    logger.info("INFO in magenta", color=Color.magenta)
-    logger.warning("WARNING in cyan", color=Color.cyan)
-    logger.error("ERROR in yellowH", color=Color.yellowH)
-
-    print("\n--- dry run ---\n")
-
-    # logger.dry_run("Simulazione cancellazione file")
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 05-05-2026 18.18.02
+# Date .........: 10-05-2026 15.16.45
 #
 
 import sys; sys.dont_write_bytecode=True;
@@ -34,14 +34,17 @@ class DummyPrintLogger:
         "CRIT":  (50, "CRIT", Color.magenta),
     }
 
-    def __init__(self, level="INFO", show_caller=False, module: bool=False, function: bool=True):
-        self.level = self.LEVELS[level][0]
-        self.show_caller = show_caller
-        self.module = module
-        self.function = function
+
+    def __init__(self, name: str="DummyPrintLogger", console_logger_level="info"):
+        self.level = self.LEVELS[console_logger_level.upper()][0]
+        self.name = name
+        self.show_caller = True
+        self.module = True
+        self.function = False
+        self.test = testLogger
 
     def setLevel(self, level):
-        self.level = self.LEVELS[level][0]
+        self.level = self.LEVELS[level.upper()][0]
 
 
     def _caller(self):
@@ -51,6 +54,7 @@ class DummyPrintLogger:
         filename = Path(os.path.basename(f.f_code.co_filename)).stem
         lineno = f.f_lineno
         func = f.f_code.co_name
+        if func=='<module>': func='main'
         caller=f":{lineno}"
         if self.module:
             caller=f"{filename}{caller}"
@@ -76,9 +80,9 @@ class DummyPrintLogger:
                 msg = f"{msg} {args}"
 
         now = datetime.now().strftime("%H:%M:%S")
-        caller = f" [{self._caller()}]" if self.show_caller else ""
+        caller = f"{self._caller()}" if self.show_caller else ""
 
-        print(f"{color}{now} - {tag}{caller}: {msg}{self.Color.reset}")
+        print(f"{color}{now} [{caller}] {tag}: {msg}{self.Color.reset}")
 
     def trace(self,     msg, *args, color=None, **kwargs): self._log("TRACE",  msg, *args, color=color)
     def notify(self,    msg, *args, color=None, **kwargs): self._log("NTFY",  msg, *args, color=color)
@@ -91,6 +95,26 @@ class DummyPrintLogger:
 
 
 
+def testLogger(logger):
+    print("\n")
+    print("*"*60)
+    print(f"--- Logger name: {logger.name}")
+    print("*"*60)
+
+    print("\n--- base colors ---")
+    logger.debug("DEBUG default")
+    logger.info("INFO default")
+    logger.warning("WARNING default")
+    logger.error("ERROR default")
+    logger.critical("CRITICAL default")
+    logger.notify("NOTIFY default")
+
+
+    print("\n--- custom colors ---")
+    logger.info("INFO in magenta", color=Color.magenta)
+    logger.warning("WARNING in cyan", color=Color.cyan)
+    logger.error("ERROR in yellowH", color=Color.yellowH)
+    print("\n")
 
 
 
