@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 10-05-2026 15.35.28
+# Date .........: 11-05-2026 09.35.48
 #
 
 import sys; sys.dont_write_bytecode=True;
@@ -11,8 +11,8 @@ import zipfile
 from typing import Any, List, Optional, Tuple
 
 
-from .file_utils     import searchingFile
-from .zip_file_utils import searchingZipFile
+from .file_utils     import searchFileOnFS
+from .zip_file_utils import searchFileInZip
 
 #################################
 # --- Loader Personalizzato ---
@@ -109,10 +109,10 @@ class YamlEngine:
     # -
     #################################
     def find_file(self, filename: str) -> Tuple[Optional[str], bool]:
-        result = searchingFile(filename=filename, search_paths=["conf"], recursive=False)
+        result = searchFileOnFS(filename=filename, search_paths=self.search_paths, recursive=self.recursive)
         if not result.filepath:
             if zipfile.is_zipfile(sys.argv[0]):
-                result = searchingZipFile(filename=filename, archive_file=sys.argv[0], search_paths=search_paths, recursive=recursive)
+                result = searchFileInZip(filename=filename, archive_file=sys.argv[0], search_paths=self.search_paths, recursive=self.recursive)
                 if not result.filepath:
                     self.logger.error("filename: %s not found on filesysten neither in zipfile", filename, exit=True)
             else:

@@ -5,15 +5,14 @@
 # Version ......: 08-01-2021 18.10.41
 #
 import  sys; sys.dont_write_bytecode = True
-import os
+import os, stat
 import zipfile, io
 from typing import Any, List, Optional, Tuple
 from types import SimpleNamespace
 
 
 
-from ..context import gVars as ctx
-
+from ..context import gVars as ctx; C=ctx.colors
 
 
 def zipNameList___(zip_filename):
@@ -88,24 +87,45 @@ def zipExtractFile___(archive_file: str, filename: str, out_dir: str='/tmp'):
 #################################
 # -
 #################################
-def searchingZipFile(archive_file: str, filename: str, *, search_paths: list=["conf"], recursive: bool=True, extraction_dir: str=None) ->  Tuple[Optional[str], bool]:
+def searchFileInZip(archive_file: str,
+                        filename: str, *,
+                        search_paths: list,
+                        recursive: bool=False,
+                        extract_to: str=None,
+                        stacklevel=-1) ->  Tuple[Optional[str], bool]:
     #------------------------------------
     def extract_file(zz, filename):
         result.filepath=filename
         result.recursice=is_recursive
+        result.extracted_file=None
+        if extract_to:
+            zz.extract(member=filename, path=extract_to, pwd=None)
+            dest_file = os.path.join(extract_to, os.path.basename(filename))
+            # Ottieni i permessi attuali
+            current_permissions = os.stat(dest_file).st_mode
+            # Aggiungi solo il permesso di scrittura (senza rimuovere altri)
+            os.chmod(dest_file, current_permissions | stat.S_IWUSR)  # solo per utente
+            result.extracted_file = fdest_file
 
-        if extraction_dir:
-            zz.extract(member=filename, path=extraction_dir, pwd=None)
         with zz.open(filename, 'r') as f:
-            result.content = f.read().decode('utf-8')
+            result.content = f.read()
+
+        return result_and_exit()
+
+
+    def result_and_exit():
+        if result.filepath:
+            ctx.logger.info("FOUND: %s [extracted: %s] on zipFile: %s", result.filepath, result.extracted_file, archive_file, color=C.magenta)
+        else:
+            ctx.logger.warning("NOT FOUND: %s on zipFile: %s", filename, archive_file)
         return result
     #------------------------------------
 
     result = SimpleNamespace(content=None, filepath=None, is_recursive=False)
-
+    STACKLEVEL = stacklevel
     # --- Ricerca Interna (ZIP/PYZ) ---
     if zipfile.is_zipfile(archive_file):
-        ctx.logger.info("ZipFile searching for file: %s", filename)
+        ctx.logger.info("ZipFile searching for file: %s - (on paths: %s)", filename, search_paths, stacklevel=STACKLEVEL)
 
         is_recursive=False
         z=zipfile.ZipFile(archive_file, "r")
@@ -118,7 +138,7 @@ def searchingZipFile(archive_file: str, filename: str, *, search_paths: list=["c
         # Cerchiamo nei search_paths interni allo zip
         for base_path in search_paths:
 
-            ctx.logger.info("on base_path: [%s]", base_path)
+            ctx.logger.debug("searching: %s/%s", base_path, filename)
 
             # Normalizziamo il path interno (niente drive letter, slash avanti)
             fpath = os.path.join(base_path, filename).replace('\\', '/') ### nel caso stessimo in Windows
@@ -127,11 +147,18 @@ def searchingZipFile(archive_file: str, filename: str, *, search_paths: list=["c
 
             # Se ricorsivo, cerchiamo corrispondenze parziali
             if recursive:
+                ctx.logger.debug("searching: %s/.../%s", base_path, filename)
                 for member in zip_content:
                     if member.startswith(base_path) and member.endswith(filename):
                         result.is_recursive=True
                         return extract_file(zz=z, filename=member)
-    return result
+
+
+    # if result.filepath:
+    #     ctx.logger.info("%s has been found on zipFile: %s", result.filepath, archive_file)
+    # else:
+    #     ctx.logger.warning("%s not found on zipFile: %s", filename, archive_file)
+    return result_and_exit()
 
 
 

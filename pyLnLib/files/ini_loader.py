@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 10-05-2026 10.00.36
+# Date .........: 11-05-2026 10.08.56
 #
 
 
@@ -17,7 +17,7 @@ import os
 ### --- project modules
 ### --------------------
 from ..context    import gVars as gv
-from .file_utils import getFileContent
+from .file_utils import searchFile
 
 
 
@@ -51,11 +51,13 @@ def _iniSet():
 def loadIni(filepath: str=None, content: str=None, search_paths: list=[], exit_on_error: bool=True):
     # from .file_utils import getFileContent
 
-    my_serarch_paths = search_paths + gv.search_paths
+    my_serarch_paths = search_paths
     ini_dict = {}
 
-    if not content: ### read contetn
-        if not (content := getFileContent(filename=filepath, search_paths=my_serarch_paths)):
+    if not content: ### read content
+        result = searchFile(filename=filepath, search_paths=my_serarch_paths, stacklevel=2)
+        content = result.content
+        if not result.filepath:
             gv.logger.error(f"File not found: {filepath}", exc_info=exit_on_error)
 
 

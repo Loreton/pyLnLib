@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 10-05-2026 15.25.44
+# Date .........: 11-05-2026 10.08.33
 #
 
 import sys; sys.dont_write_bytecode=True; this=sys.modules[__name__]
-import os
+import os, stat
 import zipfile
 from pathlib import Path
 from types import SimpleNamespace
@@ -13,7 +13,7 @@ from typing import Any, List, Optional, Tuple
 import shutil
 
 
-from ..context import gVars as ctx
+from ..context import gVars as ctx; C=ctx.colors
 
 def findFile(root: str, filename: str):
     for dirpath, _, files in os.walk(root):
@@ -36,7 +36,7 @@ def findFile(root: str, filename: str):
     result = searchingFile(filename=filename, search_paths=["conf"], recursive=False, copy_to=self.rclone_config_file)
     if not result.filepath:
         if zipfile.is_zipfile(sys.argv[0]):
-            result = searchingZipFile(filename=filename, archive_file=sys.argv[0], search_paths=["conf"], recursive=True, extraction_dir=self.temp_dir)
+            result = searchFileInZip(filename=filename, archive_file=sys.argv[0], search_paths=["conf"], recursive=True, extraction_dir=self.temp_dir)
             if not result.filepath:
                 ctx.logger.error("filename: %s not found on filesysten neither in zipfile", filename, exit=True)
         else:
@@ -44,35 +44,59 @@ def findFile(root: str, filename: str):
 '''
 
 
-def searchingFile(filename: str, search_paths: list=["conf"], recursive: bool=False, copy_to: str=None) -> Tuple[Optional[str], bool]:
+def searchFileOnFS(filename: str,
+                    search_paths: list,
+                    recursive: bool=False,
+                    extract_to: str=None,
+                    stacklevel=-1) -> Tuple[Optional[str], bool]:
     #------------------------------------
     def read_content(filename):
         result.filepath = filename
-        if copy_to:
-            shutil.copyfile(filename, copy_to)
+        if extract_to:
+            # shutil.copyfile(filename, extract_to)
+            # copy2() - come copy() ma mantiene anche i metadati (date, ecc.)
+            shutil.copy(filename, extract_to)  # Funziona anche con directory
+            dest_file = os.path.join(extract_to, os.path.basename(filename))
+            # Ottieni i permessi attuali
+            current_permissions = os.stat(dest_file).st_mode
+            # Aggiungi solo il permesso di scrittura (senza rimuovere altri)
+            os.chmod(dest_file, current_permissions | stat.S_IWUSR)  # solo per utente
+
         with open(filename, 'r') as f:
-            result.content = f.read().encode('utf-8')
+            result.content = f.read()
+        return result_and_exit()
+    #------------------------------------
+
+    #------------------------------------
+    def result_and_exit():
+        if result.filepath:
+            ctx.logger.info("FOUND: %s on fileSystem", result.filepath, color=C.magenta)
+        else:
+            ctx.logger.warning("NOT FOUND: %s on fileSystem", filename)
         return result
     #------------------------------------
 
-    result = SimpleNamespace(content=None, filepath=None, is_recursive=False)
 
-    ctx.logger.info("FileSystem searching for file: %s", filename)
+
+    STACKLEVEL = stacklevel+1
+    result = SimpleNamespace(content=None, filepath=None, is_recursive=False)
+    ctx.logger.info("searching for file: %s (on paths: %s)", filename, search_paths, stacklevel=STACKLEVEL)
+    # import pdb; pdb.set_trace(); # by Loreto
     if os.path.exists(filename): ### esiste già come file completo
         return read_content(filename)
 
     if filename.startswith('/'): ### absolute path inutile cercarlo altrove se non già trovato nel filesuistem
-        return result
+        return result_and_exit()
 
 
-    ff = Path(filename)
-    fname=ff.name.__str__()
-    fpath=ff.parent.__str__()
-
+    # ff = Path(filename)
+    # fname=ff.name.__str__()
+    # fpath=ff.parent.__str__()
 
     # --- 1. Ricerca Esterna (Filesystem) tramite search_paths ---
     for base_path in search_paths:
-        ctx.logger.info("on base_path: %s", base_path)
+        # ctx.logger.info("on base_path: %s", base_path)
+        ctx.logger.debug("searching: %s/.../%s", base_path, filename, stacklevel=STACKLEVEL)
         if os.path.exists(base_path):
             if recursive:
                 is_recursive=True
@@ -91,121 +115,17 @@ def searchingFile(filename: str, search_paths: list=["conf"], recursive: bool=Fa
                 if os.path.exists(full_path):
                     return read_content(full_path)
 
-
-    return result
-
-
-
-
-
-# #################################
-# # -
-# #################################
-# def _searchFile(filename: str, search_paths: list=["conf"], recursive: bool=True, archive_file: str=sys.argv[0]) -> Tuple[Optional[str], bool, bool]:
-#     """
-#     Cerca il file prima nel filesystem esterno, poi dentro il .pyz o zip.
-#     Ritorna: (path_o_nome, is_inside_zip)
-#     """
-#     IS_IN_ZIP=False
-#     IS_RECURSIVE=False
-
-#     ctx.logger.debug("FileSystem searching.....")
-#     # --- 1. Ricerca Esterna (Filesystem) direttamente il filename ---
-#     ctx.logger.debug("filename: %s", filename)
-#     if os.path.exists(filename): ### esiste già come file completo
-#         ctx.logger.debug("...found")
-#         return filename, IS_RECURSIVE, IS_IN_ZIP
-
-#     ff = Path(filename)
-#     fname=ff.name.__str__()
-#     fpath=ff.parent.__str__()
-
-
-#     # --- 1. Ricerca Esterna (Filesystem) tramite search_paths ---
-#     for base_path in search_paths:
-#         if os.path.exists(base_path):
-#             ctx.logger.debug("on base_path: %s", base_path)
-#             if recursive:
-#                 IS_RECURSIVE=True
-
-#                 for root, _, files in os.walk(base_path):
-
-#                     if filename in files:
-#                         ctx.logger.debug("...found")
-#                         return os.path.join(root, filename), IS_RECURSIVE, IS_IN_ZIP
-
-#                     for file in files:
-#                         if root == base_path and filename.endswith(file):
-#                             ctx.logger.debug("...found")
-#                             return file, IS_RECURSIVE, IS_IN_ZIP
-
-#                         elif root.startswith(base_path) and filename.endswith(file):
-#                             ctx.logger.debug("...found")
-#                             return file, IS_RECURSIVE, IS_IN_ZIP
-
-#             else:
-#                 IS_RECURSIVE=False
-#                 full_path = os.path.join(base_path, filename)
-#                 if os.path.exists(full_path):
-#                     ctx.logger.debug("...found")
-#                     return full_path, IS_RECURSIVE, IS_IN_ZIP
-
-#             ctx.logger.error("...not found")
-
-
-
-#     # --- 2. Ricerca Interna (ZIP/PYZ) ---
-#     if zipfile.is_zipfile(archive_file):
-#         ctx.logger.debug("ZIP  searching.....")
-#         ctx.logger.debug("filename: %s", filename)
-#         IS_RECURSIVE=False
-#         IS_IN_ZIP=True
-#         z=zipfile.ZipFile(archive_file, "r")
-#         zip_content=z.namelist()
-
-#         ### - cerca direttamente il filename... se esiste
-#         if filename in zip_content:
-#             return filename, IS_RECURSIVE, IS_IN_ZIP
-
-#         # Cerchiamo nei search_paths interni allo zip
-#         for base_path in search_paths:
-#             ctx.logger.debug("on base_path: [%s]", base_path)
-#             IS_RECURSIVE=False
-#             # ctx.logger.debug("ZIP  searching: [%s]: filename: %s", base_path, filename)
-#             # Normalizziamo il path interno (niente drive letter, slash avanti)
-#             target_in_zip = os.path.join(base_path, filename).replace('\\', '/') ### nel caso stessimo in Windows
-#             if target_in_zip in zip_content:
-#                 ctx.logger.info("...found")
-#                 return target_in_zip, IS_RECURSIVE, IS_IN_ZIP
-
-#             # Se ricorsivo, cerchiamo corrispondenze parziali
-#             if recursive:
-#                 IS_RECURSIVE=True
-#                 for member in zip_content:
-#                     if member.startswith(base_path) and member.endswith(filename):
-#                         ctx.logger.info("...found")
-#                         return member, IS_RECURSIVE, IS_IN_ZIP
-
-#             ctx.logger.error("...not found")
-#     return None, False, False
+    # if result.filepath:
+    #     ctx.logger.info("%s has been found on fileSystem", result.filepath)
+    # else:
+    #     ctx.logger.warning("%s not found on fileSystem", filename)
+    return result_and_exit()
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-def findFileInPaths(filename: str, search_paths: list, exit_on_not_found: bool=True):
+def findFileInPaths_prev(filename: str, search_paths: list, exit_on_not_found: bool=True):
     filepath = None
 
     # if os.path.isabs(filename) and os.path.isfile(filename):
@@ -217,206 +137,50 @@ def findFileInPaths(filename: str, search_paths: list, exit_on_not_found: bool=T
             filepath = file_path
             break
     if not filepath:
-        ctx.logger.error("filename: %s not found in searching paths: %s", filename, search_paths, exc_info=exit_on_not_found)
+        ctx.logger.error("filename: %s not found in searching paths: %s", filename, search_paths, stacklevel=2)
+        sys.exit(1)
 
     return filepath
 
 
-def getFileContent(filename: str, search_paths: list, resolve_vars: bool=True, exit_on_not_found: bool=True):
-    content = None
-    if file_path := this.findFileInPaths(filename, search_paths=search_paths):
-        with open(file_path, mode="r") as f:
-            content=f.read() # single strin
-        if resolve_vars:
-            content = os.path.expandvars(content)
-
-    if not content and exit_on_not_found:
-        ctx.logger.error("content not found on file: %s", filename, exc_info=exit_on_not_found)
-    return content
 
 
+# def getFileContent(filename: str, search_paths: list, resolve_vars: bool=True, exit_on_not_found: bool=True, stacklevel=0):
+#     content = None
+#     if file_path := this.findFileInPaths(filename, search_paths=search_paths):
+#         with open(file_path, mode="r") as f:
+#             content=f.read() # single strin
+#         if resolve_vars:
+#             content = os.path.expandvars(content)
 
-
+#     if not content and exit_on_not_found:
+#         ctx.logger.error("content not found on file: %s", filename, exc_info=exit_on_not_found, stacklevel=stacklevel+1)
+#     return content
 
 
 
 
+def searchFile(filename:           str,
+                    search_paths:       list,
+                    recursive:          bool=False,
+                    extract_to:         str=None, ### se si viuole copiare il file in altra destinazione
+                    exit_on_not_found:  bool=False,
+                    stacklevel:         int=-1):
+    ### --- copy_to importante perché il file rclone.conf dovro' passarlo come parametro a rclone,
+    result = searchFileOnFS(filename=filename, search_paths=search_paths, recursive=recursive, extract_to=extract_to, stacklevel=stacklevel+1)
 
-
-
-
-
-
-
-
-
-
-
-
-#################################
-# -
-#################################
-def searchingZipFile(filename: str, archive_file: str, search_paths: list=["conf"], recursive: bool=True, extraction_dir: str=None) -> Tuple[Optional[str], bool]:
-    # --- 2. Ricerca Interna (ZIP/PYZ) ---
-    result = SimpleNamespace(content=None, filepath=None, is_in_zip=False, is_recursive=False)
-
-    if zipfile.is_zipfile(archive_file):
-        ctx.logger.info("ZipFile searching for file: %s", filename)
-
-        is_recursive=False
-        z=zipfile.ZipFile(archive_file, "r")
-        zip_content=z.namelist()
-
-        ### - cerca direttamente il filename... se esiste
-        if filename in zip_content:
-            result.filepath=filename
-            result.is_in_zip=True
-            return result
-
-        # Cerchiamo nei search_paths interni allo zip
-        for base_path in search_paths:
-            ctx.logger.info("on base_path: [%s]", base_path)
-
-            # Normalizziamo il path interno (niente drive letter, slash avanti)
-            fpath = os.path.join(base_path, filename).replace('\\', '/') ### nel caso stessimo in Windows
-            if fpath in zip_content:
-                result.filepath = fpath
-                result.is_in_zip=True
-                if extraction_dir:
-                    z.extract(member=fpath, path=extraction_dir, pwd=None)
-                with z.open(filename) as f:
-                    result.content = f.read().decode('utf-8')
-                return result
-
-
-            # Se ricorsivo, cerchiamo corrispondenze parziali
-            if recursive:
-                for member in zip_content:
-                    if member.startswith(base_path) and member.endswith(filename):
-                        result.is_recursive=True
-                        result.filepath = member
-                        return result
-
-
-    return result
-
-
-
-#################################
-# -
-#################################
-def searchingFilesystem(filename: str, search_paths: list=["conf"], recursive: bool=True) -> Tuple[Optional[str], bool]:
-    """
-    Cerca il file prima nel filesystem esterno, poi dentro il .pyz o zip.
-    Ritorna: (path_o_nome, is_inside_zip)
-    """
-    result = SimpleNamespace(content=None, filepath=None, is_zipfile=False, is_recursive=False)
-    ctx.logger.info("FileSystem searching for file: %s", filename)
-    if os.path.exists(filename): ### esiste già come file completo
-        result.filepath=filename
-        return result
-
-    if filename.startswith('/'): ### absolute path inutile cercarlo altrove se non già trovato nel filesuistem
-        return result
-
-
-    ff = Path(filename)
-    fname=ff.name.__str__()
-    fpath=ff.parent.__str__()
-
-
-    # --- 1. Ricerca Esterna (Filesystem) tramite search_paths ---
-    for base_path in search_paths:
-        ctx.logger.info("on base_path: %s", base_path)
-        if os.path.exists(base_path):
-            if recursive:
-                result.recursive=True
-
-                for root, _, files in os.walk(base_path):
-
-                    if filename in files:
-                        result.filepath=os.path.join(root, filename)
-                        return result
-
-                    for file in files:
-                        if root == base_path and filename.endswith(file):
-                            result.filepath=file
-                            return result
-
-
-                        elif root.startswith(base_path) and filename.endswith(file):
-                            result.filepath=file
-                            return result
-
-            else:
-                full_path = os.path.join(base_path, filename)
-                if os.path.exists(full_path):
-                    result.recursive=False
-                    result.filepath=full_path
-                    return result
-
-
-    return result
-
-
-
-def searchFile(filename: str, search_paths: list=["conf"], recursive: bool=True, archive_file: str=None, extraction_dir: str='/tmp') -> Tuple[Optional[str], bool, bool]:
-    res = searchingFilesystem(filename=filename, search_paths=search_paths, recursive=recursive)
-    if res.filepath:
-        ctx.logger.info("found - is_recursive: %s", res.is_recursive)
-        return res
-    else:
-        ctx.logger.error("not found in filesystem")
-
-
-    if zipfile.is_zipfile(archive_file):
-        res = searchingZipFile(filename=filename, archive_file=archive_file, search_paths=search_paths, recursive=recursive, extraction_dir=extraction_dir)
-        if res.filepath:
-            ctx.logger.info("found - is_recursive: %s", res.is_recursive)
-            return res
+    if not result.filepath:
+        if zipfile.is_zipfile(sys.argv[0]):
+            result = searchFileInZip(filename=filename, archive_file=sys.argv[0], search_paths=search_paths, recursive=recursive, extraction_dir=extract_to)
+            if not result.filepath:
+                ctx.logger.error("filename: %s not found on filesysten neither in zipfile", filename, exit=exit_on_not_found)
         else:
-            ctx.logger.error("not found in zip_file")
+            ctx.logger.warning("filename: %s not found on fileSystem", filename, exit=exit_on_not_found)
 
-    return res
-
-
-
-
-
-
+    return result
 
 ##################################################################################################################################
 #   M A I N
 ##################################################################################################################################
 if __name__ == '__main__':
-    # global ctx
-    # from types import SimpleNamespace
-    # ctx=SimpleNamespace()
-    # from coloredLogger_simple import setupLogger, testLogger
-    # ctx.logger=setupLogger(colored=True, logger_name='Loreto', logger_level="debug")
-    ctx.logger.info(msg='------- Starting -----------')
-    FINDFILE = True
-
-    if FINDFILE:
-        myPaths = [".", "conf/", "test/prova/"]
-        myPaths = ["conf/", "test/prova/"]
-        files_to_check=[
-                        'test/prova/test.txt', ## solo locale
-                        'test.txt', ## solo locale
-                        'conf/profiles/HD2510_500GB.yaml', # in zip
-                        'conf/@lnSync_config.yaml', # in zip
-                        'WD264F_500GB.yaml', # in zip
-                        '/home/loreto/filu/Programming/gitREPO/lnSync/conf/rclone_options.yaml', # in zip
-                        ]
-        # filename = findFileInPaths(filename="@lnSync_config.yaml", paths=myPaths)
-        for filename in files_to_check:
-            res = searchFile(filename=filename,
-                                  search_paths=myPaths,
-                                  recursive=True,
-                                  archive_file='/home/loreto/filu/Programming/gitREPO/lnSync/dist/lnSync.pyz')
-            if res.filepath:
-                ctx.logger.notify(f"FOUND {res.filepath = }")
-            else:
-                ctx.logger.error(f"NOT FOUND {filename = }")
-
-            print('\n'*2)
+    ...

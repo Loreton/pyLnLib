@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 10-05-2026 10.28.48
+# Date .........: 11-05-2026 09.41.01
 #
 import os
 
@@ -13,6 +13,6 @@ Autore: Loreto Notarantonio
 
 from   .write_file                 import writeFile
 from   .yaml_loader_class          import lnYamlEnvironment
-from   .zip_file_utils             import searchingZipFile
-from   .file_utils                 import searchingFile
+from   .zip_file_utils             import searchFileInZip
+from   .file_utils                 import searchFile, searchFileOnFS
 from   .ini_loader                 import loadIni

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 10-05-2026 15.20.45
+# Date .........: 11-05-2026 09.40.53
 #
 import os
 
@@ -20,8 +20,8 @@ from   .system.signal_handler             import signalHandler
 # ---- files
 from   .files.write_file                 import writeFile
 from   .files.yaml_loader_class          import lnYamlEnvironment
-from   .files.zip_file_utils             import searchingZipFile
-from   .files.file_utils                 import searchingFile
+from   .files.zip_file_utils             import searchFileInZip
+from   .files.file_utils                 import searchFile, searchFileOnFS
 from   .files.ini_loader                 import loadIni
 
 

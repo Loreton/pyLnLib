@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 10-05-2026 15.13.27
+# Date .........: 11-05-2026 09.44.19
 #
 
 #!/usr/bin/env python3
@@ -44,7 +44,6 @@ logger_config='''
             ERROR:     redH
             CRITICAL:  magentaH
             NOTIFY:    blueH
-            CMDOUTPUT: magenta,
 
         formatter:
             asci_time:   "{Color.cyan}%(asctime)s
@@ -94,13 +93,12 @@ class ColorFormatter(logging.Formatter):
 class lnLoggerColored:
 
     LEVEL_COLORS = {
-        "DEBUG":     Color.cyanH,
-        "INFO":      Color.greenH,
-        "WARNING":   Color.yellowH,
-        "ERROR":     Color.redH,
-        "CRITICAL":  Color.magentaH,
-        "NOTIFY":    Color.blueH,
-        "CMDOUTPUT": Color.magenta,
+        "DEBUG":     Color.cyan,
+        "INFO":      Color.green,
+        "WARNING":   Color.yellow,
+        "ERROR":     Color.red,
+        "CRITICAL":  Color.magenta,
+        "NOTIFY":    Color.blue,
     }
 
 
@@ -120,9 +118,6 @@ class lnLoggerColored:
 
         if console_logger_level:
             self.consoleHandler = self.setConsoleLogger()
-            # xx =getattr(logging, console_logger_level.upper(), logging.INFO)
-            # import pdb; pdb.set_trace(); # by Loreto
-            # self.consoleHandler.setLevel(console_logger_level)
             self.consoleHandler.setLevel(getattr(logging, console_logger_level.upper(), logging.INFO))
             self.logger.addHandler(self.consoleHandler)
 
@@ -180,9 +175,6 @@ class lnLoggerColored:
         )
 
         ch.setFormatter(formatter)
-        # ch.setLevel(console_logger_level)
-        # ch.setLevel(getattr(logging, console_logger_level.upper(), logging.INFO))
-        # self.logger.addHandler(ch)
         return ch
 
 
@@ -194,12 +186,10 @@ class lnLoggerColored:
         if not os.path.exists(logging_dir) and create_logging_dir:
             os.makedirs(logging_dir)
 
-        # fileHandler = logging.FileHandler("app.log")
         fh = RotatingFileHandler(logging_file, maxBytes=5*1000*1000, backupCount=5)
         # formatter   = logging.Formatter(f"%(asctime)s - [{threads_str}%(module)s.%(funcName)s:%(lineno)4.4s] [%(levelname)4.4s]: %(message)s")
         formatter   = logging.Formatter(f"%(asctime)s - [{self.threads_str}%(module)s:%(lineno)4.4s] [%(levelname)4.4s]: %(message)s")
         fh.setFormatter(formatter)
-        # self.logger.addHandler(fh)
         return fh
 
 
@@ -288,15 +278,8 @@ class lnLoggerColored:
     def function(self, msg: str, *args, color: Optional[str] = None, **kwargs):
         self._log("FUNCTION", msg, *args, color=color, **kwargs)
 
-    # def cmdoutput(self, msg: str, *args, color: Optional[str] = None, **kwargs):
-    #     self._log("CMDOUTPUT", msg, *args, color=color, **kwargs)
 
-    # -------------------------------
-    # DRY RUN helper non mi serve più
-    # -------------------------------
-    # def dry_run(self, msg: str, *args, color: Optional[str] = Color.blueH, **kwargs):
-    #     msg = f"[DRY] {msg}"
-    #     self._log("INFO", msg, *args, color=color, **kwargs)
+
 
 
 def testLogger(logger):
