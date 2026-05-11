@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 11-05-2026 10.08.33
+# Date .........: 11-05-2026 10.47.19
 #
 
 import sys; sys.dont_write_bytecode=True; this=sys.modules[__name__]
@@ -53,17 +53,24 @@ def searchFileOnFS(filename: str,
     def read_content(filename):
         result.filepath = filename
         if extract_to:
-            # shutil.copyfile(filename, extract_to)
-            # copy2() - come copy() ma mantiene anche i metadati (date, ecc.)
-            shutil.copy(filename, extract_to)  # Funziona anche con directory
+            shutil.copy2(filename, extract_to)
             dest_file = os.path.join(extract_to, os.path.basename(filename))
-            # Ottieni i permessi attuali
-            current_permissions = os.stat(dest_file).st_mode
+            current_permissions = os.stat(dest_file).st_mode # Ottieni i permessi attuali
             # Aggiungi solo il permesso di scrittura (senza rimuovere altri)
             os.chmod(dest_file, current_permissions | stat.S_IWUSR)  # solo per utente
 
-        with open(filename, 'r') as f:
-            result.content = f.read()
+        if True:
+            with open(filename, 'r') as f: # modalita testo
+                content_str   = f.read()  # Già una stringa (str)
+                # se si ha bisogno dei bytes prima...
+                # content_bytes = f.read().encode('utf-8')  # bytes
+                # content_str   = content_bytes.decode('utf-8')  # str
+        else:
+            with open(filename, 'rb') as f: # modalità binaria
+                content_bytes = f.read()  # bytes
+                content_str   = content_bytes.decode('utf-8')  # str
+
+        result.content = content_str
         return result_and_exit()
     #------------------------------------
 

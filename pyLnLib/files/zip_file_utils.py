@@ -107,9 +107,15 @@ def searchFileInZip(archive_file: str,
             os.chmod(dest_file, current_permissions | stat.S_IWUSR)  # solo per utente
             result.extracted_file = fdest_file
 
-        with zz.open(filename, 'r') as f:
-            result.content = f.read()
+        if True:
+            with zz.open(filename, 'r') as f:
+                content_str = f.read() # str
+        else:
+            with open(filename, 'rb') as f: # modalità binaria
+                content_bytes = f.read()  # bytes
+                content_str   = content_bytes.decode('utf-8')  # str
 
+        result.content = content_str
         return result_and_exit()
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 11-05-2026 09.35.48
+# Date .........: 11-05-2026 10.47.44
 #
 
 import sys; sys.dont_write_bytecode=True;
@@ -145,7 +145,6 @@ class YamlEngine:
             target_file, keypath = filename_with_pointer, None
 
         content = self.find_file(target_file)
-
         content = os.path.expandvars(content)
         data = yaml.load(content, Loader=lnYamlLoader)
 
