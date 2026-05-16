@@ -105,7 +105,7 @@ def searchFileInZip(archive_file: str,
             current_permissions = os.stat(dest_file).st_mode
             # Aggiungi solo il permesso di scrittura (senza rimuovere altri)
             os.chmod(dest_file, current_permissions | stat.S_IWUSR)  # solo per utente
-            result.extracted_file = fdest_file
+            result.extracted_file = dest_file
 
         if True:
             with zz.open(filename, 'r') as f:

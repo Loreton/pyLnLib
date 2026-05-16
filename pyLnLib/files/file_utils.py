@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 11-05-2026 10.47.19
+# Date .........: 11-05-2026 14.01.19
 #
 
 import sys; sys.dont_write_bytecode=True; this=sys.modules[__name__]
@@ -14,6 +14,7 @@ import shutil
 
 
 from ..context import gVars as ctx; C=ctx.colors
+from .zip_file_utils import searchFileInZip
 
 def findFile(root: str, filename: str):
     for dirpath, _, files in os.walk(root):
@@ -178,7 +179,7 @@ def searchFile(filename:           str,
 
     if not result.filepath:
         if zipfile.is_zipfile(sys.argv[0]):
-            result = searchFileInZip(filename=filename, archive_file=sys.argv[0], search_paths=search_paths, recursive=recursive, extraction_dir=extract_to)
+            result = searchFileInZip(filename=filename, archive_file=sys.argv[0], search_paths=search_paths, recursive=recursive, extract_to=extract_to)
             if not result.filepath:
                 ctx.logger.error("filename: %s not found on filesysten neither in zipfile", filename, exit=exit_on_not_found)
         else:

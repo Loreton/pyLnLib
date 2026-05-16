@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 11-05-2026 09.44.19
+# Date .........: 15-05-2026 17.42.16
 #
 
 #!/usr/bin/env python3
@@ -102,7 +102,7 @@ class lnLoggerColored:
     }
 
 
-    def __init__(self, name: str, console_logger_level: str=None, file_logger_level: str="WARNING", logging_dir: str=None, threads: bool=False):
+    def __init__(self, name: str, console_logger_level: str=None, file_logger_level: str="warning", logging_dir: str=None, threads: bool=False):
         self.logger = logging.getLogger(name)
         self.add_custom_levels()
         self.logger.setLevel(logging.TRACE)
@@ -123,7 +123,8 @@ class lnLoggerColored:
 
 
         if logging_dir:
-            self.fileHandler = self.setRotatingLogger(name=name, file_logger_level=file_logger_level, logging_dir=logging_dir)
+            # self.fileHandler = self.setRotatingLogger(name=name, file_logger_level=file_logger_level, logging_dir=logging_dir)
+            self.fileHandler = self.setRotatingLogger(name=name, logging_dir=logging_dir)
             self.fileHandler.setLevel(getattr(logging, file_logger_level.upper(), logging.WARNING))
             self.logger.addHandler(self.fileHandler)
 
@@ -181,7 +182,7 @@ class lnLoggerColored:
     # -------------------------------
     # Rotating Logger
     # -------------------------------
-    def setRotatingLogger(self, name: str, logging_dir: str=None):
+    def setRotatingLogger(self, name: str, logging_dir: str=None, create_logging_dir: bool=True):
         logging_file=f"{logging_dir}/{name.lower()}.log"
         if not os.path.exists(logging_dir) and create_logging_dir:
             os.makedirs(logging_dir)
