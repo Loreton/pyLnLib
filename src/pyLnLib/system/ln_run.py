@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 10-05-2026 09.59.16
+# Date .........: 19-05-2026 20.20.31
 #
 
 
@@ -27,21 +27,21 @@ def lnRun(
             command: str | list,
             cwd: Optional[str] = None,
             exit_on_error: bool = False,
-            stacklevel: int = 1,
+            stacklevel: int = 0,
             fExecute: bool = False,
             toLogger: Optional[DummyPrintLogger] = None
         ) -> tuple[int, str, str]:
 
-
     lnRun_STACKLEVEL=stacklevel
+    lnRun_STACKLEVEL=0
     logger: LoggerLike = toLogger or DummyPrintLogger()
     result: SimpleNamespace = SimpleNamespace(rcode=0, stdout='', stderr='')
 
     command_args = shlex.split(command) if isinstance(command, str) else command
     str_command = ' '.join(command_args)
 
-    # logger.info(f"[{'executing' if fExecute else 'dry-run'}] {str_command}", color=Color.blueH, stacklevel=lnRun_STACKLEVEL)
-    logger.info(str_command, dry_run=(not fExecute), stacklevel=lnRun_STACKLEVEL)
+    # logger.info(f"[{'executing' if fExecute else 'dry-run'}] {str_command}", color=Color.blueH)
+    logger.info(str_command, dry_run=(not fExecute))
 
     if fExecute:
         try:
@@ -60,18 +60,18 @@ def lnRun(
             # log stdout
             if result.stdout:
                 for line in result.stdout.splitlines():
-                    logger.info(line, color=Color.blue, stacklevel=lnRun_STACKLEVEL)
+                    logger.debug(line, color=Color.blue)
 
             # log stderr
             if result.stderr:
                 for line in result.stderr.splitlines():
-                    logger.error(line, color=Color.redH, stacklevel=lnRun_STACKLEVEL)
+                    logger.error(line, color=Color.redH)
 
             if result.rcode != 0 and exit_on_error:
                 raise SystemExit(result.rcode)
 
         except Exception as e:
-            logger.error(f"Exception: {e}", color=Color.redH, stacklevel=lnRun_STACKLEVEL)
+            logger.error(f"Exception: {e}", color=Color.redH)
             if exit_on_error:
                 raise SystemExit(1)
 

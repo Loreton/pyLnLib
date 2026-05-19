@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 10-05-2026 15.20.29
+# Date .........: 19-05-2026 18.07.16
 #
 import os
 
@@ -14,4 +14,4 @@ Autore: Loreto Notarantonio
 
 
 from .dummy_logger   import DummyPrintLogger
-from .logger_colored import lnLoggerColored as lnLogger, testLogger
+from .ln_colored_logger import lnColoredLogger as lnLogger, testLogger

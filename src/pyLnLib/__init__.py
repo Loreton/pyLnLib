@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 17-05-2026 17.22.47
+# Date .........: 19-05-2026 18.08.08
 #
 import os
 
@@ -10,6 +10,20 @@ import os
 pyLnLib - libreria personale di utility Python
 Autore: Loreto Notarantonio
 """
+'''
+	uv remove pyLnLib
+	uv pip uninstall pyLnLib
+
+	- per i progetti strutturati python:
+	uv add /home/loreto/filu/Programming/gitREPO/pyLnLib
+	- per altri progetti:
+	uv pip install -e  /home/loreto/filu/Programming/gitREPO/pyLnLib
+
+	test: python -c "import pyLnLib.system; print('OK')"
+	test: python -c "import pyLnLib.system; print(pyLnLib.system)"
+'''
+
+
 
 # ---- system
 from   .system.acquire_lock        import acquire_lock
@@ -27,7 +41,7 @@ from   .files.ini_loader                 import loadIni
 
 # ---- logger
 from   .logger.dummy_logger               import DummyPrintLogger
-from   .logger.logger_colored            import lnLoggerColored as lnLogger, testLogger
+from   .logger.ln_colored_logger           import lnColoredLogger as lnLogger, testLogger
 
 
 # ---- lndict
