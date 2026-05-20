@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 11-05-2026 09.50.22
+# Date .........: 20-05-2026 21.28.26
 #
 
 #!/usr/bin/env python3
@@ -27,14 +27,26 @@ if __name__ == "__main__":
                             logging_dir=None, # no filehandler
                             threads=False)
 
-    logger.test(logger=logger)
 
-    logger=DummyPrintLogger(name="DummyPrintLogger",
-                            console_logger_level="trace"
-                            )
+    dynamic_length=False
+    logger.setNameLength(dynamic=False, length=10)
+    print("\n")
+    print("*"*60)
+    print(f"--- Logger name: {logger.name} {dynamic_length = }")
+    print("*"*60)
+    testLogger(logger)
 
 
-    testLogger(logger=logger)
+
+    dynamic_length=True
+    logger.setNameLength(dynamic=True, length=0)
+    print("\n")
+    print("*"*60)
+    print(f"--- Logger name: {logger.name} {dynamic_length = }")
+    print("*"*60)
+    testLogger(logger)
+
+
 
     print("\n"*2)
 

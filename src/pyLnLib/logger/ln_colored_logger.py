@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 19-05-2026 20.19.35
+# Date .........: 20-05-2026 21.28.46
 #
 
 
@@ -102,18 +102,12 @@ class lnColoredLogger:
         self.name = name
         self.test = testLogger
 
-        self.setNameLength(len=10)
+        self.setNameLength(dynamic=False, length=10)
         self.setLinenoLength(len=4)
         self.setShowCaller(show_caller=False)
-        self.setDynNameLength(dynamic=False)
+        # self.setDynNameLength(dynamic=False)
 
-        # self.name_len = 10
-        # self.lineno_len = 4
-        # self.show_caller = False
-        # self.dynamic_name_lentgh = False
 
-        # self.MAX_NAME_LEN=max_name_len
-        # self.setNameLength(name_len=max_name_len)
         self.threads_str="%(threadName)-5.5s." if threads else ''
 
         if console_logger_level:
@@ -195,8 +189,9 @@ class lnColoredLogger:
         self.notify("console log level has been set to: %s", level.upper())
 
 
-    def setNameLength(self, len: int):
-        self.name_len=len
+    def getMaxLength(self):
+        return self.name_len + self.lineno_len + 1
+
 
     def setLinenoLength(self, len: int):
         self.lineno_len=len
@@ -204,10 +199,25 @@ class lnColoredLogger:
     def setShowCaller(self, show_caller: bool):
         self.show_caller=show_caller
 
-    def setDynNameLength(self, dynamic: bool):
-        self.dynamic_name_lentgh=dynamic
+    def setNameLength(self, dynamic: bool, length: int):
         if dynamic:
+            self.dynamic_name_lentgh=True
             self.name_len=0
+        else:
+            self.dynamic_name_lentgh=False
+            if length<8:
+                length=8
+            self.name_len=length
+
+    # def setNameLength(self, len: int):
+    #     self.name_len=len
+
+    # def setDynNameLength(self, dynamic: bool):
+    #     self.dynamic_name_lentgh=dynamic
+    #     if dynamic:
+    #         self.name_len=0
+    #     else:
+    #         self.name_len=10
 
     # -------------------------------
     #
@@ -263,7 +273,7 @@ class lnColoredLogger:
     # deve individuare due caller
     #   [logCallerFunction:nnn]: [CALLER] writeFile - [called by: colui che ha chiamato logCallerFunction (stacklevel-1)]
     ################################################################
-    # def callerFunc(self, stacklevel: int=1, fDEBUG: bool=False):
+    # def _caller(self, stacklevel: int=1, fDEBUG: bool=False):
     #     def getInfo(stack):
     #         fname=stack.filename.rsplit('.', 1)[0]
     #         funcname=os.sep.join(fname.split(os.sep)[-2:])
@@ -297,21 +307,21 @@ class lnColoredLogger:
 
 
 
-
-    def callerFunc(self, stacklevel: int=1, fDEBUG: bool=False):
+    def _callerMIO(self, stacklevel: int=1):
+        fDEBUG=True
         _stacks=inspect.stack() # changed:  27-02-2024
         n_stacks=len(_stacks) # changed:  27-02-2024
-        # import pdb; pdb.set_trace(); # by Loreto
-        # stacklevel=4+additional_levels
-        # if stacklevel>=n_stacks: stacklevel=n_stacks-1 # changed:  27-02-2024
-        if stacklevel>=n_stacks:
-            module_stacklevel=n_stacks-1
+
+        # if stacklevel ==4:
+        #     import pdb; pdb.set_trace(); # by Loreto
+        if stacklevel>=n_stacks-1:
+            module_stacklevel= n_stacks-1
+            caller_stacklevel= -99
         else:
-            module_stacklevel=stacklevel
+            module_stacklevel = stacklevel
+            caller_stacklevel = module_stacklevel+1
 
-        caller_stacklevel = module_stacklevel+1
 
-        # module_stacklevel=stacklevel if stacklevel>=n_stacks else n_stacks-1 # changed:  27-02-2024
 
         if fDEBUG:
             x=traceback.extract_stack()
@@ -322,7 +332,6 @@ class lnColoredLogger:
                 function = inspect.stack()[i].function
                 lineno = inspect.stack()[i].lineno
                 print(i, filename, lineno)
-                # print(i, inspect.stack()[i].function, inspect.stack()[i].lineno)
 
 
         caller = inspect.stack()[caller_stacklevel]
@@ -336,32 +345,80 @@ class lnColoredLogger:
 
         caller_name = Path(caller.filename).stem
         module_name = Path(module.filename).stem
-        # func = f.f_code.co_name
-        # if func == '<module>':
-        #     func = 'main'
-
-        # caller_name = filename  # default
 
         return self._format_name(module_name, module.lineno), self._format_name(caller_name, caller.lineno)
 
 
-        # caller=_stacks[stacklevel] # changed:  27-02-2024
+    # ######################################################
+    # 0  _caller() - la funzione corrente
+    # 2  _log()
+    # 3  info() / debug() / etc. (metodo pubblico)
+    # 4  chiamante originale (test function)
+    # ######################################################
+    def _caller(self, stacklevel: int = 1):
+        fDEBUG=False
+        """Restituisce (module_formatted, caller_formatted)
 
-        # fname=caller.filename.rsplit('.', 1)[0]
-        # funcname=os.sep.join(fname.split(os.sep)[-2:])
-        # msg=f"{funcname}:{caller.lineno}"
-        # if fDEBUG:
-        #     print(msg)
-        # return msg
+        Args:
+            stacklevel: Livello base da cui partire (default 1)
+                       1 = chiamante di _log (metodo pubblico)
+                       2 = chiamante originale
+        """
+        frames = inspect.stack()
+        n_frames = len(frames)
+        # print(n_frames, stacklevel)
+
+        if fDEBUG:
+            x=traceback.extract_stack()
+            print('-'*40)
+            for i in range(len(x)):
+                filename = inspect.stack()[i].filename
+                function = inspect.stack()[i].function
+                lineno = inspect.stack()[i].lineno
+                print(i, filename, lineno)
 
 
-    def _caller(self, additional_levels=0):
+
+
+        # Calcola gli indici (evitando di andare otut of range)
+        module_idx    = min(stacklevel, n_frames - 1)
+        module_frame  = frames[module_idx]
+        module_filename   = module_frame.filename
+        module_name   = Path(module_frame.filename).stem
+        module_lineno = module_frame.lineno
+
+        if n_frames - stacklevel <= 1:
+            caller_filename = "out_of_index"
+            caller_name     = "out_of_index"
+            caller_lineno   = 0
+            caller_frame    = "no_frame"
+            caller_idx      = min(module_idx + 1, n_frames - 1) # module_idx+1
+        else:
+            caller_idx      = min(module_idx + 1, n_frames - 1) # module_idx+1
+            caller_frame    = frames[caller_idx]
+            caller_filename = caller_frame.filename
+            caller_name     = Path(caller_frame.filename).stem
+            caller_lineno   = caller_frame.lineno
+
+
+        if fDEBUG:
+            print('-'*40)
+            print("module:", module_idx, module_filename, module_lineno)
+            print("caller:", caller_idx, caller_filename, caller_lineno)
+            print('-'*40)
+
+
+        return (self._format_name(module_name, module_lineno),
+                self._format_name(caller_name, caller_lineno))
+
+
+
+    def _caller_BAD(self, additional_levels=0):
         """Recupera informazioni sul chiamante e le formatta
         Args:
             additional_levels: Numero di livelli extra da saltare nello stack
         """
         f = inspect.currentframe()
-        # skip levels: _caller() -> _log() -> metodo pubblico -> chiamante originale
         # additional_levels permette di saltare ulteriori livelli
         for _ in range(4 + additional_levels):
             print(_, f.f_code.co_filename, f.f_lineno)
@@ -372,7 +429,7 @@ class lnColoredLogger:
                 break
 
         if f is None:
-            return self._format_name("unknown", 0)
+            return self._format_name("unknown", 0), "dummy"
 
         filename = Path(os.path.basename(f.f_code.co_filename)).stem
         lineno = f.f_lineno
@@ -382,7 +439,7 @@ class lnColoredLogger:
 
         caller_name = filename  # default
 
-        return self._format_name(caller_name, lineno)
+        return self._format_name(caller_name, lineno), "dummy"
 
 
     # -------------------------------
@@ -397,26 +454,12 @@ class lnColoredLogger:
 
         if level_value >= self.consoleHandler.level or forceLog:
             kwargs["stacklevel"] = stacklevel + 3
-            '''
-            # Ottieni le informazioni del chiamante originale per module_formatted
-            f = inspect.currentframe()
-            for _ in range(3):  # Salta fino al chiamante reale
-                if f is not None:
-                    f = f.f_back
-                else:
-                    break
-
-            if f is not None:
-                module_name = Path(os.path.basename(f.f_code.co_filename)).stem
-                lineno = f.f_lineno
-                module_formatted = self._format_name(module_name, lineno)
-            else:
-                module_formatted = self._format_name("unknown", 0)
-            '''
 
             # Calcola caller formattato se necessario
             # Il caller deve essere il chiamante del metodo pubblico (un livello sopra)
-            module_formatted, caller_formatted = self.callerFunc(stacklevel=3, fDEBUG=False)
+            # module_formatted, caller_formatted = self._callerMIO(stacklevel=3+stacklevel)
+            module_formatted, caller_formatted = self._caller(stacklevel=3+stacklevel)
+
             if showCaller or self.show_caller:
                 ...
             else:
@@ -483,11 +526,9 @@ class lnColoredLogger:
 
 
 def testLogger(logger):
-    print("\n")
-    print("*"*60)
-    print(f"--- Logger name: {logger.name} (max_len={logger.max_len})")
-    print("*"*60)
 
+
+    # logger.setDynNameLength()
     print("\n--- base colors ---")
     logger.debug("DEBUG default")
     logger.info("INFO default")
@@ -501,34 +542,36 @@ def testLogger(logger):
     logger.warning("WARNING in cyan", color=Color.cyan)
     logger.error("ERROR in yellowH", color=Color.yellowH)
 
-    print("\n--- caller test ---")
     logger.info("This shows caller info", show_caller=True)
 
-    print("\n--- test con nome lungo ---")
     logger.info("Test con nome modulo lungo", show_caller=True)
 
-    print("\n")
+    logger.info("This shows caller info + stacklevel=1", show_caller=True, stacklevel=1)
+
+    logger.info("Test con nome modulo lungo + stacklevel=1", show_caller=True, stacklevel=1)
+
+    # print("\n")
 
 
-# -------------------------------
-# Test
-# -------------------------------
-if __name__ == "__main__":
-    # Test con diverse lunghezze
-    print("=== Test con max_len=15 ===")
-    logger1 = lnColoredLogger(
-        name="test_logger",
-        console_logger_level="debug",
-        show_caller=True,
-        max_len=15
-    )
-    testLogger(logger1)
+# # -------------------------------
+# # Test
+# # -------------------------------
+# if __name__ == "__main__":
+#     # Test con diverse lunghezze
+#     print("=== Test con max_len=15 ===")
+#     logger1 = lnColoredLogger(
+#         name="test_logger",
+#         console_logger_level="debug",
+#         show_caller=True,
+#         max_len=15
+#     )
+#     testLogger(logger1)
 
-    print("\n=== Test con max_len=20 ===")
-    logger2 = lnColoredLogger(
-        name="test_logger",
-        console_logger_level="debug",
-        show_caller=True,
-        max_len=20
-    )
-    testLogger(logger2)
+#     print("\n=== Test con max_len=20 ===")
+#     logger2 = lnColoredLogger(
+#         name="test_logger",
+#         console_logger_level="debug",
+#         show_caller=True,
+#         max_len=20
+#     )
+#     testLogger(logger2)
