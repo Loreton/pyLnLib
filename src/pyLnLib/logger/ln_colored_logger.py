@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 20-05-2026 21.28.46
+# Date .........: 22-05-2026 16.30.31
 #
 
 
@@ -199,8 +199,11 @@ class lnColoredLogger:
     def setShowCaller(self, show_caller: bool):
         self.show_caller=show_caller
 
+    ###########################################################
+    # if
+    ###########################################################
     def setNameLength(self, dynamic: bool, length: int):
-        if dynamic:
+        if dynamic or length==0:
             self.dynamic_name_lentgh=True
             self.name_len=0
         else:
@@ -209,42 +212,6 @@ class lnColoredLogger:
                 length=8
             self.name_len=length
 
-    # def setNameLength(self, len: int):
-    #     self.name_len=len
-
-    # def setDynNameLength(self, dynamic: bool):
-    #     self.dynamic_name_lentgh=dynamic
-    #     if dynamic:
-    #         self.name_len=0
-    #     else:
-    #         self.name_len=10
-
-    # -------------------------------
-    #
-    # -------------------------------
-    def setNameLength_(self, max_name_len: int, lineno_len: int, show_caller: bool, dynamic_length: bool):
-        """
-        Imposta la lunghezza dei nomi dei moduli
-        sia per il caller che per il modulo
-        """
-
-        self.lineno_len = lineno_len  # Larghezza fissa per il numero di linea
-        # MAX_LEN=name_len
-        # if max_length > self.max_name_len
-        #     self.max_name_len=max_name_len
-
-        # if max_name_len > self.MAX_NAME_LEN:
-        #     self.MAX_NAME_LEN = max_name_len
-
-        if max_name_len > self.name_len:
-            self.name_len = max_name_len
-
-        # elif max_len > self.max_name_len:
-        #     self.max_name_len=max_len
-
-        # self.name_len = self.MAX_NAME_LEN - self.lineno_len - 1  # -1 per i due punti
-        self.show_caller = show_caller
-        self.dynamic_name_lentgh = dynamic_lentgh # la lunghezza si adegua man mano al nome più lungo
 
 
     def _format_name(self, name: str, lineno: int) -> str:
@@ -261,49 +228,13 @@ class lnColoredLogger:
             if len(name) >= self.name_len:
                 name = name[:self.name_len-2] + "." ### per far capire che è troncato
 
-        # print(name, len(name))
 
         # Padding del nome con spazi a destra
         name = f"{name}:".ljust(self.name_len)
-        # print(name, len(name))
+
         # Formatta il numero di linea con padding a sinistra
         return f"[{name}{lineno:4d}]"
 
-    ################################################################
-    # deve individuare due caller
-    #   [logCallerFunction:nnn]: [CALLER] writeFile - [called by: colui che ha chiamato logCallerFunction (stacklevel-1)]
-    ################################################################
-    # def _caller(self, stacklevel: int=1, fDEBUG: bool=False):
-    #     def getInfo(stack):
-    #         fname=stack.filename.rsplit('.', 1)[0]
-    #         funcname=os.sep.join(fname.split(os.sep)[-2:])
-    #         msg=f"{funcname}:{stack.lineno}"
-    #         return msg
-
-    #     _stacks=inspect.stack() # changed:  27-02-2024
-    #     n_stacks=len(_stacks) # changed:  27-02-2024
-
-    #     if stacklevel>=n_stacks: stacklevel=n_stacks-1 # changed:  27-02-2024
-
-    #     if fDEBUG:
-    #         x=traceback.extract_stack()
-
-    #         print('-'*40)
-    #         for i in range(len(x)): print(i, inspect.stack()[i].filename, inspect.stack()[i].function, inspect.stack()[i].lineno)
-
-    #         print('-'*40)
-    #         print("stacklevel:", stacklevel, inspect.stack()[stacklevel].function, inspect.stack()[stacklevel].lineno)
-    #         print('-'*40)
-
-
-
-    #     logcaller = getInfo(_stacks[stacklevel-1]) # colui che ha chiamato il log.caller()
-    #     parentcaller = getInfo(_stacks[stacklevel]) # colui che ha chiamato la logcaller_function
-
-    #     if fDEBUG:
-    #         print(logcaller)
-    #         print(parentcaller)
-    #     return logcaller, parentcaller
 
 
 
@@ -364,10 +295,16 @@ class lnColoredLogger:
                        1 = chiamante di _log (metodo pubblico)
                        2 = chiamante originale
         """
-        frames = inspect.stack()
-        n_frames = len(frames)
-        # print(n_frames, stacklevel)
 
+        frames = inspect.stack()
+        n_levels = len(frames)
+        # ---------------------------
+        # - lvl: 0 self._caller()
+        # - lvl: 1 self._log()
+        # - lvl: 2 self.info()...self.trace()...
+        # - lvl: 3 call to log
+        # - lvl: 4 caller of lev.3
+        # ---------------------------
         if fDEBUG:
             x=traceback.extract_stack()
             print('-'*40)
@@ -381,20 +318,20 @@ class lnColoredLogger:
 
 
         # Calcola gli indici (evitando di andare otut of range)
-        module_idx    = min(stacklevel, n_frames - 1)
+        module_idx    = min(stacklevel, n_levels - 1)
         module_frame  = frames[module_idx]
         module_filename   = module_frame.filename
         module_name   = Path(module_frame.filename).stem
         module_lineno = module_frame.lineno
 
-        if n_frames - stacklevel <= 1:
+        if n_levels - stacklevel <= 1:
             caller_filename = "out_of_index"
             caller_name     = "out_of_index"
             caller_lineno   = 0
             caller_frame    = "no_frame"
-            caller_idx      = min(module_idx + 1, n_frames - 1) # module_idx+1
+            caller_idx      = min(module_idx + 1, n_levels - 1) # module_idx+1
         else:
-            caller_idx      = min(module_idx + 1, n_frames - 1) # module_idx+1
+            caller_idx      = min(module_idx + 1, n_levels - 1) # module_idx+1
             caller_frame    = frames[caller_idx]
             caller_filename = caller_frame.filename
             caller_name     = Path(caller_frame.filename).stem
