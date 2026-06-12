@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 11-05-2026 14.01.19
+# Date .........: 12-06-2026 14.26.55
 #
 
 import sys; sys.dont_write_bytecode=True; this=sys.modules[__name__]
@@ -78,9 +78,9 @@ def searchFileOnFS(filename: str,
     #------------------------------------
     def result_and_exit():
         if result.filepath:
-            ctx.logger.info("FOUND: %s on fileSystem", result.filepath, color=C.magenta)
+            ctx.logger.info("%s FOUND on fileSystem", result.filepath, color=C.magenta)
         else:
-            ctx.logger.warning("NOT FOUND: %s on fileSystem", filename)
+            ctx.logger.warning("%s NOT FOUND on fileSystem", filename)
         return result
     #------------------------------------
 

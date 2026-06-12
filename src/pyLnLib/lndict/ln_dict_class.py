@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 10-05-2026 10.16.46
+# Date .........: 12-06-2026 18.20.53
 #
 
 import sys; sys.dont_write_bytecode=True; this=sys.modules[__name__]
@@ -536,18 +536,19 @@ class lnDict(dict):
     def to_yaml(self, title: str=None, sort_keys=False, **kwargs):
         """Converte lo lnDict in una stringa YAML pulita."""
         # Usiamo to_dict() per esportare solo dati standard
-        indent = kwargs.pop("indent", 4)
+        # indent = kwargs.pop("indent", 4)
         d={title: self.to_dict()} if title else self.to_dict()
-        return yaml.dump(d, sort_keys=sort_keys, indent=indent, default_flow_style=False, **kwargs)
+        # return yaml.dump(d, sort_keys=sort_keys, indent=indent, default_flow_style=False, **kwargs)
+        # return yaml.dump(d, sort_keys=sort_keys, indent=indent, default_flow_style=False)
+        return yaml.dump(d, default_flow_style=False, **kwargs)
 
 
     # #############################################################################
     # # title: se valorizzato viene messo in testa al dict
     # #  utile per avere un'idea di massima del contenuto del dictionary
     # #############################################################################
-    def save_yaml(self, filepath, title: str=None, **kwargs):
+    def save_yaml(self, filepath, title: str=None, indent: int=0, **kwargs):
         """Salva lo lnDict in un file .yaml."""
-        stacklevel = kwargs.pop("stacklevel", 1)
         yaml_data = self.to_yaml(title=title, **kwargs)
         now = datetime.now().strftime("%d-%m-%Y_%H:%M")
         _cmnt=f"#{'-'*20}"
@@ -555,7 +556,8 @@ class lnDict(dict):
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(yaml_data)
 
-        self.logger.notify("file: [%s] has been written", filepath, stacklevel=stacklevel+1)
+        # self.logger.notify("lnd_file: [%s] has been written", filepath, stacklevel=stacklevel, show_stack=False)
+        self.logger.notify("file: [%s] has been written", filepath, show_stack=True)
 
 
 

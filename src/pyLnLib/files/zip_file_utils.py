@@ -14,7 +14,6 @@ from types import SimpleNamespace
 
 from ..context import gVars as ctx; C=ctx.colors
 
-
 def zipNameList___(zip_filename):
     """ check it its a zip file """
     zFileNamelist=[]
@@ -46,6 +45,8 @@ def read_file_in_zip_prev(zip_filename, filename):
 
 
 def zipReadFile___(filename: str, archive_file: str, extraction_dir: str='/tmp'):
+    logger = ctx.logger
+
     content=None
     try:
         if zipfile.is_zipfile(zip_filename):
@@ -54,7 +55,7 @@ def zipReadFile___(filename: str, archive_file: str, extraction_dir: str='/tmp')
                     content = f.read().decode('utf-8')
 
     except Exception as e:
-        ctx.logger.error("Errore nel caricamento di %s: %s", target_file, str(e))
+        logger.error("Errore nel caricamento di %s: %s", target_file, str(e))
 
     return content
 
@@ -107,31 +108,31 @@ def searchFileInZip(archive_file: str,
             os.chmod(dest_file, current_permissions | stat.S_IWUSR)  # solo per utente
             result.extracted_file = dest_file
 
-        if True:
-            with zz.open(filename, 'r') as f:
-                content_str = f.read() # str
-        else:
-            with open(filename, 'rb') as f: # modalità binaria
-                content_bytes = f.read()  # bytes
-                content_str   = content_bytes.decode('utf-8')  # str
+        with zz.open(filename, 'r') as f:
+            content = f.read() # bytes
 
-        result.content = content_str
+        if isinstance(content, bytes):
+            content = content.decode('utf-8')  # str
+
+        result.content = content
         return result_and_exit()
 
 
     def result_and_exit():
         if result.filepath:
-            ctx.logger.info("FOUND: %s [extracted: %s] on zipFile: %s", result.filepath, result.extracted_file, archive_file, color=C.magenta)
+            logger.info("%s FOUND in zipFile: %s [extracted: %s]", result.filepath, archive_file, result.extracted_file, color=C.magenta)
         else:
-            ctx.logger.warning("NOT FOUND: %s on zipFile: %s", filename, archive_file)
+            logger.warning("%s NOT FOUND in zipFile: %s", filename, archive_file)
         return result
+
     #------------------------------------
+    logger = ctx.logger
 
     result = SimpleNamespace(content=None, filepath=None, is_recursive=False)
-    STACKLEVEL = stacklevel
+    STACKLEVEL = stacklevel+1
     # --- Ricerca Interna (ZIP/PYZ) ---
     if zipfile.is_zipfile(archive_file):
-        ctx.logger.info("ZipFile searching for file: %s - (on paths: %s)", filename, search_paths, stacklevel=STACKLEVEL)
+        logger.info("ZipFile searching for file: %s - (on paths: %s)", filename, search_paths, stacklevel=STACKLEVEL)
 
         is_recursive=False
         z=zipfile.ZipFile(archive_file, "r")
@@ -141,10 +142,11 @@ def searchFileInZip(archive_file: str,
         if filename in zip_content:
             return extract_file(zz=z, filename=filename)
 
+
         # Cerchiamo nei search_paths interni allo zip
         for base_path in search_paths:
 
-            ctx.logger.debug("searching: %s/%s", base_path, filename)
+            logger.debug("searching: %s/%s", base_path, filename)
 
             # Normalizziamo il path interno (niente drive letter, slash avanti)
             fpath = os.path.join(base_path, filename).replace('\\', '/') ### nel caso stessimo in Windows
@@ -153,17 +155,13 @@ def searchFileInZip(archive_file: str,
 
             # Se ricorsivo, cerchiamo corrispondenze parziali
             if recursive:
-                ctx.logger.debug("searching: %s/.../%s", base_path, filename)
+                logger.debug("searching: %s/.../%s", base_path, filename)
                 for member in zip_content:
                     if member.startswith(base_path) and member.endswith(filename):
                         result.is_recursive=True
                         return extract_file(zz=z, filename=member)
 
 
-    # if result.filepath:
-    #     ctx.logger.info("%s has been found on zipFile: %s", result.filepath, archive_file)
-    # else:
-    #     ctx.logger.warning("%s not found on zipFile: %s", filename, archive_file)
     return result_and_exit()
 
 

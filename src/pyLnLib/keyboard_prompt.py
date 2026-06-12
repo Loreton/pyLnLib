@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 30-04-2026 18.11.31
+# Date .........: 12-06-2026 20.24.21
 #
 
 import sys
 import os
 
 from .context import gVars as gv, Colors as C
+from .beep import playBeep
 
 
 
@@ -57,6 +58,7 @@ def keyboardPrompt(text_msg: str, validKeys: list=["y", "n"], exitKeys: list=["x
 
         if choice in exitKeys: # diamo priorità all'uscita
             print("Exiting on user request.")
+            playBeep()
             sys.exit(0)
 
         elif multi_choices and check_MC():

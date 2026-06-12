@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 22-05-2026 16.32.45
+# Date .........: 12-06-2026 18.22.30
 #
 
 
@@ -244,8 +244,7 @@ class lnColoredLogger:
     # 3  info() / debug() / etc. (metodo pubblico)
     # 4  chiamante originale (test function)
     # ######################################################
-    def _caller(self, stacklevel: int = 1):
-        fDEBUG=False
+    def _caller(self, stacklevel: int, show_stack: bool=False):
         """Restituisce (module_formatted, caller_formatted)
 
         Args:
@@ -263,9 +262,10 @@ class lnColoredLogger:
         # - lvl: 3 call to log
         # - lvl: 4 caller of lev.3
         # ---------------------------
-        if fDEBUG:
+        if show_stack:
             x=traceback.extract_stack()
             print('-'*40)
+            print(f"required stacklevel: {stacklevel}")
             for i in range(len(x)):
                 filename = inspect.stack()[i].filename
                 function = inspect.stack()[i].function
@@ -296,7 +296,7 @@ class lnColoredLogger:
             caller_lineno   = caller_frame.lineno
 
 
-        if fDEBUG:
+        if show_stack:
             print('-'*40)
             print("module:", module_idx, module_filename, module_lineno)
             print("caller:", caller_idx, caller_filename, caller_lineno)
@@ -315,9 +315,11 @@ class lnColoredLogger:
     def _log(self, level_name: str, msg: str, *args, color: Optional[str] = None, **kwargs):
         level_value = getattr(logging, level_name, logging.INFO)
         stacklevel  = kwargs.pop("stacklevel", 0)
+        # print(f"....required stacklevel: {stacklevel}")
         forceLog    = kwargs.pop("force_log", False)
         forceExit   = kwargs.pop("exit", False)
         showCaller  = kwargs.pop("show_caller", False)
+        showStack   = kwargs.pop("show_stack", False)
 
         if level_value >= self.consoleHandler.level or forceLog:
             kwargs["stacklevel"] = stacklevel + 3
@@ -325,7 +327,7 @@ class lnColoredLogger:
             # Calcola caller formattato se necessario
             # Il caller deve essere il chiamante del metodo pubblico (un livello sopra)
             # module_formatted, caller_formatted = self._callerMIO(stacklevel=3+stacklevel)
-            module_formatted, caller_formatted = self._caller(stacklevel=3+stacklevel)
+            module_formatted, caller_formatted = self._caller(stacklevel=kwargs["stacklevel"], show_stack=showStack)
 
             if showCaller or self.show_caller:
                 ...
