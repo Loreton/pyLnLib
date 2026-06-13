@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 12-06-2026 14.26.55
+# Date .........: 13-06-2026 14.01.43
 #
 
 import sys; sys.dont_write_bytecode=True; this=sys.modules[__name__]
@@ -15,6 +15,10 @@ import shutil
 
 from ..context import gVars as ctx; C=ctx.colors
 from .zip_file_utils import searchFileInZip
+
+
+
+
 
 def findFile(root: str, filename: str):
     for dirpath, _, files in os.walk(root):
@@ -33,18 +37,6 @@ def findFile(root: str, filename: str):
 # -     filepath:     filepath of found file or None
 # -     is_recursive: 
 #################################
-''' calling example:
-    result = searchingFile(filename=filename, search_paths=["conf"], recursive=False, copy_to=self.rclone_config_file)
-    if not result.filepath:
-        if zipfile.is_zipfile(sys.argv[0]):
-            result = searchFileInZip(filename=filename, archive_file=sys.argv[0], search_paths=["conf"], recursive=True, extraction_dir=self.temp_dir)
-            if not result.filepath:
-                ctx.logger.error("filename: %s not found on filesysten neither in zipfile", filename, exit=True)
-        else:
-            ctx.logger.warning("filename: %s not found on fileSystem", filename, exit=True)
-'''
-
-
 def searchFileOnFS(filename: str,
                     search_paths: list,
                     recursive: bool=False,
@@ -153,21 +145,6 @@ def findFileInPaths_prev(filename: str, search_paths: list, exit_on_not_found: b
 
 
 
-# def getFileContent(filename: str, search_paths: list, resolve_vars: bool=True, exit_on_not_found: bool=True, stacklevel=0):
-#     content = None
-#     if file_path := this.findFileInPaths(filename, search_paths=search_paths):
-#         with open(file_path, mode="r") as f:
-#             content=f.read() # single strin
-#         if resolve_vars:
-#             content = os.path.expandvars(content)
-
-#     if not content and exit_on_not_found:
-#         ctx.logger.error("content not found on file: %s", filename, exc_info=exit_on_not_found, stacklevel=stacklevel+1)
-#     return content
-
-
-
-
 def searchFile(filename:           str,
                     search_paths:       list,
                     recursive:          bool=False,
@@ -186,6 +163,21 @@ def searchFile(filename:           str,
             ctx.logger.warning("filename: %s not found on fileSystem", filename, exit=exit_on_not_found)
 
     return result
+
+
+
+######################################################################
+''' example:
+   for file in dirlist(top_dir='/usr/share/sounds/freedesktop/stereo', file_pattern="*.oga", recursive=False):
+        print(file)
+    sys.exit()
+'''
+######################################################################
+def dirList(top_dir: str, file_pattern: str, recursive: bool=False):
+    files=Path(top_dir).glob(file_pattern)
+    for file in files:
+        yield file
+
 
 ##################################################################################################################################
 #   M A I N

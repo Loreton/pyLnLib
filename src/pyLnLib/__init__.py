@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 12-06-2026 17.30.18
+# Date .........: 13-06-2026 14.00.47
 #
 import os
 
@@ -24,7 +24,7 @@ Autore: Loreto Notarantonio
 '''
 
 
-
+print("ci sono")
 # ---- system
 from   .system.acquire_lock        import acquire_lock
 from   .system.ln_run              import lnRun
@@ -35,7 +35,7 @@ from   .system.signal_handler             import signalHandler
 from   .files.write_file                 import writeFile
 from   .files.yaml_loader_class          import lnYamlEnvironment
 from   .files.zip_file_utils             import searchFileInZip
-from   .files.file_utils                 import searchFile, searchFileOnFS
+from   .files.file_utils                 import searchFile, searchFileOnFS, dirList
 from   .files.ini_file                   import loadIni, writeIni, updateIniKey
 
 
