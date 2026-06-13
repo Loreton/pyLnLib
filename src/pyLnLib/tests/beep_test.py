@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 13-06-2026 14.29.49
+# Date .........: 13-06-2026 17.34.57
 #
 
 
@@ -60,25 +60,25 @@ def localSounds():
 
 
 def soundList():
+    # ============================================
     def show_list(ftype: str):
-
         if ftype=='oga':
             files = list(lnLib.dirList(top_dir='/home/loreto/filu/lnEnv/config/sounds/oga', file_pattern="*.oga", recursive=False))
         elif ftype=='wav':
             files = list(lnLib.dirList(top_dir='/home/loreto/filu/lnEnv/config/sounds/wav', file_pattern="*.wav", recursive=False))
-
-        # import pdb; pdb.set_trace(); # by Loreto
-        # sound_files = sorted(oga_files) + sorted(wav_files)
+        else:
+            return []
 
         TAB=" "*8
         for index, file_path in enumerate(files, 1):
             print(f"{TAB}{C.yellow}{index:2} - {C.cyanH}{file_path.name}{C.reset}")
             validKeys.append(str(index))
         return sorted(files)
+    # ============================================
 
     validKeys=['oga', "wav"]
     sound_files = show_list("wav")
-    keyb_msg=f'\n{C.yellow}select desired sound or list: "wav|oga"{C.reset}'
+    keyb_msg=f'\n{C.yellow}select desired sound file or "wav|oga" to get a list{C.reset}'
     while True:
         choice=lnLib.keyboardPrompt(text_msg=keyb_msg, validKeys=validKeys)
         if choice=='oga':
