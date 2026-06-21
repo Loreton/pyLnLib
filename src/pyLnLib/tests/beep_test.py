@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 13-06-2026 17.34.57
+# Date .........: 14-06-2026 14.22.33
 #
 
 
-import sys; sys.dont_write_bytecode = True
+import sys
 import os
 from pathlib import Path
 import time
@@ -13,6 +13,7 @@ import time
 import pyLnLib as lnLib
 from pyLnLib import gVars as ctx, Color as C
 
+sys.dont_write_bytecode = True
 
 
 def localSounds():

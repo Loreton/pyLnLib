@@ -4,22 +4,23 @@
 # Date .........: 12-06-2026 20.45.18
 #
 
-import sys
 import os
 import platform
 import subprocess
+import sys
+from pathlib import PosixPath, PurePosixPath
 
 from .context import gVars
 
 
-def playBeep(sound_file: str=None):
+def playBeep(sound_file: str | PurePosixPath = None) -> None:
     logger = gVars.logger
     system = platform.system()
 
     try:
-
         if system == "Windows":
             import winsound
+
             winsound.MessageBeep()
 
         elif system == "Darwin":  # macOS
@@ -27,10 +28,12 @@ def playBeep(sound_file: str=None):
 
         elif system == "Linux":
             if not sound_file:
-                sound_file="/usr/share/sounds/freedesktop/stereo/camera-shutter.oga"
-                sound_file="/usr/share/sounds/freedesktop/stereo/message.oga"
-                sound_file="/usr/share/sounds/freedesktop/stereo/message-new-instant.oga"
-                sound_file="/usr/share/sounds/freedesktop/stereo/bell.oga"
+                sound_file = "/usr/share/sounds/freedesktop/stereo/camera-shutter.oga"
+                sound_file = "/usr/share/sounds/freedesktop/stereo/message.oga"
+                sound_file = (
+                    "/usr/share/sounds/freedesktop/stereo/message-new-instant.oga"
+                )
+                sound_file = "/usr/share/sounds/freedesktop/stereo/bell.oga"
 
             if os.path.exists("/usr/bin/paplay") and os.path.exists(sound_file):
                 logger.info("paplay %s", sound_file)
@@ -39,5 +42,3 @@ def playBeep(sound_file: str=None):
             print("\a")
     except Exception as e:
         logger.error("Beep failed:", e)
-
-
