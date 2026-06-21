@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 12-06-2026 18.22.30
+# Date .........: 21-06-2026 17.10.51
 #
 
 import inspect
@@ -11,57 +11,64 @@ import sys
 import traceback
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
+# Type aliases
+LevelName = str
+Message = str
+ColorCode = str
+StackLevel = int
+LoggerName = str
 
 sys.dont_write_bytecode = True
 
 
 class Color:
-    red = "\033[31m"
-    redH = "\033[91m"
-    green = "\033[32m"
-    greenH = "\033[92m"
-    yellow = "\033[33m"
-    yellowH = "\033[93m"
-    blue = "\033[34m"
-    blueH = "\033[94m"
-    magenta = "\033[35m"
-    magentaH = "\033[95m"
-    cyan = "\033[36m"
-    cyanH = "\033[96m"
-    white = "\033[37m"
-    whiteH = "\033[97m"
-    reset = "\033[0m"
+    red: str = "\033[31m"
+    redH: str = "\033[91m"
+    green: str = "\033[32m"
+    greenH: str = "\033[92m"
+    yellow: str = "\033[33m"
+    yellowH: str = "\033[93m"
+    blue: str = "\033[34m"
+    blueH: str = "\033[94m"
+    magenta: str = "\033[35m"
+    magentaH: str = "\033[95m"
+    cyan: str = "\033[36m"
+    cyanH: str = "\033[96m"
+    white: str = "\033[37m"
+    whiteH: str = "\033[97m"
+    reset: str = "\033[0m"
 
-    purple = magenta
-    purpleH = magentaH
+    purple: str = magenta
+    purpleH: str = magentaH
 
-
-# from ..colors import Color
 
 """
     Level       Numeric value What it means / When to use it
 """
-my_NOTSET_value = 0  #   When set on a logger, indicates that ancestor loggers are to be consulted to determine the effective level. If that still resolves to NOTSET, then all events are logged. When set on a handler, all events are handled.
-my_TRACE_value = 9  #  loreto.
-my_DEBUG_value = 10  #  Detailed information, typically only of interest to a developer trying to diagnose a problem.
-my_INFO_value = 20  #  Confirmation that things are working as expected.
-my_NOTIFY_value = 21  #  loreto
-my_FUNCTION_value = 22  #  loreto
-my_WARNING_value = 30  #  An indication that something unexpected happened, or that a problem might occur in the near future (e.g. ‘disk space low’). The software is still working as expected.
-my_ERROR_value = 40  #  Due to a more serious problem, the software has not been able to perform some function.
-my_CRITICAL_value = 50  #  A serious error, indicating that the program itself may be unable to continue running.
+my_NOTSET_value: int = 0
+my_TRACE_value: int = 9
+my_DEBUG_value: int = 10
+my_INFO_value: int = 20
+my_NOTIFY_value: int = 21
+my_FUNCTION_value: int = 22
+my_WARNING_value: int = 30
+my_ERROR_value: int = 40
+my_CRITICAL_value: int = 50
 
 
 # -------------------------------
 # Formatter semplice + safe + TTY
 # -------------------------------
 class ColorFormatter(logging.Formatter):
-    def __init__(self, fmt, datefmt=None, use_color=True):
+    def __init__(
+        self, fmt: str, datefmt: Optional[str] = None, use_color: bool = True
+    ) -> None:
         super().__init__(fmt, datefmt)
-        self.use_color = use_color
+        self.use_color: bool = use_color
 
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         # Safe fallback (evita errori se mancano attributi)
         for attr in ("msg_color", "level_color", "reset", "caller"):
             if not hasattr(record, attr):
@@ -80,7 +87,7 @@ class ColorFormatter(logging.Formatter):
 # Logger principale
 # -------------------------------
 class lnColoredLogger:
-    LEVEL_COLORS = {
+    LEVEL_COLORS: Dict[str, str] = {
         "DEBUG": Color.cyan,
         "INFO": Color.green,
         "WARNING": Color.yellow,
@@ -92,28 +99,31 @@ class lnColoredLogger:
     def __init__(
         self,
         name: str,
-        console_logger_level: str = None,
+        console_logger_level: Optional[str] = None,
         file_logger_level: str = "warning",
-        logging_dir: str = None,
+        logging_dir: Optional[str] = None,
         threads: bool = False,
-    ):
-        self.logger = logging.getLogger(name)
+    ) -> None:
+        self.logger: logging.Logger = logging.getLogger(name)
         # Evita handler duplicati
         if self.logger.handlers:
             return
 
         self.add_custom_levels()
-        self.logger.setLevel(logging.TRACE)
+        self.logger.setLevel(logging.TRACE)  # type: ignore
         self.logger.propagate = False
-        self.name = name
-        self.test = testLogger
+        self.name: str = name
+        self.test: Callable = testLogger
 
         self.setNameLength(dynamic=False, length=10)
         self.setLinenoLength(len=4)
         self.setShowCaller(show_caller=False)
         # self.setDynNameLength(dynamic=False)
 
-        self.threads_str = "%(threadName)-5.5s." if threads else ""
+        self.threads_str: str = "%(threadName)-5.5s." if threads else ""
+
+        self.consoleHandler: Optional[logging.Handler] = None
+        self.fileHandler: Optional[logging.Handler] = None
 
         if console_logger_level:
             self.consoleHandler = self.setConsoleLogger()
@@ -131,35 +141,41 @@ class lnColoredLogger:
             )
             self.logger.addHandler(self.fileHandler)
 
-    def add_custom_levels(self):
+    def add_custom_levels(self) -> None:
         # --- Livello custom NOTIFY ---
-        def notify(self_logger, msg, *args, **kwargs):
-            self_logger._log(logging.NOTIFY, msg, args, **kwargs)
+        def notify(
+            self_logger: logging.Logger, msg: str, *args: Any, **kwargs: Any
+        ) -> None:
+            self_logger._log(logging.NOTIFY, msg, args, **kwargs)  # type: ignore
 
-        logging.NOTIFY = my_NOTIFY_value
-        logging.addLevelName(logging.NOTIFY, "NOTIFY")
-        logging.Logger.notify = notify
+        logging.NOTIFY = my_NOTIFY_value  # type: ignore
+        logging.addLevelName(logging.NOTIFY, "NOTIFY")  # type: ignore
+        logging.Logger.notify = notify  # type: ignore
 
         # --- Livello custom TRACE ---
-        def trace(self_logger, msg, *args, **kwargs):
-            self_logger._log(logging.TRACE, msg, args, **kwargs)
+        def trace(
+            self_logger: logging.Logger, msg: str, *args: Any, **kwargs: Any
+        ) -> None:
+            self_logger._log(logging.TRACE, msg, args, **kwargs)  # type: ignore
 
-        logging.TRACE = my_TRACE_value
-        logging.addLevelName(logging.TRACE, "TRACE")
-        logging.Logger.trace = trace
+        logging.TRACE = my_TRACE_value  # type: ignore
+        logging.addLevelName(logging.TRACE, "TRACE")  # type: ignore
+        logging.Logger.trace = trace  # type: ignore
 
         # --- Livello custom FUNCTION ---
-        def function(self_logger, msg, *args, **kwargs):
-            self_logger._log(logging.FUNCTION, msg, args, **kwargs)
+        def function(
+            self_logger: logging.Logger, msg: str, *args: Any, **kwargs: Any
+        ) -> None:
+            self_logger._log(logging.FUNCTION, msg, args, **kwargs)  # type: ignore
 
-        logging.FUNCTION = my_FUNCTION_value
-        logging.addLevelName(logging.FUNCTION, "FUNCTION")
-        logging.Logger.function = function
+        logging.FUNCTION = my_FUNCTION_value  # type: ignore
+        logging.addLevelName(logging.FUNCTION, "FUNCTION")  # type: ignore
+        logging.Logger.function = function  # type: ignore
 
     # -------------------------------
     # Logger console
     # -------------------------------
-    def setConsoleLogger(self):
+    def setConsoleLogger(self) -> logging.Handler:
         ch = logging.StreamHandler()
         use_color = hasattr(ch.stream, "isatty") and ch.stream.isatty()
 
@@ -181,8 +197,14 @@ class lnColoredLogger:
     # Rotating Logger
     # -------------------------------
     def setRotatingLogger(
-        self, name: str, logging_dir: str = None, create_logging_dir: bool = True
-    ):
+        self,
+        name: str,
+        logging_dir: Optional[str] = None,
+        create_logging_dir: bool = True,
+    ) -> logging.Handler:
+        if logging_dir is None:
+            logging_dir = "logs"
+
         logging_file = f"{logging_dir}/{name.lower()}.log"
         if not os.path.exists(logging_dir) and create_logging_dir:
             os.makedirs(logging_dir)
@@ -194,23 +216,27 @@ class lnColoredLogger:
         fh.setFormatter(formatter)
         return fh
 
-    def setConsoleLoggerLevel(self, level: str):
-        self.consoleHandler.setLevel(level.upper())
-        self.notify("console log level has been set to: %s", level.upper())
+    def setConsoleLoggerLevel(self, level: str) -> None:
+        if self.consoleHandler is not None:
+            self.consoleHandler.setLevel(level.upper())
+            self.notify("console log level has been set to: %s", level.upper())
 
-    def getMaxLength(self):
+    def getMaxLength(self) -> int:
         return self.name_len + self.lineno_len + 1
 
-    def setLinenoLength(self, len: int):
+    def setLinenoLength(self, len: int) -> None:
         self.lineno_len = len
 
-    def setShowCaller(self, show_caller: bool):
+    def setShowCaller(self, show_caller: bool) -> None:
         self.show_caller = show_caller
 
     ###########################################################
     # if
     ###########################################################
-    def setNameLength(self, dynamic: bool, length: int):
+    def setNameLength(self, dynamic: bool, length: int) -> None:
+        self.dynamic_name_lentgh: bool = False
+        self.name_len: int = 0
+
         if dynamic or length == 0:
             self.dynamic_name_lentgh = True
             self.name_len = 0
@@ -226,7 +252,6 @@ class lnColoredLogger:
         con troncamento e padding appropriati
         """
         # Tronca il nome se necessario
-
         if self.dynamic_name_lentgh:
             if len(name) >= self.name_len:
                 self.name_len = len(name)
@@ -248,7 +273,7 @@ class lnColoredLogger:
     # 3  info() / debug() / etc. (metodo pubblico)
     # 4  chiamante originale (test function)
     # ######################################################
-    def _caller(self, stacklevel: int, show_stack: bool = False):
+    def _caller(self, stacklevel: int, show_stack: bool = False) -> Tuple[str, str]:
         """Restituisce (module_formatted, caller_formatted)
 
         Args:
@@ -256,8 +281,7 @@ class lnColoredLogger:
                        1 = chiamante di _log (metodo pubblico)
                        2 = chiamante originale
         """
-
-        frames = inspect.stack()
+        frames: List[inspect.FrameInfo] = inspect.stack()
         n_levels = len(frames)
         # ---------------------------
         # - lvl: 0 self._caller()
@@ -272,7 +296,7 @@ class lnColoredLogger:
             print(f"required stacklevel: {stacklevel}")
             for i in range(len(x)):
                 filename = inspect.stack()[i].filename
-                function = inspect.stack()[i].function
+                _function = inspect.stack()[i].function
                 lineno = inspect.stack()[i].lineno
                 print(i, filename, lineno)
 
@@ -311,17 +335,22 @@ class lnColoredLogger:
     # Core logging
     # -------------------------------
     def _log(
-        self, level_name: str, msg: str, *args, color: Optional[str] = None, **kwargs
-    ):
+        self,
+        level_name: str,
+        msg: str,
+        *args: Any,
+        color: Optional[str] = None,
+        **kwargs: Any,
+    ) -> None:
         level_value = getattr(logging, level_name, logging.INFO)
-        stacklevel = kwargs.pop("stacklevel", 0)
+        stacklevel: int = kwargs.pop("stacklevel", 0)
         # print(f"....required stacklevel: {stacklevel}")
-        forceLog = kwargs.pop("force_log", False)
-        forceExit = kwargs.pop("exit", False)
-        showCaller = kwargs.pop("show_caller", False)
-        showStack = kwargs.pop("show_stack", False)
+        forceLog: bool = kwargs.pop("force_log", False)
+        forceExit: bool = kwargs.pop("exit", False)
+        showCaller: bool = kwargs.pop("show_caller", False)
+        showStack: bool = kwargs.pop("show_stack", False)
 
-        if level_value >= self.consoleHandler.level or forceLog:
+        if level_value >= self.consoleHandler.level or forceLog:  # type: ignore
             kwargs["stacklevel"] = stacklevel + 3
 
             # Calcola caller formattato se necessario
@@ -339,7 +368,7 @@ class lnColoredLogger:
 
             level_color = self.LEVEL_COLORS.get(level_name, Color.white)
 
-            dry_run = kwargs.pop("dry_run", False)
+            dry_run: bool = kwargs.pop("dry_run", False)
             if dry_run:
                 msg = f"[dry-run] {msg}"
 
@@ -371,32 +400,48 @@ class lnColoredLogger:
     #########################################################################
     # API pubbliche
     #########################################################################
-    def trace(self, msg: str, *args, color: Optional[str] = None, **kwargs):
+    def trace(
+        self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any
+    ) -> None:
         self._log("TRACE", msg, *args, color=color, **kwargs)
 
-    def debug(self, msg: str, *args, color: Optional[str] = None, **kwargs):
+    def debug(
+        self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any
+    ) -> None:
         self._log("DEBUG", msg, *args, color=color, **kwargs)
 
-    def info(self, msg: str, *args, color: Optional[str] = None, **kwargs):
+    def info(
+        self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any
+    ) -> None:
         self._log("INFO", msg, *args, color=color, **kwargs)
 
-    def warning(self, msg: str, *args, color: Optional[str] = None, **kwargs):
+    def warning(
+        self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any
+    ) -> None:
         self._log("WARNING", msg, *args, color=color, **kwargs)
 
-    def error(self, msg: str, *args, color: Optional[str] = None, **kwargs):
+    def error(
+        self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any
+    ) -> None:
         self._log("ERROR", msg, *args, color=color, **kwargs)
 
-    def critical(self, msg: str, *args, color: Optional[str] = None, **kwargs):
+    def critical(
+        self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any
+    ) -> None:
         self._log("CRITICAL", msg, *args, color=color, **kwargs)
 
-    def notify(self, msg: str, *args, color: Optional[str] = None, **kwargs):
+    def notify(
+        self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any
+    ) -> None:
         self._log("NOTIFY", msg, *args, color=color, **kwargs)
 
-    def function(self, msg: str, *args, color: Optional[str] = None, **kwargs):
+    def function(
+        self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any
+    ) -> None:
         self._log("FUNCTION", msg, *args, color=color, show_caller=True, **kwargs)
 
 
-def testLogger(logger):
+def testLogger(logger: lnColoredLogger) -> None:
     print("\n--- base colors ---")
     logger.debug("DEBUG default")
     logger.info("INFO default")

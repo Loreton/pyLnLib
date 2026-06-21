@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 14-06-2026 14.22.33
+# Date .........: 21-06-2026 17.07.53
 #
 
 
@@ -26,7 +26,7 @@ def localSounds():
         "audio-channel-rear-right.oga",
         "audio-channel-side-left.oga",
         "audio-channel-side-right.oga",
-    ]
+
     sounds = [
         "alarm-clock-elapsed.oga",
         "audio-test-signal.oga",
