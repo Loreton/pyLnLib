@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 21-06-2026 17.30.02
+# Date .........: 22-06-2026 21.08.03
 #
 from dataclasses import dataclass
 
@@ -9,7 +9,7 @@ from dataclasses import dataclass
 # # colori
 # ##################################################
 @dataclass(frozen=True)  # "frozen" rende i colori non modificabili per errore
-class Color:
+class Colors:
     """Classe per i codici colore ANSI per il terminale."""
     red: str = "\033[31m"
     redH: str = "\033[91m"

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 10-05-2026 09.59.41
+# Date .........: 22-06-2026 21.33.29
 #
 
 
@@ -51,7 +51,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 
-from ..colors import Color as C
+from ..colors import Colors as C
 
 class lnRunStream_Class:
     def __init__(self, logger):

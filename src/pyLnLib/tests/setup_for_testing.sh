@@ -1,9 +1,16 @@
 #!/bin/bash
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 13-06-2026 17.33.21
+# Date .........: 22-06-2026 19.50.16
 #
 
-# devo impostare questa var (con source ...), prima della partenza di python, altrimenti non trova la pyLnLib
-PYTHONPATH="/home/loreto/filu/Programming/gitREPO/pyLnLib/src"
 
+# setup_for_testing.sh
+
+# Usa export per esportare la variabile
+export PYTHONPATH="/home/loreto/filu/Programming/gitREPO/pyLnLib/src:$PYTHONPATH"
+
+# Verifica
+echo "PYTHONPATH set to: $PYTHONPATH"
+echo "Environment variable PYTHONPATH:"
+env | grep PYTHONPATH

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 21-06-2026 17.07.53
+# Date .........: 22-06-2026 21.38.25
 #
 
 
@@ -10,8 +10,9 @@ import os
 from pathlib import Path
 import time
 
+
 import pyLnLib as lnLib
-from pyLnLib import gVars as ctx, Color as C
+from pyLnLib import gVars as ctx, Colors as C
 
 sys.dont_write_bytecode = True
 
@@ -26,7 +27,7 @@ def localSounds():
         "audio-channel-rear-right.oga",
         "audio-channel-side-left.oga",
         "audio-channel-side-right.oga",
-
+        ]
     sounds = [
         "alarm-clock-elapsed.oga",
         "audio-test-signal.oga",
@@ -96,10 +97,10 @@ def soundList():
 # Test
 # -------------------------------
 if __name__ == "__main__":
-
-    logger=lnLib.lnLogger(name=Path(__file__).stem, console_logger_level="trace"); ctx.logger=logger
+    logger=lnLib.lnLogger(name=Path(__file__).stem, console_logger_level="trace")
+    ctx.logger=logger
     logger.test(logger=logger)
-    C = lnLib.Color
+    C = lnLib.Colors
 
     LOCAL = False
     if LOCAL:

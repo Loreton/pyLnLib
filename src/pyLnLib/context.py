@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 21-06-2026 17.31.37
+# Date .........: 22-06-2026 21.10.12
 #
 
-from typing import Any, Optional, List, Dict, Union, Callable
+from typing import Any, Optional, List, Dict, Union
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -15,6 +15,9 @@ import zipfile
 import os
 
 sys.dont_write_bytecode = True
+
+# Import del logger
+from .logger.ln_colored_logger import lnColoredLogger
 
 
 @dataclass(frozen=True)  # "frozen" rende i colori non modificabili per errore
@@ -63,6 +66,7 @@ class GlobalVars:
     Per le variabili mutabili (liste, dizionari, ecc.), usa default_factory.
     In questo modo, ogni istanza ottiene una nuova copia invece di condividere la stessa.
     """
+
     # Attributi base
     project_name: str = ""
     version: str = "0.0.1"
@@ -83,7 +87,7 @@ class GlobalVars:
 
     # Logging e colori
     colors: Colors = field(default_factory=Colors)
-    logger: Any = None
+    logger: Optional[lnColoredLogger] = None  # Usa il logger personalizzato
     test_logger: bool = False
 
     # Liste e dizionari (usando default_factory)
@@ -96,10 +100,7 @@ class GlobalVars:
     environment: Optional[str] = None
 
     def __post_init__(self) -> None:
-        """
-        Inizializza i campi che dipendono da altri valori.
-        """
-        # Imposta temp_dir se non è già impostato
+        """Inizializza i campi che dipendono da altri valori."""
         if not self.temp_dir:
             self.temp_dir = f"/tmp/{self.project_name}" if self.project_name else "/tmp/ln_app"
 
@@ -107,83 +108,86 @@ class GlobalVars:
         if self.temp_dir:
             os.makedirs(self.temp_dir, exist_ok=True)
 
-    def get_temp_path(self, subdir: Optional[str] = None) -> Path:
-        """
-        Restituisce il path temporaneo, opzionalmente con una sottodirectory.
+        # Inizializza il logger se non è già stato fatto
+        if self.logger is None:
+            self._init_logger()
 
-        Args:
-            subdir: Sottodirectory opzionale
+    def _init_logger(self) -> None:
+        """
+        Inizializza il logger usando lnColoredLogger.
+        """
+        try:
+            # Crea il logger con il nome del progetto
+            log_dir = Path(self.temp_dir) / "logs"
+            log_dir.mkdir(parents=True, exist_ok=True)
+
+            self.logger = lnColoredLogger(
+                name=self.project_name or "ln_app",
+                console_logger_level="INFO",
+                file_logger_level="DEBUG",
+                logging_dir=str(log_dir),
+                threads=False,
+            )
+
+            # Test del logger se richiesto
+            if self.test_logger:
+                self.logger.test(self.logger)
+
+        except Exception as e:
+            # Fallback: stampa a console
+            print(f"ERROR initializing logger: {e}")
+            self.logger = None
+
+    def get_logger(self) -> Optional[lnColoredLogger]:
+        """
+        Restituisce il logger inizializzato.
+        Se il logger non esiste, lo crea.
 
         Returns:
-            Path completo per la directory temporanea
+            Istanza di lnColoredLogger o None se non disponibile
         """
-        temp_path: Path = Path(self.temp_dir)
+        if self.logger is None:
+            self._init_logger()
+        return self.logger
+
+    def get_temp_path(self, subdir: Optional[str] = None) -> Path:
+        """Restituisce il path temporaneo."""
+        temp_path = Path(self.temp_dir)
         if subdir:
             temp_path = temp_path / subdir
             temp_path.mkdir(parents=True, exist_ok=True)
         return temp_path
 
     def get_log_dir(self) -> Path:
-        """
-        Restituisce il path per i log.
-
-        Returns:
-            Path per la directory dei log
-        """
-        log_dir: Path = self.get_temp_path("logs")
-        return log_dir
+        """Restituisce il path per i log."""
+        return self.get_temp_path("logs")
 
     def get_config_dir(self) -> Path:
-        """
-        Restituisce il path per le configurazioni.
-
-        Returns:
-            Path per la directory delle configurazioni
-        """
+        """Restituisce il path per le configurazioni."""
         return self.get_temp_path("conf")
 
     def reset_log_levels(self, levels: Optional[List[str]] = None) -> None:
-        """
-        Resetta i livelli di log.
-
-        Args:
-            levels: Nuova lista di livelli, o None per default
-        """
+        """Resetta i livelli di log."""
         if levels is None:
             self.log_levels = ["INFO", "WARNING", "ERROR"]
         else:
             self.log_levels = levels
 
     def add_log_level(self, level: str) -> None:
-        """
-        Aggiunge un livello di log.
-
-        Args:
-            level: Livello da aggiungere
-        """
+        """Aggiunge un livello di log."""
         if level not in self.log_levels:
             self.log_levels.append(level)
 
     def remove_log_level(self, level: str) -> None:
-        """
-        Rimuove un livello di log.
-
-        Args:
-            level: Livello da rimuovere
-        """
+        """Rimuove un livello di log."""
         if level in self.log_levels:
             self.log_levels.remove(level)
 
     def to_dict(self) -> Dict[str, Any]:
-        """
-        Converte l'oggetto in un dizionario.
-
-        Returns:
-            Dizionario con tutti gli attributi
-        """
+        """Converte l'oggetto in un dizionario."""
         result: Dict[str, Any] = {}
         for key, value in self.__dict__.items():
-            if not key.startswith("_"):
+            if not key.startswith("_") and key != "logger":
                 if isinstance(value, (Path, Colors)):
                     result[key] = str(value)
                 else:
@@ -191,139 +195,54 @@ class GlobalVars:
         return result
 
 
-# Versione alternativa con tipo più specifico per temp_dir
-@dataclass
-class GlobalVarsStrict:
-    """Versione con tipi più stretti."""
-    project_name: str = ""
-    version: str = "0.0.1"
-    script_path: Path = field(default_factory=lambda: Path(__file__).resolve().parent)
-    temp_dir: Path = field(default_factory=lambda: Path("/tmp/ln_app"))
+# ============================================================
+# FUNZIONE DI UTILITY PER ACCEDERE AL LOGGER
+# ============================================================
 
-    hostname: str = field(default_factory=lambda: socket.gethostname().split()[0])
-    op_sys: str = field(default_factory=lambda: platform.system())
-    now_str: str = field(default_factory=lambda: datetime.now().strftime("%d-%m-%Y_%H:%M"))
-
-    args: Any = None
-    fExecute: bool = False
-    isZIP: bool = field(default_factory=lambda: zipfile.is_zipfile(sys.argv[0]))
-
-    colors: Colors = field(default_factory=Colors)
-    logger: Any = None
-    test_logger: bool = False
-
-    log_levels: List[str] = field(default_factory=lambda: ["INFO", "WARNING", "ERROR"])
-    config: Dict[str, Any] = field(default_factory=dict)
-
-    def __post_init__(self) -> None:
-        """Crea le directory necessarie."""
-        self.temp_dir.mkdir(parents=True, exist_ok=True)
-
-        # Se project_name è impostato, aggiorna temp_dir
-        if self.project_name:
-            self.temp_dir = Path(f"/tmp/{self.project_name}")
-            self.temp_dir.mkdir(parents=True, exist_ok=True)
-
-
-# 👉 ISTANZA VERA (singleton)
-gVars: GlobalVars = GlobalVars()
-
-
-# Funzione per ottenere l'istanza globale
-def get_global_vars() -> GlobalVars:
+def get_logger() -> Optional[lnColoredLogger]:
     """
-    Restituisce l'istanza globale di GlobalVars.
+    Funzione di comodo per ottenere il logger globale.
 
     Returns:
-        Istanza GlobalVars
+        Istanza di lnColoredLogger o None se non disponibile
+
+    Examples:
+        >>> logger = get_logger()
+        >>> if logger:
+        ...     logger.info("Messaggio di info")
     """
-    return gVars
+    return gVars.get_logger()
 
 
-# Funzione per reimpostare l'istanza (utile per test)
-def reset_global_vars(project_name: Optional[str] = None) -> GlobalVars:
-    """
-    Reimposta l'istanza globale (utile per test).
+# ============================================================
+# ISTANZA GLOBALE
+# ============================================================
 
-    Args:
-        project_name: Nuovo nome del progetto
+# Crea l'istanza globale
+gVars = GlobalVars()
 
-    Returns:
-        Nuova istanza GlobalVars
-    """
-    global gVars
-    if project_name:
-        gVars = GlobalVars(project_name=project_name)
-    else:
-        gVars = GlobalVars()
-    return gVars
+# Inizializza il logger
+gVars.get_logger()
 
 
-# Context manager per temporanee modifiche
-class GlobalVarsContext:
-    """
-    Context manager per modifiche temporanee alle variabili globali.
-
-    Example:
-        with GlobalVarsContext(project_name="test"):
-            # gVars.project_name è "test"
-            ...
-        # gVars torna allo stato precedente
-    """
-    def __init__(self, **kwargs: Any) -> None:
-        self.kwargs: Dict[str, Any] = kwargs
-        self.original_values: Dict[str, Any] = {}
-
-    def __enter__(self) -> GlobalVars:
-        """Salva i valori originali e applica le modifiche."""
-        for key, value in self.kwargs.items():
-            if hasattr(gVars, key):
-                self.original_values[key] = getattr(gVars, key)
-                setattr(gVars, key, value)
-        return gVars
-
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
-        """Ripristina i valori originali."""
-        for key, value in self.original_values.items():
-            setattr(gVars, key, value)
-
-
-# Utility per logging
-def log_info(message: str) -> None:
-    """Log di info se il logger è disponibile."""
-    if gVars.logger and hasattr(gVars.logger, 'info'):
-        gVars.logger.info(message)
-    else:
-        print(f"INFO: {message}")
-
-
-def log_error(message: str) -> None:
-    """Log di errore se il logger è disponibile."""
-    if gVars.logger and hasattr(gVars.logger, 'error'):
-        gVars.logger.error(message)
-    else:
-        print(f"ERROR: {message}")
-
-
-''' Esempio di utilizzo
-    from .context import gVars, get_global_vars, GlobalVarsContext
-
-    # Uso normale
-    logger = gVars.logger
-    temp_path = gVars.get_temp_path("subdir")
-
-    # Context manager per test
-    with GlobalVarsContext(project_name="test_app"):
-        print(gVars.project_name)  # "test_app"
-        # Esegui operazioni di test
-        ...
-    # Torna al valore originale
-'''
+# ============================================================
+# TEST
+# ============================================================
 
 if __name__ == "__main__":
-    print(f"{gVars.project_name = }")
-    print(f"{gVars.script_path = }")
-    print(f"{gVars.temp_dir = }")
-    print(f"{gVars.hostname = }")
-    print(f"Colors: {gVars.colors.green}Green text{gVars.colors.reset}")
-    print(f"{gVars.log_levels = }")
+    # Test del logger
+    logger = get_logger()
+    if logger:
+        print("Logger inizializzato!")
+        logger.info("Questo è un test dal context.py")
+        logger.debug("Debug message")
+        logger.warning("Warning message")
+        logger.error("Error message")
+        logger.notify("Notify message")
+        logger.function("Function message")
+    else:
+        print("Logger non disponibile")
+
+    print(f"\nProject: {gVars.project_name}")
+    print(f"Temp dir: {gVars.temp_dir}")
+    print(f"Log dir: {gVars.get_log_dir()}")
