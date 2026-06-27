@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 27-06-2026 18.41.26
+# Date .........: 27-06-2026 17.09.48
 #
 import sys
 sys.dont_write_bytecode = True  # (vedi pyproject.oml per notifica "E402")
 
-from typing import Any, Optional, List, Dict
+from typing import Any, Optional, List, Dict, Union
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -58,48 +58,6 @@ class Colors:
     bg_white: str   = "\033[47m"
 
 
-class _DummyLogger:
-    """
-    Logger di fallback quando lnColoredLogger non è disponibile.
-    """
-    def __init__(self):
-        import logging
-        self._logger = logging.getLogger('dummy')
-        self._logger.setLevel(logging.DEBUG)
-        if not self._logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter('%(levelname)s - %(message)s')
-            handler.setFormatter(formatter)
-            self._logger.addHandler(handler)
-
-    def debug(self, msg: str, *args, **kwargs):
-        self._logger.debug(msg, *args, **kwargs)
-
-    def info(self, msg: str, *args, **kwargs):
-        self._logger.info(msg, *args, **kwargs)
-
-    def warning(self, msg: str, *args, **kwargs):
-        self._logger.warning(msg, *args, **kwargs)
-
-    def error(self, msg: str, *args, **kwargs):
-        self._logger.error(msg, *args, **kwargs)
-
-    def critical(self, msg: str, *args, **kwargs):
-        self._logger.critical(msg, *args, **kwargs)
-
-    def notify(self, msg: str, *args, **kwargs):
-        self._logger.info(f"NOTIFY: {msg}", *args, **kwargs)
-
-    def function(self, msg: str, *args, **kwargs):
-        self._logger.debug(f"FUNCTION: {msg}", *args, **kwargs)
-
-    def trace(self, msg: str, *args, **kwargs):
-        self._logger.debug(f"TRACE: {msg}", *args, **kwargs)
-
-    def test(self, *args, **kwargs):
-        print("DummyLogger: test chiamato")
-
-
 @dataclass
 class GlobalVars:
     """
@@ -110,8 +68,9 @@ class GlobalVars:
     """
 
     # Attributi base
-    Colors = Colors # inerisco la classe Colors nelle variabili
+
     project_name: str = os.environ.get("LN_PROJECT_NAME", "undefined_prj_name")
+    # project_name: str = ""
     version: str = "0.0.1"
 
     # Path
@@ -130,10 +89,10 @@ class GlobalVars:
 
     # Logging e colori
     colors: Colors = field(default_factory=Colors)
-    _logger: Any = field(default=None, repr=False)  # Logger privato
+    logger: Optional[lnColoredLogger] = None  # Usa il logger personalizzato
     test_logger: bool = False
 
-    # Liste e dizionari
+    # Liste e dizionari (usando default_factory)
     log_levels: List[str] = field(default_factory=lambda: ["INFO", "WARNING", "ERROR"])
     config: Dict[str, Any] = field(default_factory=dict)
     env_vars: Dict[str, str] = field(default_factory=dict)
@@ -142,30 +101,29 @@ class GlobalVars:
     yaml_engine: Any = None
     environment: Optional[str] = None
 
-
     def __post_init__(self) -> None:
         """Inizializza i campi che dipendono da altri valori."""
         if not self.temp_dir:
-            self.temp_dir = f"/tmp/{self.project_name}"
+            self.temp_dir = f"/tmp/{self.project_name}" if self.project_name else "/tmp/ln_app"
 
+        # Crea la directory temporanea se non esiste
         if self.temp_dir:
             os.makedirs(self.temp_dir, exist_ok=True)
 
-        # Inizializza il logger
-        self._init_logger()
-
-
+        # Inizializza il logger se non è già stato fatto
+        if self.logger is None:
+            self._init_logger()
 
     def _init_logger(self) -> None:
         """
         Inizializza il logger usando lnColoredLogger.
-        Se fallisce, usa un logger dummy.
         """
         try:
+            # Crea il logger con il nome del progetto
             log_dir = Path(self.temp_dir) / "logs"
             log_dir.mkdir(parents=True, exist_ok=True)
-
-            self._logger = lnColoredLogger(
+            # import pdb; pdb.set_trace(); # by Loreto
+            self.logger = lnColoredLogger(
                 name=self.project_name or "ln_app",
                 console_logger_level="INFO",
                 file_logger_level="DEBUG",
@@ -173,31 +131,25 @@ class GlobalVars:
                 threads=False,
             )
 
-            if self.test_logger and hasattr(self._logger, 'test'):
-                self._logger.test(self._logger)
+            # Test del logger se richiesto
+            if self.test_logger:
+                self.logger.test(self.logger)
 
         except Exception as e:
-            print(f"WARNING: Errore nell'inizializzazione del logger: {e}")
-            print("Uso logger dummy di fallback")
-            self._logger = _DummyLogger()
+            # Fallback: stampa a console
+            print(f"ERROR initializing logger: {e}")
+            self.logger = None
 
-    @property
-    def logger(self) -> Any:
+    def get_logger(self) -> Optional[lnColoredLogger]:
         """
-        Property per accedere al logger.
-        Garantisce che logger non sia mai None.
+        Restituisce il logger inizializzato.
+        Se il logger non esiste, lo crea.
+
+        Returns:
+            Istanza di lnColoredLogger o None se non disponibile
         """
-        if self._logger is None:
+        if self.logger is None:
             self._init_logger()
-        return self._logger
-
-    # @logger.setter
-    # def logger(self, value: Any) -> None:
-    #     """Permette di impostare un logger personalizzato."""
-    #     self._logger = value
-
-    def get_logger(self) -> Any:
-        """Restituisce il logger inizializzato. Non è mai None."""
         return self.logger
 
     def get_temp_path(self, subdir: Optional[str] = None) -> Path:
@@ -216,6 +168,23 @@ class GlobalVars:
         """Restituisce il path per le configurazioni."""
         return self.get_temp_path("conf")
 
+    def reset_log_levels(self, levels: Optional[List[str]] = None) -> None:
+        """Resetta i livelli di log."""
+        if levels is None:
+            self.log_levels = ["INFO", "WARNING", "ERROR"]
+        else:
+            self.log_levels = levels
+
+    def add_log_level(self, level: str) -> None:
+        """Aggiunge un livello di log."""
+        if level not in self.log_levels:
+            self.log_levels.append(level)
+
+    def remove_log_level(self, level: str) -> None:
+        """Rimuove un livello di log."""
+        if level in self.log_levels:
+            self.log_levels.remove(level)
+
     def to_dict(self) -> Dict[str, Any]:
         """Converte l'oggetto in un dizionario."""
         result: Dict[str, Any] = {}
@@ -232,10 +201,17 @@ class GlobalVars:
 # FUNZIONE DI UTILITY PER ACCEDERE AL LOGGER
 # ============================================================
 
-def get_logger() -> Any:
+def get_logger() -> Optional[lnColoredLogger]:
     """
     Funzione di comodo per ottenere il logger globale.
-    Garantisce che non sia mai None.
+
+    Returns:
+        Istanza di lnColoredLogger o None se non disponibile
+
+    Examples:
+        >>> logger = get_logger()
+        >>> if logger:
+        ...     logger.info("Messaggio di info")
     """
     return gVars.get_logger()
 
@@ -244,9 +220,11 @@ def get_logger() -> Any:
 # ISTANZA GLOBALE
 # ============================================================
 
+# Crea l'istanza globale
 gVars = GlobalVars()
 
-
+# Inizializza il logger
+gVars.get_logger()
 
 
 # ============================================================
@@ -254,14 +232,18 @@ gVars = GlobalVars()
 # ============================================================
 
 if __name__ == "__main__":
+    # Test del logger
     logger = get_logger()
-    print("Logger inizializzato!")
-    logger.info("Questo è un test dal context.py")
-    logger.debug("Debug message")
-    logger.warning("Warning message")
-    logger.error("Error message")
-    logger.notify("Notify message")
-    logger.function("Function message")
+    if logger:
+        print("Logger inizializzato!")
+        logger.info("Questo è un test dal context.py")
+        logger.debug("Debug message")
+        logger.warning("Warning message")
+        logger.error("Error message")
+        logger.notify("Notify message")
+        logger.function("Function message")
+    else:
+        print("Logger non disponibile")
 
     print(f"\nProject: {gVars.project_name}")
     print(f"Temp dir: {gVars.temp_dir}")

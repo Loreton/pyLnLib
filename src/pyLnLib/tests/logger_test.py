@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 20-05-2026 21.28.26
+# Date .........: 27-06-2026 18.54.20
 #
 
 #!/usr/bin/env python3
@@ -14,18 +14,36 @@ from pathlib import Path
 from logging.handlers import RotatingFileHandler
 from typing import Optional
 
-from pyLnLib import Color, lnLogger, testLogger, DummyPrintLogger
+from pyLnLib import gVars as ctx, testLogger
+C=ctx.Colors
+logger=ctx.get_logger()
 
 
 # -------------------------------
 # Test
 # -------------------------------
 if __name__ == "__main__":
-    logger=lnLogger(name=Path(__file__).stem,
-                            console_logger_level="trace", ### --- default
-                            file_logger_level="warning",
-                            logging_dir=None, # no filehandler
-                            threads=False)
+    # logger = get_logger()
+    print("Logger inizializzato!")
+    logger.info("Questo è un test dal context.py")
+    logger.debug("Debug message")
+    logger.warning("Warning message")
+    logger.error("Error message")
+    logger.notify("Notify message")
+    logger.function("Function message")
+
+
+    print(f"\nProject: {ctx.project_name}")
+    print(f"Temp dir: {ctx.temp_dir}")
+    print(f"Log dir: {ctx.get_log_dir()}")
+
+    print(ctx.to_dict())
+
+    # logger=lnLogger(name=Path(__file__).stem,
+    #                         console_logger_level="trace", ### --- default
+    #                         file_logger_level="warning",
+    #                         logging_dir=None, # no filehandler
+    #                         threads=False)
 
 
     dynamic_length=False
@@ -49,6 +67,3 @@ if __name__ == "__main__":
 
 
     print("\n"*2)
-
-
-

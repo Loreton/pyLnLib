@@ -5,17 +5,20 @@
 #
 
 import sys; sys.dont_write_bytecode=True; this=sys.modules[__name__]
-import os, stat
+import os
+import stat
 import zipfile
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any, List, Optional, Tuple
+from typing import Optional   # Any, List, Optional, Tuple
 import shutil
 
 
-from ..context import gVars as ctx; C=ctx.colors
+from ..context import gVars as ctx
 from .zip_file_utils import searchFileInZip
 
+C=ctx.colors
+logger=ctx.logger
 
 
 
@@ -23,9 +26,9 @@ from .zip_file_utils import searchFileInZip
 def findFile(root: str, filename: str):
     for dirpath, _, files in os.walk(root):
         file_path = os.path.join(dirpath, filename)
-        ctx.logger.debug("checking for: %s", file_path)
+        logger.debug("checking for: %s", file_path)
         if filename in files:
-            ctx.logger.notify("found: %s", file_path)
+            logger.notify("found: %s", file_path)
             return file_path
     return None
 
@@ -35,15 +38,17 @@ def findFile(root: str, filename: str):
 # - return SimpleNamespace:
 # -     content:      contetnof file
 # -     filepath:     filepath of found file or None
-# -     is_recursive: 
+# -     is_recursive:
 #################################
 def searchFileOnFS(filename: str,
                     search_paths: list,
                     recursive: bool=False,
-                    extract_to: str=None,
-                    stacklevel=-1) -> Tuple[Optional[str], bool]:
+                    extract_to: Optional[str]=None,
+                    stacklevel=-1) -> SimpleNamespace:
+                    # stacklevel=-1) -> Tuple[Optional[str], bool] |SimpleNamespace:
+    result = SimpleNamespace(content=None, filepath=None, is_recursive=False)
     #------------------------------------
-    def read_content(filename):
+    def read_content(filename) -> SimpleNamespace:
         result.filepath = filename
         if extract_to:
             shutil.copy2(filename, extract_to)
@@ -68,11 +73,11 @@ def searchFileOnFS(filename: str,
     #------------------------------------
 
     #------------------------------------
-    def result_and_exit():
+    def result_and_exit() -> SimpleNamespace:
         if result.filepath:
-            ctx.logger.info("%s FOUND on fileSystem", result.filepath, color=C.magenta)
+            logger.info("%s FOUND on fileSystem", result.filepath, color=C.magenta)
         else:
-            ctx.logger.warning("%s NOT FOUND on fileSystem", filename)
+            logger.warning("%s NOT FOUND on fileSystem", filename) # type: ignorex
         return result
     #------------------------------------
 
@@ -80,7 +85,7 @@ def searchFileOnFS(filename: str,
 
     STACKLEVEL = stacklevel+1
     result = SimpleNamespace(content=None, filepath=None, is_recursive=False)
-    ctx.logger.info("searching for file: %s (on paths: %s)", filename, search_paths, stacklevel=STACKLEVEL)
+    logger.info("searching for file: %s (on paths: %s)", filename, search_paths, stacklevel=STACKLEVEL)
     # import pdb; pdb.set_trace(); # by Loreto
     if os.path.exists(filename): ### esiste già come file completo
         return read_content(filename)
@@ -95,11 +100,10 @@ def searchFileOnFS(filename: str,
 
     # --- 1. Ricerca Esterna (Filesystem) tramite search_paths ---
     for base_path in search_paths:
-        # ctx.logger.info("on base_path: %s", base_path)
-        ctx.logger.debug("searching: %s/.../%s", base_path, filename, stacklevel=STACKLEVEL)
+        logger.debug("searching: %s/.../%s", base_path, filename, stacklevel=STACKLEVEL)
         if os.path.exists(base_path):
             if recursive:
-                is_recursive=True
+                _is_recursive=True
                 for root, _, files in os.walk(base_path):
 
                     if filename in files:
@@ -110,15 +114,11 @@ def searchFileOnFS(filename: str,
                             return read_content(os.path.join(root, filename))
 
             else:
-                is_recursive=False
+                _is_recursive=False
                 full_path = os.path.join(base_path, filename)
                 if os.path.exists(full_path):
                     return read_content(full_path)
 
-    # if result.filepath:
-    #     ctx.logger.info("%s has been found on fileSystem", result.filepath)
-    # else:
-    #     ctx.logger.warning("%s not found on fileSystem", filename)
     return result_and_exit()
 
 
@@ -137,7 +137,7 @@ def findFileInPaths_prev(filename: str, search_paths: list, exit_on_not_found: b
             filepath = file_path
             break
     if not filepath:
-        ctx.logger.error("filename: %s not found in searching paths: %s", filename, search_paths, stacklevel=2)
+        logger.error("filename: %s not found in searching paths: %s", filename, search_paths, stacklevel=2)
         sys.exit(1)
 
     return filepath
@@ -148,7 +148,7 @@ def findFileInPaths_prev(filename: str, search_paths: list, exit_on_not_found: b
 def searchFile(filename:           str,
                     search_paths:       list,
                     recursive:          bool=False,
-                    extract_to:         str=None, ### se si viuole copiare il file in altra destinazione
+                    extract_to:         Optional[str]=None, ### se si viuole copiare il file in altra destinazione
                     exit_on_not_found:  bool=False,
                     stacklevel:         int=-1):
     ### --- copy_to importante perché il file rclone.conf dovro' passarlo come parametro a rclone,
@@ -156,11 +156,15 @@ def searchFile(filename:           str,
 
     if not result.filepath:
         if zipfile.is_zipfile(sys.argv[0]):
-            result = searchFileInZip(filename=filename, archive_file=sys.argv[0], search_paths=search_paths, recursive=recursive, extract_to=extract_to)
+            result = searchFileInZip(filename=filename,
+                                        archive_file=sys.argv[0],
+                                        search_paths=search_paths,
+                                        recursive=recursive,
+                                        extract_to=extract_to)
             if not result.filepath:
-                ctx.logger.error("filename: %s not found on filesysten neither in zipfile", filename, exit=exit_on_not_found)
+                logger.error("filename: %s not found on filesysten neither in zipfile", filename, exit=exit_on_not_found)
         else:
-            ctx.logger.warning("filename: %s not found on fileSystem", filename, exit=exit_on_not_found)
+            logger.warning("filename: %s not found on fileSystem", filename, exit=exit_on_not_found)
 
     return result
 

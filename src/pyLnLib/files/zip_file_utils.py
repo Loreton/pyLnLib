@@ -7,16 +7,19 @@
 import  sys; sys.dont_write_bytecode = True
 import os, stat
 import zipfile, io
-from typing import Any, List, Optional, Tuple
+from typing import Optional # Any, List, Optional, Tuple
 from types import SimpleNamespace
 
 
 
-from ..context import gVars as ctx; C=ctx.colors
+from ..context import gVars as ctx
+C=ctx.colors
+logger=ctx.get_logger()
 
-def zipNameList___(zip_filename):
+def ____zipNameList(zip_filename):
     """ check it its a zip file """
-    zFileNamelist=[]
+    # _zFileNamelist=[]
+    fileNamelist = None
     if zipfile.is_zipfile(zip_filename):
         z=zipfile.ZipFile(zip_filename, "r")
         fileNamelist=z.namelist()
@@ -44,45 +47,14 @@ def read_file_in_zip_prev(zip_filename, filename):
 
 
 
-def zipReadFile___(filename: str, archive_file: str, extraction_dir: str='/tmp'):
-    logger = ctx.logger
 
-    content=None
-    try:
-        if zipfile.is_zipfile(zip_filename):
-            with zipfile.ZipFile(zip_filename, 'r') as z:
-                with z.open(filename) as f:
-                    content = f.read().decode('utf-8')
-
-    except Exception as e:
-        logger.error("Errore nel caricamento di %s: %s", target_file, str(e))
-
-    return content
 
 
 ############################################################
 #
 ############################################################
 # def zipExtractFile(archive_file: str, filename: str, content: bool=False, search_paths: list=[], out_dir: str='/tmp'):
-def zipExtractFile___(archive_file: str, filename: str, out_dir: str='/tmp'):
-    """ check it its a zip file """
-    if zipfile.is_zipfile(archive_file):
-        zFile=zipfile.ZipFile(archive_file, "r")
-        zFileNamelist=zFile.namelist()
-        search_paths.insert(0, '')
-        for path in search_paths:
-            filepath=os.path.join(path, filename)
-            if filepath in zFileNamelist:
-                if content:
-                    buffer=io.BytesIO(zFile.read(filepath))
-                    content=buffer.read()
-                    return content
-                else:
-                    zFile.extract(member=filepath, path=out_dir, pwd=None)
-                    ftemp=f'{out_dir}/{filepath}'
-                    return ftemp
 
-    return None
 
 
 #################################
@@ -92,8 +64,9 @@ def searchFileInZip(archive_file: str,
                         filename: str, *,
                         search_paths: list,
                         recursive: bool=False,
-                        extract_to: str=None,
-                        stacklevel=-1) ->  Tuple[Optional[str], bool]:
+                        extract_to: Optional[str]=None,
+                        stacklevel=-1) ->  SimpleNamespace:
+                        # stacklevel=-1) ->  Tuple[Optional[str], bool]:
     #------------------------------------
     def extract_file(zz, filename):
         result.filepath=filename
@@ -126,7 +99,7 @@ def searchFileInZip(archive_file: str,
         return result
 
     #------------------------------------
-    logger = ctx.logger
+    # logger = ctx.logger
 
     result = SimpleNamespace(content=None, filepath=None, is_recursive=False)
     STACKLEVEL = stacklevel+1
@@ -172,7 +145,5 @@ if __name__ == '__main__':
     config_file='conf/@lnSync_config.yaml'
     # data=read_file_in_zip_prev(zip_filename, config_file)
     # print(data)
-    data=zipReadFile(zip_filename, config_file)
-    print(data)
-
-
+    # data=zipReadFile(zip_filename, config_file)
+    # print(data)

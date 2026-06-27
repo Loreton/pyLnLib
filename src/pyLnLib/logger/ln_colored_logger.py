@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 21-06-2026 17.10.51
+# Date .........: 27-06-2026 18.53.52
 #
 
 import inspect
@@ -24,37 +24,37 @@ sys.dont_write_bytecode = True
 
 
 class Color:
-    red: str = "\033[31m"
-    redH: str = "\033[91m"
-    green: str = "\033[32m"
-    greenH: str = "\033[92m"
-    yellow: str = "\033[33m"
-    yellowH: str = "\033[93m"
-    blue: str = "\033[34m"
-    blueH: str = "\033[94m"
-    magenta: str = "\033[35m"
+    red: str      = "\033[31m"
+    redH: str     = "\033[91m"
+    green: str    = "\033[32m"
+    greenH: str   = "\033[92m"
+    yellow: str   = "\033[33m"
+    yellowH: str  = "\033[93m"
+    blue: str     = "\033[34m"
+    blueH: str    = "\033[94m"
+    magenta: str  = "\033[35m"
     magentaH: str = "\033[95m"
-    cyan: str = "\033[36m"
-    cyanH: str = "\033[96m"
-    white: str = "\033[37m"
-    whiteH: str = "\033[97m"
-    reset: str = "\033[0m"
+    cyan: str     = "\033[36m"
+    cyanH: str    = "\033[96m"
+    white: str    = "\033[37m"
+    whiteH: str   = "\033[97m"
+    reset: str    = "\033[0m"
 
-    purple: str = magenta
-    purpleH: str = magentaH
+    purple: str   = magenta
+    purpleH: str  = magentaH
 
 
 """
     Level       Numeric value What it means / When to use it
 """
-my_NOTSET_value: int = 0
-my_TRACE_value: int = 9
-my_DEBUG_value: int = 10
-my_INFO_value: int = 20
-my_NOTIFY_value: int = 21
+my_NOTSET_value: int   = 0
+my_TRACE_value: int    = 9
+my_DEBUG_value: int    = 10
+my_INFO_value: int     = 20
+my_NOTIFY_value: int   = 21
 my_FUNCTION_value: int = 22
-my_WARNING_value: int = 30
-my_ERROR_value: int = 40
+my_WARNING_value: int  = 30
+my_ERROR_value: int    = 40
 my_CRITICAL_value: int = 50
 
 
@@ -62,9 +62,7 @@ my_CRITICAL_value: int = 50
 # Formatter semplice + safe + TTY
 # -------------------------------
 class ColorFormatter(logging.Formatter):
-    def __init__(
-        self, fmt: str, datefmt: Optional[str] = None, use_color: bool = True
-    ) -> None:
+    def __init__(self, fmt: str, datefmt: Optional[str] = None, use_color: bool = True ) -> None:
         super().__init__(fmt, datefmt)
         self.use_color: bool = use_color
 
@@ -96,14 +94,12 @@ class lnColoredLogger:
         "NOTIFY": Color.blue,
     }
 
-    def __init__(
-        self,
-        name: str,
-        console_logger_level: Optional[str] = None,
-        file_logger_level: str = "warning",
-        logging_dir: Optional[str] = None,
-        threads: bool = False,
-    ) -> None:
+    def __init__(self, name: str,
+                        console_logger_level: Optional[str] = None,
+                        file_logger_level: str = "warning",
+                        logging_dir: Optional[str] = None,
+                        threads: bool = False,
+                ) -> None:
         self.logger: logging.Logger = logging.getLogger(name)
         # Evita handler duplicati
         if self.logger.handlers:
@@ -143,9 +139,7 @@ class lnColoredLogger:
 
     def add_custom_levels(self) -> None:
         # --- Livello custom NOTIFY ---
-        def notify(
-            self_logger: logging.Logger, msg: str, *args: Any, **kwargs: Any
-        ) -> None:
+        def notify(self_logger: logging.Logger, msg: str, *args: Any, **kwargs: Any ) -> None:
             self_logger._log(logging.NOTIFY, msg, args, **kwargs)  # type: ignore
 
         logging.NOTIFY = my_NOTIFY_value  # type: ignore
@@ -153,9 +147,7 @@ class lnColoredLogger:
         logging.Logger.notify = notify  # type: ignore
 
         # --- Livello custom TRACE ---
-        def trace(
-            self_logger: logging.Logger, msg: str, *args: Any, **kwargs: Any
-        ) -> None:
+        def trace(self_logger: logging.Logger, msg: str, *args: Any, **kwargs: Any ) -> None:
             self_logger._log(logging.TRACE, msg, args, **kwargs)  # type: ignore
 
         logging.TRACE = my_TRACE_value  # type: ignore
@@ -163,9 +155,7 @@ class lnColoredLogger:
         logging.Logger.trace = trace  # type: ignore
 
         # --- Livello custom FUNCTION ---
-        def function(
-            self_logger: logging.Logger, msg: str, *args: Any, **kwargs: Any
-        ) -> None:
+        def function(self_logger: logging.Logger, msg: str, *args: Any, **kwargs: Any ) -> None:
             self_logger._log(logging.FUNCTION, msg, args, **kwargs)  # type: ignore
 
         logging.FUNCTION = my_FUNCTION_value  # type: ignore
@@ -196,12 +186,7 @@ class lnColoredLogger:
     # -------------------------------
     # Rotating Logger
     # -------------------------------
-    def setRotatingLogger(
-        self,
-        name: str,
-        logging_dir: Optional[str] = None,
-        create_logging_dir: bool = True,
-    ) -> logging.Handler:
+    def setRotatingLogger(self, name: str, logging_dir: Optional[str] = None, create_logging_dir: bool = True, ) -> logging.Handler:
         if logging_dir is None:
             logging_dir = "logs"
 
@@ -220,6 +205,44 @@ class lnColoredLogger:
         if self.consoleHandler is not None:
             self.consoleHandler.setLevel(level.upper())
             self.notify("console log level has been set to: %s", level.upper())
+
+
+    def getConsoleLoggerLevel(self) -> str:
+        """
+        Restituisce il livello di logging corrente per la console.
+
+        Returns:
+            Stringa con il nome del livello (es. 'INFO', 'DEBUG', etc.)
+        """
+        if self.consoleHandler is not None:
+            level_value = self.consoleHandler.level
+            return logging.getLevelName(level_value)
+        return "NOTSET"
+
+    def getFileLoggerLevel(self) -> str:
+        """
+        Restituisce il livello di logging corrente per il file.
+
+        Returns:
+            Stringa con il nome del livello (es. 'INFO', 'DEBUG', etc.)
+        """
+        if self.fileHandler is not None:
+            level_value = self.fileHandler.level
+            return logging.getLevelName(level_value)
+        return "NOTSET"
+
+    def get_all_log_levels(self) -> Dict[str, str]:
+        """
+        Restituisce un dizionario con tutti i livelli di logging correnti.
+
+        Returns:
+            Dizionario con {'console': 'INFO', 'file': 'DEBUG', ...}
+        """
+        return {
+            'console': self.getConsoleLoggerLevel(),
+            'file': self.getFileLoggerLevel(),
+            'logger': logging.getLevelName(self.logger.level),
+        }
 
     def getMaxLength(self) -> int:
         return self.name_len + self.lineno_len + 1
@@ -334,14 +357,7 @@ class lnColoredLogger:
     # -------------------------------
     # Core logging
     # -------------------------------
-    def _log(
-        self,
-        level_name: str,
-        msg: str,
-        *args: Any,
-        color: Optional[str] = None,
-        **kwargs: Any,
-    ) -> None:
+    def _log(self, level_name: str, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any, ) -> None:
         level_value = getattr(logging, level_name, logging.INFO)
         stacklevel: int = kwargs.pop("stacklevel", 0)
         # print(f"....required stacklevel: {stacklevel}")
@@ -382,8 +398,7 @@ class lnColoredLogger:
                 msg_color = level_color
 
             extra = kwargs.pop("extra", {})
-            extra.update(
-                {
+            extra.update( {
                     "msg_color": msg_color,
                     "level_color": level_color,
                     "reset": Color.reset,
@@ -400,44 +415,28 @@ class lnColoredLogger:
     #########################################################################
     # API pubbliche
     #########################################################################
-    def trace(
-        self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any
-    ) -> None:
+    def trace(self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any ) -> None:
         self._log("TRACE", msg, *args, color=color, **kwargs)
 
-    def debug(
-        self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any
-    ) -> None:
+    def debug(self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any ) -> None:
         self._log("DEBUG", msg, *args, color=color, **kwargs)
 
-    def info(
-        self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any
-    ) -> None:
+    def info(self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any ) -> None:
         self._log("INFO", msg, *args, color=color, **kwargs)
 
-    def warning(
-        self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any
-    ) -> None:
+    def warning(self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any ) -> None:
         self._log("WARNING", msg, *args, color=color, **kwargs)
 
-    def error(
-        self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any
-    ) -> None:
+    def error(self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any ) -> None:
         self._log("ERROR", msg, *args, color=color, **kwargs)
 
-    def critical(
-        self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any
-    ) -> None:
+    def critical(self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any ) -> None:
         self._log("CRITICAL", msg, *args, color=color, **kwargs)
 
-    def notify(
-        self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any
-    ) -> None:
+    def notify(self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any ) -> None:
         self._log("NOTIFY", msg, *args, color=color, **kwargs)
 
-    def function(
-        self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any
-    ) -> None:
+    def function(self, msg: str, *args: Any, color: Optional[str] = None, **kwargs: Any ) -> None:
         self._log("FUNCTION", msg, *args, color=color, show_caller=True, **kwargs)
 
 
@@ -449,6 +448,17 @@ def testLogger(logger: lnColoredLogger) -> None:
     logger.error("ERROR default")
     logger.critical("CRITICAL default")
     logger.notify("NOTIFY default")
+
+    save_level = logger.getConsoleLoggerLevel()
+    logger.setConsoleLoggerLevel("WARNING")
+    print("\n--- base colors forzando level to WARNING---")
+    logger.debug("DEBUG default")
+    logger.info("INFO default")
+    logger.warning("WARNING default")
+    logger.error("ERROR default")
+    logger.critical("CRITICAL default")
+    logger.notify("NOTIFY default")
+    logger.setConsoleLoggerLevel(save_level)
 
     print("\n--- custom colors ---")
     logger.info("INFO in magenta", color=Color.magenta)

@@ -7,7 +7,7 @@
 import sys
 sys.dont_write_bytecode = True
 import os
-
+from typing import  Optional
 
 ### --------------------
 ### --- project modules
@@ -34,7 +34,8 @@ def _iniSet():
         interpolation=configparser.BasicInterpolation()
     )
 
-    ini_config.optionxform = str        # mantiene il case nei nomi delle section e delle Keys
+    # mantiene il case nei nomi delle section e delle Keys ref: https://docs.python.org/3/library/configparser.html
+    ini_config.optionxform = str # type: ignore
 
     return ini_config
 
@@ -42,11 +43,11 @@ def _iniSet():
 ###############################################
 # Load INI file
 ###############################################
-def loadIni(filepath: str=None, content: str=None, search_paths: list=[], exit_on_error: bool=True):
+def loadIni(filepath: Optional[str]=None, content: Optional[str]=None, search_paths: list=[], exit_on_error: bool=True):
     my_search_paths = search_paths
     ini_dict = {}
 
-    if not content:  ### read content
+    if filepath:  ### read content
         result = searchFile(filename=filepath, search_paths=my_search_paths, stacklevel=2)
         content = result.content
         if not result.filepath:
@@ -83,9 +84,9 @@ def writeIni(ini_dict: dict, filepath: str, backup_original: bool = False):
     Returns:
         bool: True if successful, False otherwise
     """
-    import configparser
+    # import configparser
     import shutil
-    from datetime import datetime
+    # from datetime import datetime
 
     # Validate input
     if not isinstance(ini_dict, dict):
