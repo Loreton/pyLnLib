@@ -4,16 +4,16 @@
 # Date .........: 27-06-2026 14.28.52
 #
 
+# import sys
 import os
 import platform
 import subprocess
-import sys
-from ossaudiodev import SOUND_MIXER_SPEAKER
+# from ossaudiodev import SOUND_MIXER_SPEAKER
 from pathlib import Path, PurePosixPath
-from typing import Any, List, Optional, Union
+from typing import Union # Any, List, Optional, Union
 
 # import pyLnLib
-from pyLnLib.context import gVars as ctx
+from pyLnLib import gVars as ctx
 
 logger = ctx.get_logger()
 

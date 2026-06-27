@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyLnLib"
-version = "0.1.10"
+version = "0.1.11"
 description = "Libreria personale di utility Python"
 authors = [
     { name = "Loreto Notarantonio" },
@@ -25,6 +25,7 @@ ignore = [
     "E402",
     "E702",
     "E401",
+    "E701",
 ]
 
 [tool.pyright]

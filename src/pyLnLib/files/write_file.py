@@ -8,7 +8,7 @@ import sys; sys.dont_write_bytecode=True; this=sys.modules[__name__]
 import os
 from pathlib import Path
 from datetime import datetime
-from types import SimpleNamespace
+# from types import SimpleNamespace
 
 
 
@@ -17,14 +17,15 @@ from types import SimpleNamespace
 ### --- project modules
 ### --------------------
 from ..context  import gVars as ctx
+logger = ctx.get_logger()
 
 
 ##############################################################
 # - WRITE - FILE
 # - writeFile version: 18-07-2023 12.54.30
 ##############################################################
-def writeFile(data: (str, list, dict), filepath: (str, os.PathLike), *, replace: bool=False, write_datetime: bool=True, **kwargs) -> bool:
-    logger = ctx.logger
+def writeFile(data: (str| list), filepath: (str| os.PathLike), *, replace: bool=False, write_datetime: bool=True, **kwargs) -> bool:
+    # logger = ctx.logger
     logger.function(__name__, force_log=False)
     fout=Path(filepath).resolve()
     stacklevel = kwargs.pop("stacklevel", 0)
@@ -33,9 +34,9 @@ def writeFile(data: (str, list, dict), filepath: (str, os.PathLike), *, replace:
 
 
 
-    is_list_in_list = any(isinstance(el, list) for el in data)
+    _is_list_in_list = any(isinstance(el, list) for el in data)
 
-    _data = '\n'.join(data) if isinstance(data, list) else data
+    _data: str = '\n'.join(data) if isinstance(data, list) else data
 
     comment_char='# '
     if fout.suffix == '.json':
@@ -45,7 +46,7 @@ def writeFile(data: (str, list, dict), filepath: (str, os.PathLike), *, replace:
 
     if write_datetime:
         date_time=datetime.now().strftime("%d-%m-%Y %H:%M")
-        _data=f"{comment_char}\n{comment_char} Write time: {date_time}\n{comment_char}\n" + _data
+        _data=f"{comment_char}\n{comment_char} Write time: {date_time}\n{comment_char}\n {_data}"
 
     if not _data.endswith('\n'):
         _data+="\n"
@@ -68,5 +69,3 @@ def writeFile(data: (str, list, dict), filepath: (str, os.PathLike), *, replace:
         logger.error('file %s already exists. No changes', fout )
 
     return ret_code
-
-

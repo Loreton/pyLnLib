@@ -4,17 +4,16 @@
 # Date .........: 21-06-2026 17.31.37
 #
 
+import sys; sys.dont_write_bytecode = True
 import os
 import platform
 import socket
-import sys
 import zipfile
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-sys.dont_write_bytecode = True
 
 
 @dataclass(frozen=True)  # "frozen" rende i colori non modificabili per errore

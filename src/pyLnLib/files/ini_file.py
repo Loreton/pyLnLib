@@ -4,17 +4,16 @@
 # Date .........: 12-06-2026 14.14.15
 #
 
-import sys
-sys.dont_write_bytecode = True
+import sys; sys.dont_write_bytecode = True
 import os
 from typing import  Optional
 
 ### --------------------
 ### --- project modules
 ### --------------------
-from ..context    import gVars as gv
+from ..context    import gVars as ctx
 from .file_utils import searchFile
-
+logger = ctx.get_logger()
 
 ###############################################
 #    I N I   - I N I   - I N I   -
@@ -51,7 +50,7 @@ def loadIni(filepath: Optional[str]=None, content: Optional[str]=None, search_pa
         result = searchFile(filename=filepath, search_paths=my_search_paths, stacklevel=2)
         content = result.content
         if not result.filepath:
-            gv.logger.error(f"File not found: {filepath}", exc_info=exit_on_error)
+            logger.error(f"File not found: {filepath}", exc_info=exit_on_error)
 
     if content:
         content = os.path.expandvars(content)
@@ -90,11 +89,11 @@ def writeIni(ini_dict: dict, filepath: str, backup_original: bool = False):
 
     # Validate input
     if not isinstance(ini_dict, dict):
-        gv.logger.error(f"Expected dict, got {type(ini_dict)}")
+        logger.error(f"Expected dict, got {type(ini_dict)}")
         return False
 
     if not filepath:
-        gv.logger.error("No filepath provided")
+        logger.error("No filepath provided")
         return False
 
     # Create backup if file exists and backup_original is True
@@ -102,9 +101,9 @@ def writeIni(ini_dict: dict, filepath: str, backup_original: bool = False):
         try:
             backup_path = f"{filepath}.bak"
             shutil.copy2(filepath, backup_path)
-            gv.logger.info(f"Backup created: {backup_path}")
+            logger.info(f"Backup created: {backup_path}")
         except Exception as e:
-            gv.logger.warning(f"Could not create backup: {e}")
+            logger.warning(f"Could not create backup: {e}")
 
     # Create ConfigParser instance
     ini_config = _iniSet()
@@ -112,7 +111,7 @@ def writeIni(ini_dict: dict, filepath: str, backup_original: bool = False):
     # Populate ConfigParser with dictionary data
     for section, section_data in ini_dict.items():
         if not isinstance(section_data, dict):
-            gv.logger.warning(f"Section '{section}' is not a dict, skipping")
+            logger.warning(f"Section '{section}' is not a dict, skipping")
             continue
 
         # Add section if it doesn't exist
@@ -132,11 +131,11 @@ def writeIni(ini_dict: dict, filepath: str, backup_original: bool = False):
         with open(filepath, 'w', encoding='utf-8') as f:
             ini_config.write(f)
 
-        gv.logger.info(f"INI file successfully written to: {filepath}")
+        logger.info(f"INI file successfully written to: {filepath}")
         return True
 
     except Exception as e:
-        gv.logger.error(f"Error writing INI file {filepath}: {e}")
+        logger.error(f"Error writing INI file {filepath}: {e}")
         return False
 
 
@@ -161,7 +160,7 @@ def updateIniKey(filepath: str, section: str, key: str, value: str, create_backu
     ini_dict = loadIni(filepath=filepath, exit_on_error=False)
 
     if not ini_dict:
-        gv.logger.error(f"Could not load INI file: {filepath}")
+        logger.error(f"Could not load INI file: {filepath}")
         return False
 
     # Update the specific key

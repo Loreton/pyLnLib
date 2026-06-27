@@ -4,7 +4,10 @@
 # Date .........: 21-06-2026 17.39.07
 #
 
-import sys; sys.dont_write_bytecode=True; this=sys.modules[__name__]
+# from optparse import Option
+import sys
+
+from typing import Optional; sys.dont_write_bytecode=True; this=sys.modules[__name__]
 #!/usr/bin/env python3
 import sys; sys.dont_write_bytecode=True
 import json
@@ -16,6 +19,7 @@ from datetime   import datetime
 
 
 from ..context import gVars as ctx
+# logger = ctx.get_logger()
 
 
 ### --------------------
@@ -30,10 +34,7 @@ class lnDict(dict):
         # Inizializziamo prima gli attributi interni per evitare loop con __setattr__
         super().__setattr__('_sep', separator)
         # Se hai bisogno del logger, inizializzalo qui
-        # if ctx.logger:
         super().__setattr__('logger', ctx.logger)
-        # else:
-        #     super().__setattr__('logger', getGlobalVars().logger)
 
         super().__init__()
         #... carica self con i dati dict
@@ -240,6 +241,8 @@ class lnDict(dict):
         curr = self
 
         # 1. Navigazione attraverso i livelli intermedi
+        partial_path: str = "undefined"
+        part: str = parts[0]
         for i in range(len(parts) - 1):
             part = parts[i]
             partial_path = self._sep.join(parts[0:i+1])
@@ -489,7 +492,7 @@ class lnDict(dict):
         """
         all_leaves = self.flatten(with_leaves=True)
         if search_in == 'path':
-            return [p for p, v in all_leaves if query.lower() in p.lower()]
+            return [p for p, _v in all_leaves if query.lower() in p.lower()]
         elif search_in == 'value':
             return [p for p, v in all_leaves if query.lower() in str(v).lower()]
         return []
@@ -533,7 +536,7 @@ class lnDict(dict):
     # #############################################################################
     # # title: se valorizzato viene messo in testa al dict
     # #############################################################################
-    def to_yaml(self, title: str=None, sort_keys=False, **kwargs):
+    def to_yaml(self, title: Optional[str]=None, sort_keys=False, **kwargs):
         """Converte lo lnDict in una stringa YAML pulita."""
         # Usiamo to_dict() per esportare solo dati standard
         # indent = kwargs.pop("indent", 4)
@@ -547,7 +550,7 @@ class lnDict(dict):
     # # title: se valorizzato viene messo in testa al dict
     # #  utile per avere un'idea di massima del contenuto del dictionary
     # #############################################################################
-    def save_yaml(self, filepath, title: str=None, indent: int=0, **kwargs):
+    def save_yaml(self, filepath, title: Optional[str]=None, indent: int=0, **kwargs):
         """Salva lo lnDict in un file .yaml."""
         yaml_data = self.to_yaml(title=title, **kwargs)
         now = datetime.now().strftime("%d-%m-%Y_%H:%M")

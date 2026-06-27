@@ -4,12 +4,11 @@
 # Date .........: 21-06-2026 17.42.30
 #
 
+import sys; sys.dont_write_bytecode = True
 from typing import List, Any, Union, Optional, Iterable, TypeVar
-import sys
-import subprocess
-import platform
+# import subprocess
+# import platform
 
-sys.dont_write_bytecode = True
 
 # Type variable per generici
 T = TypeVar('T')

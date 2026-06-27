@@ -3,8 +3,7 @@
 # updated by ...: Loreto Notarantonio
 # Date .........: 27-06-2026 18.41.26
 #
-import sys
-sys.dont_write_bytecode = True  # (vedi pyproject.oml per notifica "E402")
+import sys; sys.dont_write_bytecode = True  # (vedi pyproject.oml per notifica "E402")
 
 from typing import Any, Optional, List, Dict
 from dataclasses import dataclass, field
