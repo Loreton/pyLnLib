@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 22-06-2026 21.10.12
+# Date .........: 27-06-2026 10.20.22
 #
+import sys
+sys.dont_write_bytecode = True  # (vedi pyproject.oml per notifica "E402")
 
 from typing import Any, Optional, List, Dict, Union
 from dataclasses import dataclass, field
@@ -10,11 +12,9 @@ from datetime import datetime
 from pathlib import Path
 import platform
 import socket
-import sys
 import zipfile
 import os
 
-sys.dont_write_bytecode = True
 
 # Import del logger
 from .logger.ln_colored_logger import lnColoredLogger
@@ -68,7 +68,9 @@ class GlobalVars:
     """
 
     # Attributi base
-    project_name: str = ""
+
+    project_name: str = os.environ.get("LN_PROJECT_NAME", "dummy_prj_name")
+    # project_name: str = ""
     version: str = "0.0.1"
 
     # Path
@@ -120,7 +122,7 @@ class GlobalVars:
             # Crea il logger con il nome del progetto
             log_dir = Path(self.temp_dir) / "logs"
             log_dir.mkdir(parents=True, exist_ok=True)
-
+            # import pdb; pdb.set_trace(); # by Loreto
             self.logger = lnColoredLogger(
                 name=self.project_name or "ln_app",
                 console_logger_level="INFO",

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 12-06-2026 20.24.21
+# Date .........: 27-06-2026 14.28.59
 #
 
 import os
@@ -10,7 +10,6 @@ from typing import Any, List, Optional, Union
 
 from .beep import playBeep
 from .context import Colors as C
-from .context import gVars as gv
 
 
 # -------------------------------
@@ -29,12 +28,10 @@ def caller_info(message: str, stacknum: int = 2) -> str:
 # permette multiple choices
 # return list[] of choice(s)
 #######################################################
-def keyboardPrompt(
-    text_msg: str,
-    validKeys: List[str] = ["y", "n"],
-    exitKeys: List[str] = ["x", "q"],
-    multi_choices: bool = False,
-) -> Union[List[str], str]:
+def keyboardPrompt( text_msg: str,
+                    validKeys: List[str] = ["y", "n"],
+                    exitKeys: List[str] = ["x", "q"],
+                    multi_choices: bool = False, ) -> Union[List[str], str, int]:
     """
     Funzione per input da tastiera con validazione.
 
@@ -48,7 +45,6 @@ def keyboardPrompt(
         Se multi_choices è True: Lista di stringhe con le scelte
         Se multi_choices è False: Stringa con la scelta singola
     """
-    logger = gv.logger
 
     # # -------------------------------
     def check_MC(choice: str, validKeys: List[str]) -> bool:
@@ -90,7 +86,7 @@ def keyboardPrompt(
         # Controllo uscita
         if choice in exitKeys:
             print("Exiting on user request.")
-            playBeep()
+            playBeep("INFO")
             sys.exit(0)
 
         # Controllo scelte multiple
@@ -117,12 +113,10 @@ def keyboardPrompt(
 
 
 # Versione con default None per backward compatibility
-def keyboardPrompt_with_default(
-    text_msg: str,
-    validKeys: Optional[List[str]] = None,
-    exitKeys: Optional[List[str]] = None,
-    multi_choices: bool = False,
-) -> Union[List[str], str]:
+def keyboardPrompt_with_default( text_msg: str,
+                                    validKeys: Optional[List[str]] = None,
+                                    exitKeys: Optional[List[str]] = None,
+                                    multi_choices: bool = False, ) -> Union[List[str], str]:
     """
     Versione con default None per evitare problemi di mutability.
     """

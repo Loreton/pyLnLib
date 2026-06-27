@@ -2,7 +2,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 22-06-2026 21.32.40
+# Date .........: 27-06-2026 10.22.11
 #
 
 """
@@ -49,8 +49,8 @@ from .lndict.ln_dict_resolver_class import LnDictResolver
 # IMPORT DA ALTRI MODULI
 # ============================================================
 from .keyboard_prompt               import keyboardPrompt
-from .beep                          import playBeep, play_success_sound, play_error_sound, play_notification_sound
-from .context                       import gVars, Colors
+from .beep                          import playBeep, play_success_sound, play_error_sound, play_notification_sound, get_beep_types
+from .context                       import gVars, Colors, get_logger
 from .ln_utils                      import flatten_nested_list, flatten_and_filter
 
 

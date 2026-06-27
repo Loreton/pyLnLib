@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyLnLib"
-version = "0.1.8"
+version = "0.1.9"
 description = "Libreria personale di utility Python"
 authors = [
     { name = "Loreto Notarantonio" },
@@ -19,6 +19,11 @@ dependencies = [
 
 [project.license]
 text = "MIT"
+
+[tool.ruff.lint]
+ignore = [
+    "E402",
+]
 
 [tool.pyright]
 pythonVersion = "3.11"
