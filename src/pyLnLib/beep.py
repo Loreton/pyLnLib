@@ -13,7 +13,7 @@ from pathlib import Path, PurePosixPath
 from typing import Union # Any, List, Optional, Union
 
 # import pyLnLib
-from pyLnLib import gVars as ctx
+from pyLnLib.context import gVars as ctx
 
 logger = ctx.get_logger()
 

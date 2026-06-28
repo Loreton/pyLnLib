@@ -6,12 +6,12 @@
 #
 # import os
 
+print(f"\t{__name__} - start loading")
 
 """
 pyLnLib - libreria personale di utility Python
 Autore: Loreto Notarantonio
 """
-
 from   .ln_dict_class              import lnDict
 from   .ln_dict_resolver_class     import LnDictResolver
 
@@ -22,4 +22,4 @@ __all__ = [
 ]
 
 # Per debug
-print(f"Logger sub-package loaded: {__name__}")
+print(f"\t{__name__} - end loading")

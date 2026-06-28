@@ -9,7 +9,7 @@ import re
 import os
 import copy
 
-class LnDictResolver:
+class LnDictResolver():
     TAG_REGEX = re.compile(r"\(\(\s*(\w+)\s*->\s*(.+?)\s*\)\)")
 
     def __init__(self, lndict_instance):
@@ -163,4 +163,3 @@ class LnDictResolver:
         if self.errors:
             for err in self.errors: self.target.logger.error(err)
         return self.target
-

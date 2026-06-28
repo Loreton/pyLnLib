@@ -9,7 +9,7 @@
 pyLnLib - libreria personale di utility Python
 Autore: Loreto Notarantonio
 """
-
+print(f"\t{__name__} - start loading")
 from .file_utils        import searchFile, searchFileOnFS, dirList
 from .ini_file          import loadIni, writeIni
 from .write_file        import writeFile
@@ -31,4 +31,5 @@ __all__ = [
 
 
 # Per debug
-print(f"Logger sub-package loaded: {__name__}")
+# print(f"Logger sub-package loaded: {__name__}")
+print(f"\t{__name__} - end loading")

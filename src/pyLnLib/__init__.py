@@ -8,6 +8,8 @@
 """
 pyLnLib - Libreria di utility per Python
 """
+# Per debug
+print(f"{__name__} - start loading")
 
 __version__ = "0.0.1"
 __author__ = "Loreto Notarantonio"
@@ -58,33 +60,58 @@ from .ln_utils                      import flatten_nested_list, flatten_and_filt
 # ESPORTAZIONE PER `from pyLnLib import *`
 # ============================================================
 
-# __all__ = [
-#     # Logger
-#     'lnLogger',
-#     'testLogger',
-#     'DummyPrintLogger',
+__all__ = [
+    # Logger
+    'lnLogger',
+    'testLogger',
+    'DummyPrintLogger',
 
-#     # Beep
-#     'playBeep',
-#     'play_success_sound',
-#     'play_error_sound',
-#     'play_notification_sound',
+    # Beep
+    'playBeep',
+    'play_success_sound',
+    'play_error_sound',
+    'play_notification_sound',
 
-#     # Context
-#     'gVars',
-#     'Colors',
-#     'lnLib.dirList',
+    # Context
+    'gVars',
+    'Colors',
+    'dirList',
+    'get_logger',
+    'get_beep_types',
 
-#     # Utils
-#     'flatten_nested_list',
-#     'flatten_and_filter',
+    # lnDict
+    'lnDict',
+    'LnDictResolver',
 
-#     # Keyboard
-#     'keyboardPrompt',
+    # files
+    'writeFile',
+    'searchFileInZip',
+    'searchFile',
+    'searchFileOnFS',
+    'dirList',
+    'loadIni',
+    'writeIni',
+    'updateIniKey',
 
-#     # Version
-#     '__version__',
-#     '__author__',
-# ]
+    # system
+    'lnRun',
+    'lnRunStream',
+    'signalHandler',
+    'acquire_lock',
 
-print(f"Logger primary package loaded: {__name__}")
+
+
+    # Utils
+    'flatten_nested_list',
+    'flatten_and_filter',
+
+    # Keyboard
+    'keyboardPrompt',
+
+    # Version
+    '__version__',
+    '__author__',
+]
+
+# print(f"Logger primary package loaded: {__name__}")
+print(f"{__name__} - end loading")

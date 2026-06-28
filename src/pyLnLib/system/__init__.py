@@ -8,11 +8,11 @@
 pyLnLib - libreria personale di utility Python
 Autore: Loreto Notarantonio
 """
-
+print(f"\t{__name__} - start loading")
 from .acquire_lock        import acquire_lock
 from .ln_run              import lnRun
 from .ln_run_stream_class import lnRunStream_Class as lnRunStream
 from .signal_handler      import signalHandler
 
 # Per debug
-print(f"Logger sub-package loaded: {__name__}")
+print(f"\t{__name__} - end loading")

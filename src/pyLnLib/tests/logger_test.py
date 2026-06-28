@@ -8,13 +8,15 @@
 # -*- coding: utf-8 -*-
 
 import sys; sys.dont_write_bytecode = True
-import os
-import logging
-from pathlib import Path
-from logging.handlers import RotatingFileHandler
-from typing import Optional
+# import os
+# import logging
+# from pathlib import Path
+# from logging.handlers import RotatingFileHandler
+# from typing import Optional
 
-from pyLnLib import gVars as ctx, testLogger
+# import pyLnLib
+from pyLnLib.context import gVars as ctx
+from pyLnLib.logger import testLogger
 C=ctx.Colors
 logger=ctx.get_logger()
 
