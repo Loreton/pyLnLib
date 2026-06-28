@@ -108,7 +108,8 @@ class YamlEngine:
     #################################
     # -
     #################################
-    def find_file(self, filename: str) -> Tuple[Optional[str], bool]:
+    # def find_file(self, filename: str) -> tuple[str, bool]:
+    def find_file(self, filename: str) -> str|None:
         result = searchFileOnFS(filename=filename, search_paths=self.search_paths, recursive=self.recursive)
         if not result.filepath:
             if zipfile.is_zipfile(sys.argv[0]):
@@ -124,16 +125,32 @@ class YamlEngine:
     #################################
     # -
     #################################
+    # def _get_keypath(self, data: Any, keypath: str) -> Any:
+    #     try:
+    #         for key in keypath.split('.'):
+    #             if isinstance(data, dict):
+    #                 data = data.get(key)
+    #             else:
+    #     return result.content
+
+
+    #################################
+    # -
+    #################################
     def _get_keypath(self, data: Any, keypath: str) -> Any:
+        data = None
         try:
             for key in keypath.split('.'):
                 if isinstance(data, dict):
                     data = data.get(key)
-                else:
-                    return None
-            return data
-        except Exception:
-            return None
+                    break
+                # else:
+                #     return None
+            # return data
+        except Exception as e:
+            self.logger.error(str(e))
+
+        return data
 
     #################################
     # -

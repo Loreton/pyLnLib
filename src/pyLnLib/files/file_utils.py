@@ -45,8 +45,8 @@ def searchFileOnFS(filename: str,
                     recursive: bool=False,
                     extract_to: Optional[str]=None,
                     stacklevel=-1) -> SimpleNamespace:
-                    # stacklevel=-1) -> Tuple[Optional[str], bool] |SimpleNamespace:
     result = SimpleNamespace(content=None, filepath=None, is_recursive=False)
+
     #------------------------------------
     def read_content(filename) -> SimpleNamespace:
         result.filepath = filename
@@ -86,7 +86,6 @@ def searchFileOnFS(filename: str,
     STACKLEVEL = stacklevel+1
     result = SimpleNamespace(content=None, filepath=None, is_recursive=False)
     logger.info("searching for file: %s (on paths: %s)", filename, search_paths, stacklevel=STACKLEVEL)
-    # import pdb; pdb.set_trace(); # by Loreto
     if os.path.exists(filename): ### esiste già come file completo
         return read_content(filename)
 

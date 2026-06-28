@@ -6,7 +6,7 @@
 
 import sys; sys.dont_write_bytecode = True
 import os
-from typing import  Optional
+# from typing import  Optional
 
 ### --------------------
 ### --- project modules
@@ -42,7 +42,7 @@ def _iniSet():
 ###############################################
 # Load INI file
 ###############################################
-def loadIni(filepath: Optional[str]=None, content: Optional[str]=None, search_paths: list=[], exit_on_error: bool=True):
+def loadIni(filepath: str | None = None, content: str | None = None, search_paths: list = [], exit_on_error: bool = True):
     my_search_paths = search_paths
     ini_dict = {}
 
@@ -70,7 +70,7 @@ def loadIni(filepath: Optional[str]=None, content: Optional[str]=None, search_pa
 ###############################################
 # Write INI file from dictionary
 ###############################################
-def writeIni(ini_dict: dict, filepath: str, backup_original: bool = False):
+def writeIni(ini_dict: dict, filepath: str | Path, backup_original: bool = False):
     """
     Write a dictionary to an INI file.
 

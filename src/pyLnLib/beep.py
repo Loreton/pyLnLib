@@ -59,7 +59,7 @@ def playBeep(req_sound: Union[str, Path, PurePosixPath]) -> None:
 
         sound_exists: bool = os.path.exists(sound_path)
         if sound_exists:
-            logger.info("Riproduzione suono: %s", sound_path)
+            logger.debug("Riproduzione suono: %s", sound_path)
             subprocess.Popen(["paplay", sound_path])
 
         else:

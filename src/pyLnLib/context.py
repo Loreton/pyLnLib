@@ -3,6 +3,7 @@
 # updated by ...: Loreto Notarantonio
 # Date .........: 27-06-2026 18.41.26
 #
+import pdb
 import sys; sys.dont_write_bytecode = True  # (vedi pyproject.oml per notifica "E402")
 
 from typing import Any, Optional, List, Dict
@@ -110,7 +111,7 @@ class GlobalVars:
 
     # Attributi base
     Colors = Colors # inerisco la classe Colors nelle variabili
-    project_name: str = os.environ.get("LN_PROJECT_NAME", "undefined_prj_name")
+    project_name: str|None = os.environ.get("LN_PROJECT_NAME", None)
     version: str = "0.0.1"
 
     # Path
@@ -144,22 +145,28 @@ class GlobalVars:
 
     def __post_init__(self) -> None:
         """Inizializza i campi che dipendono da altri valori."""
+        if self.project_name:
+            self.set_project_name(name=self.project_name)
+
+
+    def set_temp_dir(self) -> None:
         if not self.temp_dir:
             self.temp_dir = f"/tmp/{self.project_name}"
-
         if self.temp_dir:
             os.makedirs(self.temp_dir, exist_ok=True)
 
-        # Inizializza il logger
+
+    def set_project_name(self, name: str) -> None:
+        self.project_name = name
+        self.set_temp_dir()
         self._init_logger()
-
-
 
     def _init_logger(self) -> None:
         """
         Inizializza il logger usando lnColoredLogger.
         Se fallisce, usa un logger dummy.
         """
+
         try:
             log_dir = Path(self.temp_dir) / "logs"
             log_dir.mkdir(parents=True, exist_ok=True)
@@ -171,7 +178,7 @@ class GlobalVars:
                 logging_dir=str(log_dir),
                 threads=False,
             )
-
+            self._logger.setNameLength(dynamic=True, length=0)
             if self.test_logger and hasattr(self._logger, 'test'):
                 self._logger.test(self._logger)
 

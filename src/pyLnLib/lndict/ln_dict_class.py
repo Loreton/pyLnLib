@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 21-06-2026 17.39.07
+# Date .........: 28-06-2026 20.35.31
 #
 
 # from optparse import Option
@@ -560,7 +560,7 @@ class lnDict(dict):
             f.write(yaml_data)
 
         # self.logger.notify("lnd_file: [%s] has been written", filepath, stacklevel=stacklevel, show_stack=False)
-        self.logger.notify("file: [%s] has been written", filepath, show_stack=True)
+        self.logger.notify("file: [%s] has been written", filepath, show_stack=False)
 
 
 
