@@ -5,8 +5,10 @@
 # Date .........: 22-06-2026 21.14.28
 #
 # import os
-
-print(f"\t{__name__} - start loading")
+import os
+__INIT__PY__DEBUG=os.environ.get("__INIT__PY__DEBUG", "False") == "True"
+if __INIT__PY__DEBUG:
+    print(f"{__name__} - start loading")
 
 """
 pyLnLib - libreria personale di utility Python
@@ -21,5 +23,5 @@ __all__ = [
     'LnDictResolver',
 ]
 
-# Per debug
-print(f"\t{__name__} - end loading")
+if __INIT__PY__DEBUG:
+    print(f"\t{__name__} - end loading")

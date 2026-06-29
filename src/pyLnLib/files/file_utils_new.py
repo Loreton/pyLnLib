@@ -18,7 +18,7 @@ from ..context import gVars as ctx
 from .zip_file_utils import searchFileInZip
 
 C=ctx.colors
-logger=ctx.logger
+logger=ctx.get_logger()
 
 
 
@@ -32,7 +32,32 @@ def findFile(root: str, filename: str):
             return file_path
     return None
 
+#################################
+# - read file content as str
+# - return str | None
+#################################
+def read_file_content(filename: str|Path) -> str | None:
+    if not os.path.exists(filename):
+        logger.warning("%s NOT FOUND on fileSystem", filename, stacklevel=2) # type: ignorex
+        return None
 
+    logger.info("reading %s on fileSystem", filename, stacklevel=2) # type: ignorex
+    fTYPE=1
+    if fTYPE==1:
+        with open(filename, 'r') as f: # modalita testo
+            content_str   = f.read()  # Già una stringa (str)
+            # se si ha bisogno dei bytes prima...
+            # content_bytes = f.read().encode('utf-8')  # bytes
+            # content_str   = content_bytes.decode('utf-8')  # str
+    else:
+        with open(filename, 'rb') as f: # modalità binaria
+            content_bytes = f.read()  # bytes
+            content_str   = content_bytes.decode('utf-8')  # str
+
+    if len(content_str) == 0:
+        logger.warning("%s does NOT contain any content", filename, stacklevel=2) # type: ignorex
+
+    return content_str
 
 #################################
 # - return SimpleNamespace:
@@ -45,52 +70,29 @@ def searchFileOnFS(filename: str,
                     recursive: bool=False,
                     extract_to: Optional[str]=None,
                     stacklevel=-1) -> SimpleNamespace:
-    result = SimpleNamespace(content=None, filepath=None, is_recursive=False)
-
+    result = SimpleNamespace(content=None, filepath=None, is_recursive=recursive)
+    content: str | None = None  # definizione di content
     #------------------------------------
-    def read_content(filename) -> SimpleNamespace:
-        result.filepath = filename
-        if extract_to:
-            shutil.copy2(filename, extract_to)
-            dest_file = os.path.join(extract_to, os.path.basename(filename))
-            current_permissions = os.stat(dest_file).st_mode # Ottieni i permessi attuali
-            # Aggiungi solo il permesso di scrittura (senza rimuovere altri)
-            os.chmod(dest_file, current_permissions | stat.S_IWUSR)  # solo per utente
-
-        if True:
-            with open(filename, 'r') as f: # modalita testo
-                content_str   = f.read()  # Già una stringa (str)
-                # se si ha bisogno dei bytes prima...
-                # content_bytes = f.read().encode('utf-8')  # bytes
-                # content_str   = content_bytes.decode('utf-8')  # str
-        else:
-            with open(filename, 'rb') as f: # modalità binaria
-                content_bytes = f.read()  # bytes
-                content_str   = content_bytes.decode('utf-8')  # str
-
-        result.content = content_str
-        return result_and_exit()
-    #------------------------------------
-
-    #------------------------------------
-    def result_and_exit() -> SimpleNamespace:
-        if result.filepath:
-            logger.info("%s FOUND on fileSystem", result.filepath, color=C.magenta, stacklevel=2)
-        else:
-            logger.warning("%s NOT FOUND on fileSystem", filename, stacklevel=2) # type: ignorex
-        return result
+    # def result_and_exit() -> SimpleNamespace:
+    #     if result.filepath:
+    #         logger.info("%s FOUND on fileSystem", result.filepath, color=C.magenta, stacklevel=2)
+    #     else:
+    #         logger.warning("%s NOT FOUND on fileSystem", filename, stacklevel=2) # type: ignorex
+    #     return result
     #------------------------------------
 
 
 
     STACKLEVEL = stacklevel+1
-    result = SimpleNamespace(content=None, filepath=None, is_recursive=False)
+    result.filepath = filename
     logger.debug("searching for file: %s (on paths: %s)", filename, search_paths, stacklevel=STACKLEVEL)
     if os.path.exists(filename): ### esiste già come file completo
-        return read_content(filename)
+        if (content := read_file_content(filename)) is not None:
+            result.content = content
+            return result
 
-    if filename.startswith('/'): ### absolute path inutile cercarlo altrove se non già trovato nel filesuistem
-        return result_and_exit()
+    if filename.startswith('/'): ### absolute path inutile cercarlo altrove se non già trovato nel filesystem
+        return result
 
 
     # ff = Path(filename)
@@ -102,23 +104,29 @@ def searchFileOnFS(filename: str,
         logger.debug("searching: %s/.../%s", base_path, filename, stacklevel=STACKLEVEL)
         if os.path.exists(base_path):
             if recursive:
-                _is_recursive=True
                 for root, _, files in os.walk(base_path):
 
                     if filename in files:
-                        return read_content(os.path.join(root, filename))
+                        if (content := read_file_content(os.path.join(root, filename))) is not None:
+                            result.content = content
+                            result.filepath = os.path.join(root, filename)
+                            return result
 
                     for file in files:
                         if (root == base_path or root.startswith(base_path)) and filename.endswith(file):
-                            return read_content(os.path.join(root, filename))
+                            if (content := read_file_content(os.path.join(root, file))) is not None:
+                                result.content = content
+                                result.filepath = os.path.join(root, file)
+                                return result
 
             else:
-                _is_recursive=False
-                full_path = os.path.join(base_path, filename)
-                if os.path.exists(full_path):
-                    return read_content(full_path)
+                full_path: str = os.path.join(base_path, filename)
+                if (content := read_file_content(full_path)) is not None:
+                    result.content = content
+                    result.filepath = full_path
+                    return result
 
-    return result_and_exit()
+    return result
 
 
 

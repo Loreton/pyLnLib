@@ -4,15 +4,19 @@
 # Date .........: 11-05-2026 10.47.44
 #
 
-import sys; sys.dont_write_bytecode=True;
+import sys; sys.dont_write_bytecode=True
+
 import os
 import yaml
 import zipfile
-from typing import Any, List, Optional, Tuple
+from typing import Any
 
 
-from .file_utils     import searchFileOnFS
+from .file_utils_new     import searchFileOnFS
 from .zip_file_utils import searchFileInZip
+from ..context import gVars as ctx
+# C=ctx.colors
+# logger=ctx.get_logger()
 
 #################################
 # --- Loader Personalizzato ---
@@ -78,10 +82,11 @@ class YamlEngine:
     #################################
     # -
     #################################
-    def __init__(self, environment, search_paths: List[str] = None, recursive: bool = False):
+    def __init__(self, environment, search_paths: list[str] = [], recursive: bool = False):
         self.env = environment
         lnYamlLoader.env_ref = environment
-        self.logger = environment.logger
+        # self.logger = environment.logger
+        self.logger = ctx.get_logger()
         self.recursive = recursive
 
         ### - prepare search paths
@@ -137,16 +142,13 @@ class YamlEngine:
     #################################
     # -
     #################################
-    def _get_keypath(self, data: Any, keypath: str) -> Any:
-        data = None
+    def _get_keypath(self, data: dict, keypath: str) -> Any:
         try:
             for key in keypath.split('.'):
                 if isinstance(data, dict):
                     data = data.get(key)
                     break
-                # else:
-                #     return None
-            # return data
+
         except Exception as e:
             self.logger.error(str(e))
 
@@ -165,7 +167,18 @@ class YamlEngine:
         content = os.path.expandvars(content)
         data = yaml.load(content, Loader=lnYamlLoader)
 
-        return self._get_keypath(data, keypath) if keypath else data
+        # file_data = self._get_keypath(data, keypath) if keypath else data
+        if keypath:
+            file_data = self._get_keypath(data, keypath)
+            if file_data is None:
+                self.logger.error("Key %s not found in file: %s:", keypath, target_file)
+                self.logger.exception("Key %s not found in file: %s:", keypath, target_file)
+                # raise ValueError(f"Key not found: {keypath}")
+                # sys.exit(1)
+        else:
+            file_data = data
+
+        return file_data
 
 
 
@@ -173,8 +186,8 @@ class YamlEngine:
 # -
 #################################
 class lnYamlEnvironment:
-    def __init__(self, logger, search_paths: list=["conf"], recursive=True):
-        self.logger = logger
+    def __init__(self, search_paths: list=["conf"], recursive=True):
+        # self.logger = logger
 
         # Inizializziamo l'engine con i parametri richiesti
         self.yaml_engine = YamlEngine(self, search_paths=search_paths, recursive=recursive)

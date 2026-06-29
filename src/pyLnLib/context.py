@@ -4,7 +4,8 @@
 # Date .........: 27-06-2026 18.41.26
 #
 import pdb
-import sys; sys.dont_write_bytecode = True  # (vedi pyproject.oml per notifica "E402")
+import sys
+from unittest.loader import defaultTestLoader; sys.dont_write_bytecode = True  # (vedi pyproject.oml per notifica "E402")
 
 from typing import Any, Optional, List, Dict
 from dataclasses import dataclass, field
@@ -111,7 +112,11 @@ class GlobalVars:
 
     # Attributi base
     Colors = Colors # inerisco la classe Colors nelle variabili
-    project_name: str|None = os.environ.get("LN_PROJECT_NAME", None)
+    default_project_name: str = "dummy_project_name"
+    project_name: str = os.environ.get("LN_PROJECT_NAME", default_project_name)
+    # if project_name == default_project_name:
+    #     print(f"\tWarning: variabile: LN_PROJECT_NAME non impostata, usando default: {project_name}\n"*2)
+
     version: str = "0.0.1"
 
     # Path
@@ -134,32 +139,28 @@ class GlobalVars:
     test_logger: bool = False
 
     # Liste e dizionari
-    log_levels: List[str] = field(default_factory=lambda: ["INFO", "WARNING", "ERROR"])
-    config: Dict[str, Any] = field(default_factory=dict)
-    env_vars: Dict[str, str] = field(default_factory=dict)
+    log_levels: list[str] = field(default_factory=lambda: ["INFO", "WARNING", "ERROR"])
+    config: dict[str, Any] = field(default_factory=dict)
+    env_vars: dict[str, str] = field(default_factory=dict)
 
     # Opzionali
     yaml_engine: Any = None
-    environment: Optional[str] = None
-
+    environment: str | None = None
 
     def __post_init__(self) -> None:
-        """Inizializza i campi che dipendono da altri valori."""
-        if self.project_name:
-            self.set_project_name(name=self.project_name)
-
-
-    def set_temp_dir(self) -> None:
-        if not self.temp_dir:
-            self.temp_dir = f"/tmp/{self.project_name}"
-        if self.temp_dir:
-            os.makedirs(self.temp_dir, exist_ok=True)
-
+        if self.project_name == self.default_project_name:
+            print("\t⚠️  WARNING: LN_PROJECT_NAME non impostata!")
+            print(f"\t\tUsando default: {self.default_project_name}")
+            print("\t\tPer cambiare: export LN_PROJECT_NAME=tuo_nome")
+            print()
+        self.set_project_name(name=self.project_name)
 
     def set_project_name(self, name: str) -> None:
-        self.project_name = name
-        self.set_temp_dir()
-        self._init_logger()
+        if not name == self.project_name:
+            self.project_name = name
+            self.temp_dir = f"/tmp/{self.project_name}"
+            os.makedirs(self.temp_dir, exist_ok=True)
+            self._init_logger()  # Reinizializza il logger con il corretto project name
 
     def _init_logger(self) -> None:
         """
@@ -172,7 +173,7 @@ class GlobalVars:
             log_dir.mkdir(parents=True, exist_ok=True)
 
             self._logger = lnColoredLogger(
-                name=self.project_name or "ln_app",
+                name=self.project_name,
                 console_logger_level="INFO",
                 file_logger_level="DEBUG",
                 logging_dir=str(log_dir),
@@ -183,30 +184,22 @@ class GlobalVars:
                 self._logger.test(self._logger)
 
         except Exception as e:
-            print(f"WARNING: Errore nell'inizializzazione del logger: {e}")
-            print("Uso logger dummy di fallback")
-            self._logger = _DummyLogger()
+            print(f"ERROR: Errore nell'inizializzazione del logger: {e}")
+            sys.exit(1)
+            # print("Uso logger dummy di fallback")
+            # self._logger = _DummyLogger()
 
-    @property
-    def logger(self) -> Any:
+    def get_logger(self) -> Any:
         """
         Property per accedere al logger.
         Garantisce che logger non sia mai None.
         """
         if self._logger is None:
+            print(f"\tLogger non inizializzato, chiamando _init_logger()")
             self._init_logger()
         return self._logger
 
-    # @logger.setter
-    # def logger(self, value: Any) -> None:
-    #     """Permette di impostare un logger personalizzato."""
-    #     self._logger = value
-
-    def get_logger(self) -> Any:
-        """Restituisce il logger inizializzato. Non è mai None."""
-        return self.logger
-
-    def get_temp_path(self, subdir: Optional[str] = None) -> Path:
+    def get_temp_path(self, subdir: str | None = None) -> Path:
         """Restituisce il path temporaneo."""
         temp_path = Path(self.temp_dir)
         if subdir:

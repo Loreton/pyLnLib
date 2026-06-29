@@ -34,9 +34,10 @@ class lnDict(dict):
         # Inizializziamo prima gli attributi interni per evitare loop con __setattr__
         super().__setattr__('_sep', separator)
         # Se hai bisogno del logger, inizializzalo qui
-        super().__setattr__('logger', ctx.logger)
+        super().__setattr__('logger', ctx.get_logger())
 
         super().__init__()
+        # self.logger = ctx.get_logger()
         #... carica self con i dati dict
         if data:
             self.update(data)
@@ -566,6 +567,6 @@ class lnDict(dict):
 
     # --- Collegamento al Resolver ---
     def resolve_all(self):
-        from pyLnLib import LnDictResolver
+        from pyLnLib.lndict import LnDictResolver
         resolver = LnDictResolver(self)
         return resolver.run()

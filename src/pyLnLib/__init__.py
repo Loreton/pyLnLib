@@ -8,8 +8,13 @@
 """
 pyLnLib - Libreria di utility per Python
 """
-# Per debug
-print(f"{__name__} - start loading")
+
+
+import os
+os.environ["__INIT__PY__DEBUG"] = "False"
+__INIT__PY__DEBUG = os.environ.get("__INIT__PY__DEBUG", "False")
+if __INIT__PY__DEBUG == "True":
+    print(f"{__name__} - start loading")
 
 __version__ = "0.0.1"
 __author__ = "Loreto Notarantonio"
@@ -31,7 +36,7 @@ from .system.signal_handler         import signalHandler
 from .files.write_file              import writeFile
 from .files.yaml_loader_class       import lnYamlEnvironment
 from .files.zip_file_utils          import searchFileInZip
-from .files.file_utils              import searchFile, searchFileOnFS, dirList
+from .files.file_utils_new              import searchFile, searchFileOnFS, dirList
 from .files.ini_file                import loadIni, writeIni, updateIniKey
 
 # ============================================================
@@ -113,5 +118,5 @@ __all__ = [
     '__author__',
 ]
 
-# print(f"Logger primary package loaded: {__name__}")
-print(f"{__name__} - end loading")
+if __INIT__PY__DEBUG == "True":
+    print(f"{__name__} - end loading")

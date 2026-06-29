@@ -12,7 +12,7 @@ import os
 ### --- project modules
 ### --------------------
 from ..context    import gVars as ctx
-from .file_utils import searchFile
+from .file_utils_new import searchFile
 logger = ctx.get_logger()
 
 ###############################################
