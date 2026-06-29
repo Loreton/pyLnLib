@@ -7,14 +7,14 @@
 import  sys; sys.dont_write_bytecode = True
 import os, stat
 import zipfile, io
-from typing import Optional # Any, List, Optional, Tuple
+from typing import Any # Any, List, Optional, Tuple
 from types import SimpleNamespace
 
 
 
 from ..context import gVars as ctx
 C=ctx.colors
-logger=ctx.get_logger()
+logger: Any=ctx.get_logger()
 
 def ____zipNameList(zip_filename):
     """ check it its a zip file """
@@ -64,9 +64,8 @@ def searchFileInZip(archive_file: str,
                         filename: str, *,
                         search_paths: list,
                         recursive: bool=False,
-                        extract_to: Optional[str]=None,
+                        extract_to: str|None=None,
                         stacklevel=-1) ->  SimpleNamespace:
-                        # stacklevel=-1) ->  Tuple[Optional[str], bool]:
     #------------------------------------
     def extract_file(zz, filename):
         result.filepath=filename

@@ -42,7 +42,7 @@ from .files.ini_file                import loadIni, writeIni, updateIniKey
 # ============================================================
 # IMPORT DAL SOTTO-PACKAGE logger
 # ============================================================
-from .logger.dummy_logger           import DummyPrintLogger
+# from .logger.dummy_logger           import DummyPrintLogger
 from .logger.ln_colored_logger      import lnColoredLogger as lnLogger, testLogger
 
 
@@ -69,7 +69,7 @@ __all__ = [
     # Logger
     'lnLogger',
     'testLogger',
-    'DummyPrintLogger',
+    # 'DummyPrintLogger',
 
     # Beep
     'playBeep',

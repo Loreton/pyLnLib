@@ -10,15 +10,14 @@ import stat
 import zipfile
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Optional   # Any, List, Optional, Tuple
-import shutil
+from typing import Any   # Any, List, Optional, Tuple
 
 
 from ..context import gVars as ctx
 from .zip_file_utils import searchFileInZip
 
 C=ctx.colors
-logger=ctx.get_logger()
+logger: Any=ctx.get_logger()
 
 
 
@@ -38,10 +37,10 @@ def findFile(root: str, filename: str):
 #################################
 def read_file_content(filename: str|Path) -> str | None:
     if not os.path.exists(filename):
-        logger.warning("%s NOT FOUND on fileSystem", filename, stacklevel=2) # type: ignorex
+        logger.warning("%s NOT FOUND on fileSystem", filename, stacklevel=2) # type: ignore
         return None
 
-    logger.info("reading %s on fileSystem", filename, stacklevel=2) # type: ignorex
+    logger.info("reading %s on fileSystem", filename, stacklevel=2) # type: ignore
     fTYPE=1
     if fTYPE==1:
         with open(filename, 'r') as f: # modalita testo
@@ -55,7 +54,7 @@ def read_file_content(filename: str|Path) -> str | None:
             content_str   = content_bytes.decode('utf-8')  # str
 
     if len(content_str) == 0:
-        logger.warning("%s does NOT contain any content", filename, stacklevel=2) # type: ignorex
+        logger.warning("%s does NOT contain any content", filename, stacklevel=2) # type: ignore
 
     return content_str
 
@@ -68,7 +67,7 @@ def read_file_content(filename: str|Path) -> str | None:
 def searchFileOnFS(filename: str,
                     search_paths: list,
                     recursive: bool=False,
-                    extract_to: Optional[str]=None,
+                    extract_to: str | None = None,
                     stacklevel=-1) -> SimpleNamespace:
     result = SimpleNamespace(content=None, filepath=None, is_recursive=recursive)
     content: str | None = None  # definizione di content
@@ -155,7 +154,7 @@ def findFileInPaths_prev(filename: str, search_paths: list, exit_on_not_found: b
 def searchFile(filename:           str,
                     search_paths:       list,
                     recursive:          bool=False,
-                    extract_to:         Optional[str]=None, ### se si viuole copiare il file in altra destinazione
+                    extract_to:         str | None = None, ### se si viuole copiare il file in altra destinazione
                     exit_on_not_found:  bool=False,
                     stacklevel:         int=-1):
     ### --- copy_to importante perché il file rclone.conf dovro' passarlo come parametro a rclone,

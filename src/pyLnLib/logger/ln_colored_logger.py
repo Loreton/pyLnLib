@@ -98,7 +98,7 @@ class lnColoredLogger:
     def __init__(self, name: str,
                         console_logger_level: str | None = None,
                         file_logger_level: str = "warning",
-                        logging_dir: str | None = None,
+                        logging_dir: str | Path|None = None,
                         threads: bool = False,
                 ) -> None:
         self.logger: logging.Logger = logging.getLogger(name)
@@ -113,6 +113,7 @@ class lnColoredLogger:
         self.test: Callable = testLogger
         self.threads_str: str = "%(threadName)-5.5s." if threads else ""
         self.show_caller = False
+        self.module_name_len: int = 0
 
         self.consoleHandler: logging.Handler | None = None
         self.fileHandler: logging.Handler | None = None
@@ -248,8 +249,8 @@ class lnColoredLogger:
         }
 
     def showMaxLength(self) -> int:
-        self.notify("name_len: %s, lineno_len: %s (total+[]: %s)", self.name_len, self.lineno_len, self.name_len + self.lineno_len + 1 + 2)
-        return self.name_len + self.lineno_len + 1
+        self.notify("name_len: %s, lineno_len: %s (total+[]: %s)", self.module_name_len, self.lineno_len, self.module_name_len + self.lineno_len + 1 + 2)
+        return self.module_name_len + self.lineno_len + 1
 
     # def setLinenoLength(self, len: int) -> None:
     #     self.lineno_len = len
@@ -265,14 +266,14 @@ class lnColoredLogger:
     def setNameLength(self, dynamic: bool, length: int) -> None:
         if dynamic or length == 0:
             self.dynamic_name_lentgh = True
-            self.name_len = 0
+            self.module_name_len = 0
             self.notify("name length set to dynamic")
         else:
             self.dynamic_name_lentgh = False
             if length < 15:
                 length = 15
-            self.name_len = length
-            self.notify("name length set to: %s (dynamic: %s)", self.name_len, self.dynamic_name_lentgh, stacklevel=2)
+            self.module_name_len = length
+            self.notify("name length set to: %s (dynamic: %s)", self.module_name_len, self.dynamic_name_lentgh, stacklevel=2)
 
     def _format_name(self, name: str, lineno: int) -> str:
         """
@@ -282,21 +283,21 @@ class lnColoredLogger:
         fDEBUG=False
         # Tronca il nome se necessario
         if fDEBUG:
-            print(f"before: {self.name_len = } {len(name) = }")
+            print(f"before: {self.module_name_len = } {len(name) = }")
         if self.dynamic_name_lentgh:
-            if len(name) >= self.name_len:
-                self.name_len = len(name)
+            if len(name) >= self.module_name_len:
+                self.module_name_len = len(name)
         else:
-            if len(name) >= self.name_len:
+            if len(name) >= self.module_name_len:
                 name = (
-                    name[: self.name_len - 2] + "."
+                    name[: self.module_name_len - 2] + "."
                 )  ### per far capire che è troncato
 
         # Padding del nome con spazi a destra
         if fDEBUG:
-            print(f"after:  {self.name_len = } {len(name) = }")
-        # name = f"{name}:".ljust(self.name_len)
-        name = f"{name}".ljust(self.name_len)
+            print(f"after:  {self.module_name_len = } {len(name) = }")
+        # name = f"{name}:".ljust(self.module_name_len)
+        name = f"{name}".ljust(self.module_name_len)
 
         # Formatta il numero di linea con padding a sinistra
         return f"[{name}:{lineno:-04d}]"

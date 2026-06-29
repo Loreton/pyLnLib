@@ -7,75 +7,81 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import sys; sys.dont_write_bytecode = True
+# import sys
+# from unittest.main import main; sys.dont_write_bytecode = True
 
 # import pyLnLib
 from pyLnLib.context import gVars as ctx
-from pyLnLib.logger import testLogger
-from logger.ln_colored_logger import lnColoredLogger
+from pyLnLib.logger import lnLogger
+C=ctx.get_colors()
+# logger = ctx.get_logger()
 
-C=ctx.Colors
-logger=ctx.get_logger()
+
+def main_02():
+    # Caso 0: Non creare se non esiste
+    logger = ctx.get_logger()
+    if logger is None:
+        print("Logger non esiste ancora")
+
+    # Caso 1: Logger automatico (create=True di default)
+    logger = ctx.get_logger(create=True, logger_name="test_logger")  # Crea automaticamente
+    if logger:
+        logger.info("Logger creato automaticamente. (name: %s)", logger.name)
+
+
+    # Caso 4: Ottenere il logger esistente (senza creare)
+    logger = ctx.get_logger()
+    if logger:
+        logger.setNameLength(dynamic=True, length=0)
+        logger.info("Logger personalizzato (name: %s)", logger.name)
+
+
+def main_01():
+    # Caso 0: Non creare se non esiste
+    logger = ctx.get_logger()
+    if logger is None:
+        print("Logger non esiste ancora")
+
+    # Caso 1: Logger automatico (create=True di default)
+    logger = ctx.get_logger(create=True, logger_name="test_logger")  # Crea automaticamente
+    if logger:
+        logger.info("Logger creato automaticamente. (name: %s)", logger.name)
+
+
+    # Caso 2: Non creare se non esiste
+    logger = ctx.get_logger()
+    if logger is None:
+        print("Logger non esiste ancora")
+
+    # Caso 3: Logger personalizzato
+    custom_logger = lnLogger(
+        name="custom_logger",
+        console_logger_level="INFO",
+        file_logger_level="DEBUG",
+        logging_dir=ctx.get_log_dir(),
+        threads=False,
+    )
+    ctx.set_logger(custom_logger)
+
+    # Caso 4: Ottenere il logger esistente (senza creare)
+    logger = ctx.get_logger()
+    if logger:
+        logger.setNameLength(dynamic=True, length=0)
+        logger.info("Logger personalizzato (name: %s)", logger.name)
+
+    # Caso 5: In un modulo che non vuole creare automaticamente
+    logger = ctx.get_logger(create=False)
+    if logger is None:
+        print("Attenzione: logger non inizializzato, uso fallback")
+    else:
+        logger.info("Logger disponibile (name: %s)", logger.name)
+
+
 
 
 # -------------------------------
 # Test
 # -------------------------------
 if __name__ == "__main__":
-    # Crea il logger
-    logger = lnColoredLogger(
-        name=__name__,
-        console_logger_level="INFO",
-        file_logger_level="DEBUG",
-        logging_dir=ctx.get_log_dir(),
-        threads=False,
-    )
-    logger.setNameLength(dynamic=True, length=0)
-
-    # Salva il logger nel context
-    ctx.logger = logger
-
-    # logger = get_logger()
-    print("Logger inizializzato!")
-    logger.info("Questo è un test dal context.py")
-    logger.debug("Debug message")
-    logger.warning("Warning message")
-    logger.error("Error message")
-    logger.notify("Notify message")
-    logger.function("Function message")
-
-
-    print(f"\nProject: {ctx.project_name}")
-    print(f"Temp dir: {ctx.temp_dir}")
-    print(f"Log dir: {ctx.get_log_dir()}")
-
-    print(ctx.to_dict())
-
-    # logger=lnLogger(name=Path(__file__).stem,
-    #                         console_logger_level="trace", ### --- default
-    #                         file_logger_level="warning",
-    #                         logging_dir=None, # no filehandler
-    #                         threads=False)
-
-
-    dynamic_length=False
-    logger.setNameLength(dynamic=False, length=10)
-    print("\n")
-    print("*"*60)
-    print(f"--- Logger name: {logger.name} {dynamic_length = }")
-    print("*"*60)
-    testLogger(logger)
-
-
-
-    dynamic_length=True
-    logger.setNameLength(dynamic=True, length=0)
-    print("\n")
-    print("*"*60)
-    print(f"--- Logger name: {logger.name} {dynamic_length = }")
-    print("*"*60)
-    testLogger(logger)
-
-
-
-    print("\n"*2)
+    # main_01()
+    main_02()

@@ -6,14 +6,15 @@
 
 import sys; sys.dont_write_bytecode = True
 import os
-# from typing import  Optional
+from pathlib import Path
+from typing import Any
 
 ### --------------------
 ### --- project modules
 ### --------------------
 from ..context    import gVars as ctx
 from .file_utils_new import searchFile
-logger = ctx.get_logger()
+logger: Any = ctx.get_logger()  # Any altrimenti da: "error" is not a known attribute of "None" (basedpyright reportOptionalMemberAccess)
 
 ###############################################
 #    I N I   - I N I   - I N I   -

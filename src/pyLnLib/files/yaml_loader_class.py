@@ -16,7 +16,7 @@ from .file_utils_new     import searchFileOnFS
 from .zip_file_utils import searchFileInZip
 from ..context import gVars as ctx
 # C=ctx.colors
-# logger=ctx.get_logger()
+logger: Any=ctx.get_logger()
 
 #################################
 # --- Loader Personalizzato ---
@@ -83,10 +83,10 @@ class YamlEngine:
     # -
     #################################
     def __init__(self, environment, search_paths: list[str] = [], recursive: bool = False):
+        from ..context import gVars as ctx
         self.env = environment
         lnYamlLoader.env_ref = environment
-        # self.logger = environment.logger
-        self.logger = ctx.get_logger()
+        self.logger: Any = ctx.get_logger()
         self.recursive = recursive
 
         ### - prepare search paths

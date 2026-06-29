@@ -16,12 +16,12 @@ if __INIT__PY__DEBUG:
     print(f"{__name__} - start loading")
 
 
-from .dummy_logger   import DummyPrintLogger
+# from .dummy_logger   import DummyPrintLogger
 from .ln_colored_logger import lnColoredLogger as lnLogger, testLogger
 
 # Definisci cosa esportare quando si fa "from pyLnLib.logger import *"
 __all__ = [
-    'DummyPrintLogger',
+    # 'DummyPrintLogger',
     'lnLogger',
     'testLogger',
 ]

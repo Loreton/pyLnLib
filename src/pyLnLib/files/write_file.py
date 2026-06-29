@@ -4,11 +4,13 @@
 # Date .........: 12-06-2026 17.48.53
 #
 
-import sys; sys.dont_write_bytecode=True; this=sys.modules[__name__]
+import sys
+sys.dont_write_bytecode=True; this=sys.modules[__name__]
+
+from typing import Any
 import os
 from pathlib import Path
 from datetime import datetime
-# from types import SimpleNamespace
 
 
 
@@ -17,7 +19,7 @@ from datetime import datetime
 ### --- project modules
 ### --------------------
 from ..context  import gVars as ctx
-logger = ctx.get_logger()
+logger: Any = ctx.get_logger()
 
 
 ##############################################################
@@ -25,7 +27,6 @@ logger = ctx.get_logger()
 # - writeFile version: 18-07-2023 12.54.30
 ##############################################################
 def writeFile(data: (str| list), filepath: (str| os.PathLike), *, replace: bool=False, write_datetime: bool=True, **kwargs) -> bool:
-    # logger = ctx.logger
     logger.function(__name__, force_log=False)
     fout=Path(filepath).resolve()
     stacklevel = kwargs.pop("stacklevel", 0)
