@@ -8,15 +8,12 @@
 # -*- coding: utf-8 -*-
 
 import sys; sys.dont_write_bytecode = True
-# import os
-# import logging
-# from pathlib import Path
-# from logging.handlers import RotatingFileHandler
-# from typing import Optional
 
 # import pyLnLib
 from pyLnLib.context import gVars as ctx
 from pyLnLib.logger import testLogger
+from logger.ln_colored_logger import lnColoredLogger
+
 C=ctx.Colors
 logger=ctx.get_logger()
 
@@ -25,6 +22,19 @@ logger=ctx.get_logger()
 # Test
 # -------------------------------
 if __name__ == "__main__":
+    # Crea il logger
+    logger = lnColoredLogger(
+        name=__name__,
+        console_logger_level="INFO",
+        file_logger_level="DEBUG",
+        logging_dir=ctx.get_log_dir(),
+        threads=False,
+    )
+    logger.setNameLength(dynamic=True, length=0)
+
+    # Salva il logger nel context
+    ctx.logger = logger
+
     # logger = get_logger()
     print("Logger inizializzato!")
     logger.info("Questo è un test dal context.py")
