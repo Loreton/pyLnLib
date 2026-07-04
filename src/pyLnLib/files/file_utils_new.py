@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 13-06-2026 14.01.43
+# Date .........: 04-07-2026 14.00.06
 #
 
-import sys; sys.dont_write_bytecode=True; this=sys.modules[__name__]
+import sys
+from webbrowser import get; sys.dont_write_bytecode=True; this=sys.modules[__name__]
 import os
 import stat
 import zipfile
@@ -13,14 +14,104 @@ from types import SimpleNamespace
 from typing import Any   # Any, List, Optional, Tuple
 
 
-from ..context import gVars as ctx
+from ..context import gVars as ctx, get_logger
 from .zip_file_utils import searchFileInZip
 
 C=ctx.colors
-logger: Any=ctx.get_logger()
+logger=get_logger()
+
+
+from pathlib import Path
+from typing import Optional
+
+def find_project_root(start_path: Optional[Path] = None, max_depth: int = 10) -> Optional[Path]:
+    """
+    Trova la root del progetto risalendo la gerarchia delle directory.
+
+    Cerca:
+    1. Una directory 'conf'
+    2. Un file 'pyproject.toml'
+
+    Args:
+        start_path: Percorso di partenza (default: directory del file chiamante)
+        max_depth: Numero massimo di livelli da risalire
+
+    Returns:
+        Path della directory root se trovata, altrimenti None
+    """
+    if start_path is None:
+        start_path = Path(__file__).resolve().parent
+
+    # Assicurati che sia una directory
+    if start_path.is_file():
+        start_path = start_path.parent
+
+    current = start_path.resolve()
+
+    for _ in range(max_depth):
+        # Cerca directory 'conf'
+        conf_dir = current / 'conf'
+        if conf_dir.exists() and conf_dir.is_dir():
+            return current
+
+        # Cerca file 'pyproject.toml'
+        pyproject = current / 'pyproject.toml'
+        if pyproject.exists() and pyproject.is_file():
+            return current
+
+        # Se siamo alla root, fermati
+        if current.parent == current:
+            break
+
+        # Risali di un livello
+        current = current.parent
+
+    return None
+
+def get_conf_dir(start_path: Optional[Path] = None, max_depth: int = 10) -> Optional[Path]:
+    """
+    Trova la directory 'conf' nella root del progetto.
+
+    Returns:
+        Path della directory conf se trovata, altrimenti None
+    """
+    root = find_project_root(start_path, max_depth)
+    if root:
+        conf_dir = root / 'conf'
+        if conf_dir.exists() and conf_dir.is_dir():
+            return conf_dir
+    return None
+
+def get_project_root(start_path: Optional[Path] = None, max_depth: int = 10) -> Optional[Path]:
+    """
+    Trova la root del progetto (dove si trova pyproject.toml o conf/).
+
+    Returns:
+        Path della root se trovata, altrimenti None
+    """
+    return find_project_root(start_path, max_depth)
 
 
 
+# Esempio di utilizzo
+if __name__ == "__main__":
+    # Test con percorso specifico
+    test_path = Path("/home/loreto/filu/Programming/gitREPO/lnSync/src/lnsync/main.py")
+
+    root = find_project_root(test_path)
+    if root:
+        print(f"Root trovata: {root}")
+        conf = root / 'conf'
+        if conf.exists():
+            print(f"Directory conf: {conf}")
+        else:
+            print("Nessuna directory conf trovata")
+
+        pyproject = root / 'pyproject.toml'
+        if pyproject.exists():
+            print(f"pyproject.toml: {pyproject}")
+    else:
+        print("Root non trovata")
 
 def findFile(root: str, filename: str):
     for dirpath, _, files in os.walk(root):
@@ -69,6 +160,9 @@ def searchFileOnFS(filename: str,
                     recursive: bool=False,
                     extract_to: str | None = None,
                     stacklevel=-1) -> SimpleNamespace:
+    # import pdb; pdb.set_trace(); # by Loreto
+    # getLogger()
+    # import pdb; pdb.set_trace(); # by Loreto
     result = SimpleNamespace(content=None, filepath=None, is_recursive=recursive)
     content: str | None = None  # definizione di content
     #------------------------------------
@@ -99,6 +193,7 @@ def searchFileOnFS(filename: str,
     # fpath=ff.parent.__str__()
 
     # --- 1. Ricerca Esterna (Filesystem) tramite search_paths ---
+    search_paths.extend(ctx.get_config_search_paths())
     for base_path in search_paths:
         logger.debug("searching: %s/.../%s", base_path, filename, stacklevel=STACKLEVEL)
         if os.path.exists(base_path):

@@ -31,7 +31,7 @@ def caller_info(message: str, stacknum: int = 2) -> str:
 def keyboardPrompt( text_msg: str,
                     validKeys: List[str] = ["y", "n"],
                     exitKeys: List[str] = ["x", "q"],
-                    multi_choices: bool = False, ) -> Union[List[str], str, int]:
+                    multi_choices: bool = False, ) -> list[str]:
     """
     Funzione per input da tastiera con validazione.
 
@@ -109,7 +109,7 @@ def keyboardPrompt( text_msg: str,
     if multi_choices:
         return choice.split()
     else:
-        return choice
+        return [choice]
 
 
 # Versione con default None per backward compatibility

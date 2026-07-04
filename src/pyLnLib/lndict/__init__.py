@@ -2,7 +2,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 22-06-2026 21.14.28
+# Date .........: 03-07-2026 18.19.03
 #
 # import os
 import os
@@ -23,5 +23,7 @@ __all__ = [
     'LnDictResolver',
 ]
 
+
 if __INIT__PY__DEBUG:
-    print(f"\t{__name__} - end loading")
+    print(f"{__name__} - end loading")
+

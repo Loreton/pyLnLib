@@ -2,7 +2,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 27-06-2026 10.22.11
+# Date .........: 04-07-2026 12.38.01
 #
 
 """
@@ -12,6 +12,7 @@ pyLnLib - Libreria di utility per Python
 
 import os
 os.environ["__INIT__PY__DEBUG"] = "False"
+
 __INIT__PY__DEBUG = os.environ.get("__INIT__PY__DEBUG", "False")
 if __INIT__PY__DEBUG == "True":
     print(f"{__name__} - start loading")
@@ -57,7 +58,7 @@ from .lndict.ln_dict_resolver_class import LnDictResolver
 # ============================================================
 from .keyboard_prompt               import keyboardPrompt
 from .beep                          import playBeep, play_success_sound, play_error_sound, play_notification_sound, get_beep_types
-from .context                       import gVars, Colors, get_logger
+from .context                       import gVars, get_logger, get_colors
 from .ln_utils                      import flatten_nested_list, flatten_and_filter
 
 
@@ -69,6 +70,8 @@ __all__ = [
     # Logger
     'lnLogger',
     'testLogger',
+    'get_logger',
+    'get_colors',
     # 'DummyPrintLogger',
 
     # Beep

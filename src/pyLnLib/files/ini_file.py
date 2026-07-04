@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 12-06-2026 14.14.15
+# Date .........: 04-07-2026 09.03.48
 #
 
 import sys; sys.dont_write_bytecode = True
@@ -14,7 +14,8 @@ from typing import Any
 ### --------------------
 from ..context    import gVars as ctx
 from .file_utils_new import searchFile
-logger: Any = ctx.get_logger()  # Any altrimenti da: "error" is not a known attribute of "None" (basedpyright reportOptionalMemberAccess)
+# logger: Any = ctx.get_logger()  # Any altrimenti da: "error" is not a known attribute of "None" (basedpyright reportOptionalMemberAccess)
+logger = ctx.my_logger  # Any altrimenti da: "error" is not a known attribute of "None" (basedpyright reportOptionalMemberAccess)
 
 ###############################################
 #    I N I   - I N I   - I N I   -

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import sys; sys.dont_write_bytecode=True
 import os
 import socket
 import platform
@@ -44,8 +43,6 @@ class Colors:
     bg_white: str = "\033[47m"
 
 
-
-
 @dataclass
 class GlobalVars:
     """Solo dati, niente logica di inizializzazione pesante."""
@@ -67,8 +64,6 @@ class GlobalVars:
 
     # Colori
     colors: Colors = field(default_factory=Colors)
-    config_search_paths: list[str] = field(default_factory=list)
-    project_root: Path|None = field(default=None, repr=False)
 
     # Logger - inizializzato in __post_init__
     my_logger: Any = field(default=None, repr=False)
@@ -77,49 +72,6 @@ class GlobalVars:
         """Inizializza il logger dopo la creazione dell'istanza."""
         # Crea il logger
         self._init_logger()
-
-        """Inizializza il project root."""
-        if self.project_root is None:
-            self.project_root = self._find_project_root()
-
-        """Inizializza il config_search_paths."""
-        self.config_search_paths.append('conf')  # default conf dir
-        if self.project_root:
-            if (self.project_root / 'conf').exists():
-                self.config_search_paths.append(str(self.project_root / 'conf'))
-
-
-    def _find_project_root(self, max_depth: int = 10) -> Path | None:
-        """Trova la root del progetto."""
-        # Usa il percorso del modulo corrente
-        # current = Path(__file__).resolve().parent
-        # Usa il percorso del modulo chiamante
-        current = Path(sys.argv[0]).parent
-        for _ in range(max_depth):
-            # Cerca conf/ o pyproject.toml
-            if (current / 'conf').exists() or (current / 'pyproject.toml').exists():
-                return current
-            if current.parent == current:
-                break
-            current = current.parent
-        return None
-
-    # def get_conf_dir(self) -> Path | None:
-    #     """Restituisce la directory conf."""
-    #     if self.project_root:
-    #         conf = self.project_root / 'conf'
-    #         if conf.exists():
-    #             return conf
-    #     return None
-
-
-    # def _config_search_paths(self) -> list[str]:
-    #     paths = []
-    #     if self.get_conf_dir():
-    #         paths.append(str(self.get_conf_dir()))
-    #     return paths
-
-
 
     def _init_logger(self) -> None:
         """Inizializza il logger con i valori di default."""
@@ -171,9 +123,6 @@ class GlobalVars:
     def get_colors(self) -> Colors:
         return self.colors
 
-    def get_config_search_paths(self) -> list[str]:
-        return self.config_search_paths
-
     def to_dict(self) -> dict[str, Any]:
         """Converte l'oggetto in un dizionario."""
         result: dict[str, Any] = {}
@@ -193,11 +142,6 @@ gVars = GlobalVars()
 def get_logger() -> Any:
     """Funzione comoda per ottenere il logger."""
     return gVars.get_logger()
-
-# Funzione comoda per ottenere i Colors
-def get_colors() -> Colors:
-    """Funzione comoda per ottenere i Colors."""
-    return gVars.get_colors()
 
 
 # Test veloce se eseguito direttamente

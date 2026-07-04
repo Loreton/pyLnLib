@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 28-06-2026 20.35.31
+# Date .........: 04-07-2026 16.56.13
 #
 
 # from optparse import Option
@@ -28,13 +28,14 @@ from ..context import gVars as ctx
 # if not __name__ == '__main__':
 #     from Source  import getGlobalVars
 
-
+'''
 class lnDict(dict):
     def __init__(self, data=None, separator='.'):
         # Inizializziamo prima gli attributi interni per evitare loop con __setattr__
         super().__setattr__('_sep', separator)
         # Se hai bisogno del logger, inizializzalo qui
-        super().__setattr__('logger', ctx.get_logger())
+        # super().__setattr__('logger', ctx.get_logger())
+        super().__setattr__('logger', ctx.my_logger)
 
         super().__init__()
         # self.logger = ctx.get_logger()
@@ -42,8 +43,47 @@ class lnDict(dict):
         if data:
             self.update(data)
         # import pdb; pdb.set_trace(); # by Loreto
+'''
+class lnDict(dict):
+    def __init__(self, data=None, separator='.'):
+        super().__setattr__('_sep', separator)
+        super().__setattr__('logger', ctx.my_logger)
+        super().__init__()
 
+        if data:
+            # Converti ricorsivamente TUTTI i dict in lnDict
+            self._recursive_update(data)
 
+    def _recursive_update(self, data):
+        """Aggiorna ricorsivamente convertendo tutti i dict in lnDict"""
+        if isinstance(data, dict):
+            for k, v in data.items():
+                if isinstance(v, dict) and not isinstance(v, lnDict):
+                    # Crea un nuovo lnDict e converti i suoi contenuti
+                    new_ln = lnDict(separator=self._sep)
+                    new_ln._recursive_update(v)
+                    super().__setitem__(k, new_ln)
+                elif isinstance(v, list):
+                    # Converti gli elementi della lista se sono dict
+                    converted = []
+                    for item in v:
+                        if isinstance(item, dict) and not isinstance(item, lnDict):
+                            new_ln = lnDict(separator=self._sep)
+                            new_ln._recursive_update(item)
+                            converted.append(new_ln)
+                        else:
+                            converted.append(item)
+                    super().__setitem__(k, converted)
+                else:
+                    super().__setitem__(k, v)
+        elif isinstance(data, list):
+            for i, item in enumerate(data):
+                if isinstance(item, dict) and not isinstance(item, lnDict):
+                    new_ln = lnDict(separator=self._sep)
+                    new_ln._recursive_update(item)
+                    super().__setitem__(i, new_ln)
+                else:
+                    super().__setitem__(i, item)
 
     @property
     def separator(self):
@@ -56,7 +96,19 @@ class lnDict(dict):
         self._sep = value
 
 
-
+    def get(self, key, default=None):
+        """
+        Override del metodo get() per supportare percorsi con separatore.
+        """
+        if isinstance(key, str) and self._sep in key:
+            # Se la chiave contiene il separatore, prova a cercare come percorso
+            try:
+                return self.__getitem__(key)
+            except KeyError:
+                return default
+        else:
+            # Comportamento standard per chiavi normali
+            return super().get(key, default)
 
     # #############################################################################
     # # Per rendere lo sviluppo più piacevole, potresti aggiungere questo metodo
@@ -172,6 +224,7 @@ class lnDict(dict):
             raise AttributeError(f"'{type(self).__name__}' object has no attribute '{item}'")
 
         try:
+            return self.__getitem__(item)
             return self[item]
         except KeyError:
             # Logghiamo l'errore se vuoi, ma dobbiamo SEMPRE sollevare AttributeError

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 27-06-2026 14.26.28
+# Date .........: 04-07-2026 09.05.00
 #
 
 
@@ -134,7 +134,8 @@ def beepTypes():
 # Test
 # -------------------------------
 if __name__ == "__main__":
-    logger = ctx.get_logger()
+    # logger = ctx.get_logger()
+    logger = ctx.my_logger
     logger.test(logger=logger)
     # C = lnLib.Colors
     beepTypes()

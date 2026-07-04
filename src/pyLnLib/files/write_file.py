@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 12-06-2026 17.48.53
+# Date .........: 04-07-2026 09.04.05
 #
 
 import sys
@@ -19,7 +19,8 @@ from datetime import datetime
 ### --- project modules
 ### --------------------
 from ..context  import gVars as ctx
-logger: Any = ctx.get_logger()
+# logger: Any = ctx.get_logger()
+logger = ctx.my_logger
 
 
 ##############################################################

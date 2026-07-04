@@ -2,7 +2,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 22-06-2026 21.15.31
+# Date .........: 03-07-2026 18.18.45
 #
 
 """
@@ -34,6 +34,5 @@ __all__ = [
     'searchFileInZip',
 ]
 
-
-if __INIT__PY__DEBUG == "True":
+if __INIT__PY__DEBUG:
     print(f"{__name__} - end loading")

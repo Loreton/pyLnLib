@@ -14,7 +14,8 @@ from types import SimpleNamespace
 
 from ..context import gVars as ctx
 C=ctx.colors
-logger: Any=ctx.get_logger()
+# logger: Any=ctx.get_logger()
+logger = ctx.my_logger
 
 def ____zipNameList(zip_filename):
     """ check it its a zip file """

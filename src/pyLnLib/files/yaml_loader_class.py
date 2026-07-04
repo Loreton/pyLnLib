@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 11-05-2026 10.47.44
+# Date .........: 04-07-2026 14.26.54
 #
 
 import sys; sys.dont_write_bytecode=True
@@ -16,7 +16,8 @@ from .file_utils_new     import searchFileOnFS
 from .zip_file_utils import searchFileInZip
 from ..context import gVars as ctx
 # C=ctx.colors
-logger: Any=ctx.get_logger()
+# logger: Any=ctx.get_logger()
+logger = ctx.my_logger
 
 #################################
 # --- Loader Personalizzato ---
@@ -86,7 +87,8 @@ class YamlEngine:
         from ..context import gVars as ctx
         self.env = environment
         lnYamlLoader.env_ref = environment
-        self.logger: Any = ctx.get_logger()
+        # self.logger: Any = ctx.get_logger()
+        self.logger = ctx.my_logger
         self.recursive = recursive
 
         ### - prepare search paths
@@ -163,7 +165,11 @@ class YamlEngine:
         else:
             target_file, keypath = filename_with_pointer, None
 
+        logger.info("trying to load file: %s", target_file)
         content = self.find_file(target_file)
+        if not content:
+            self.logger.error("filename: %s is empty", target_file, show_stack=True, exit=True)
+
         content = os.path.expandvars(content)
         data = yaml.load(content, Loader=lnYamlLoader)
 

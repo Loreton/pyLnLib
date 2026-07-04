@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 27-06-2026 14.28.52
+# Date .........: 04-07-2026 09.08.16
 #
 
 # import sys
@@ -15,7 +15,7 @@ from typing import Union # Any, List, Optional, Union
 # import pyLnLib
 from pyLnLib.context import gVars as ctx
 
-logger = ctx.get_logger()
+logger = ctx.my_logger
 
 
 # Costanti per i suoni predefiniti su Linux
@@ -44,7 +44,6 @@ def playBeep(req_sound: Union[str, Path, PurePosixPath]) -> None:
     Args:
         sound_path: Percorso del file audio da riprodurre.
     """
-    # logger = get_logger()  # Ottieni il logger globale
     _system: str = platform.system()
 
     try:

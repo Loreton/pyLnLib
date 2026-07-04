@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 27-06-2026 18.53.52
+# Date .........: 04-07-2026 13.33.17
 #
 
 import inspect
@@ -376,7 +376,7 @@ class lnColoredLogger:
         forceLog: bool = kwargs.pop("force_log", False)
         forceExit: bool = kwargs.pop("exit", False)
         showCaller: bool = kwargs.pop("show_caller", False)
-        showStack: bool = kwargs.pop("show_stack", False)
+        show_stack: bool = kwargs.pop("show_stack", False)
         if not self.consoleHandler:
             return
         if level_value >= self.consoleHandler.level or forceLog:  # type: ignore
@@ -385,9 +385,7 @@ class lnColoredLogger:
             # Calcola caller formattato se necessario
             # Il caller deve essere il chiamante del metodo pubblico (un livello sopra)
             # module_formatted, caller_formatted = self._callerMIO(stacklevel=3+stacklevel)
-            module_formatted, caller_formatted = self._caller(
-                stacklevel=kwargs["stacklevel"], show_stack=showStack
-            )
+            module_formatted, caller_formatted = self._caller(stacklevel=kwargs["stacklevel"], show_stack=show_stack )
 
             if showCaller or self.show_caller:
                 ...
