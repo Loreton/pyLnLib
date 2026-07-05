@@ -68,12 +68,12 @@ def keyboardPrompt( text_msg: str,
     # Costruzione del messaggio
     text_msg += " - [" + "|".join(exitKeys) + "]quit ->: "
     text_msg = caller_info(message=text_msg)
-
+    # import pdb; pdb.set_trace();  # by Loreto
     # Gestione ENTER key
-    if "ENTER" in exitKeys:
-        exitKeys.append("")
-    if "ENTER" in validKeys:
-        validKeys.append("")
+    # if "ENTER" in exitKeys:
+    #     exitKeys.append("")
+    # if "ENTER" in validKeys:
+    #     validKeys.append("")
 
     choice: str = ""
 
@@ -82,7 +82,8 @@ def keyboardPrompt( text_msg: str,
             print()
 
         choice = input(text_msg).lower()
-
+        if choice == "":
+            choice = "ENTER"
         # Controllo uscita
         if choice in exitKeys:
             print("Exiting on user request.")

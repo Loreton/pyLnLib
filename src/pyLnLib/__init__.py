@@ -11,7 +11,7 @@ pyLnLib - Libreria di utility per Python
 
 
 import os
-os.environ["__INIT__PY__DEBUG"] = "False"
+os.environ["__INIT__PY__DEBUG"] = "True"
 
 __INIT__PY__DEBUG = os.environ.get("__INIT__PY__DEBUG", "False")
 if __INIT__PY__DEBUG == "True":
@@ -58,7 +58,7 @@ from .lndict.ln_dict_resolver_class import LnDictResolver
 # ============================================================
 from .keyboard_prompt               import keyboardPrompt
 from .beep                          import playBeep, play_success_sound, play_error_sound, play_notification_sound, get_beep_types
-from .context                       import gVars, get_logger, get_colors
+from .context                       import gVars, get_logger, get_colors, get_project_vars
 from .ln_utils                      import flatten_nested_list, flatten_and_filter
 
 
@@ -72,6 +72,7 @@ __all__ = [
     'testLogger',
     'get_logger',
     'get_colors',
+    'get_project_vars',
     # 'DummyPrintLogger',
 
     # Beep
@@ -82,7 +83,7 @@ __all__ = [
 
     # Context
     'gVars',
-    'Colors',
+    # 'Colors',
     'dirList',
     'get_logger',
     'get_beep_types',
@@ -106,8 +107,6 @@ __all__ = [
     'lnRunStream',
     'signalHandler',
     'acquire_lock',
-
-
 
     # Utils
     'flatten_nested_list',

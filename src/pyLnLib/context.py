@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import sys; sys.dont_write_bytecode=True
+import sys ; sys.dont_write_bytecode=True
 import os
 import socket
 import platform
@@ -7,7 +7,10 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Any
 
+
+
 from pyLnLib.logger import lnLogger, testLogger
+# from pyLnLib.lndict import lnDict
 
 
 @dataclass(frozen=True)
@@ -64,6 +67,7 @@ class GlobalVars:
     version: str = "0.0.1"
     args: Any = None
     config: dict = field(default_factory=dict)
+    project_vars: dict = field(default_factory=dict)
 
     # Colori
     colors: Colors = field(default_factory=Colors)
@@ -74,7 +78,9 @@ class GlobalVars:
     my_logger: Any = field(default=None, repr=False)
 
     def __post_init__(self) -> None:
+        # from .lndict import lnDict
         """Inizializza il logger dopo la creazione dell'istanza."""
+        # self.project_vars=lnDict()
         # Crea il logger
         self._init_logger()
 
@@ -104,24 +110,9 @@ class GlobalVars:
             current = current.parent
         return None
 
-    # def get_conf_dir(self) -> Path | None:
-    #     """Restituisce la directory conf."""
-    #     if self.project_root:
-    #         conf = self.project_root / 'conf'
-    #         if conf.exists():
-    #             return conf
-    #     return None
 
 
-    # def _config_search_paths(self) -> list[str]:
-    #     paths = []
-    #     if self.get_conf_dir():
-    #         paths.append(str(self.get_conf_dir()))
-    #     return paths
-
-
-
-    def _init_logger(self, test: bool = False) -> None:
+    def _init_logger(self) -> None:
         """Inizializza il logger con i valori di default."""
         # Ottieni la directory dei log
         log_dir = self.get_log_dir()
@@ -143,14 +134,12 @@ class GlobalVars:
         # Configura il logger
         self.my_logger.setNameLength(dynamic=True, length=0)
 
-        # Test
-        if test:
-            testLogger(self.my_logger)
-
     def get_logger(self, test: bool = False) -> Any:
         """Restituisce il logger."""
         if self.my_logger is None:
-            self._init_logger(test=test)
+            self._init_logger()
+        if test:
+            testLogger(self.my_logger)
         return self.my_logger
 
     def set_logger(self, logger: Any) -> None:
@@ -172,6 +161,17 @@ class GlobalVars:
     def get_colors(self) -> Colors:
         return self.colors
 
+    # def init_project_vars(self) -> dict[str, Any]:
+    #     from pyLnLib.lndict import lnDict
+    #     self.project_vars = lnDict()
+    #     return self.project_vars
+
+    def get_project_vars(self, init: bool=False) -> dict[str, Any]:
+        from .lndict import lnDict
+        if init and not self.project_vars:
+            self.project_vars = lnDict()
+        return self.project_vars
+
     def get_config_search_paths(self) -> list[str]:
         return self.config_search_paths
 
@@ -191,17 +191,16 @@ class GlobalVars:
 gVars = GlobalVars()
 
 # Funzione comoda per ottenere il logger
-def get_logger() -> Any:
+def get_logger(test: bool=False) -> Any:
     """Funzione comoda per ottenere il logger."""
-    return gVars.get_logger()
+    return gVars.get_logger(test=test)
 
 # Funzione comoda per ottenere i Colors
 def get_colors() -> Colors:
     """Funzione comoda per ottenere i Colors."""
     return gVars.get_colors()
 
-
-# Test veloce se eseguito direttamente
-if __name__ == "__main__":
-    logger = get_logger()
-    logger.info("Context initialized successfully!")
+# Funzione comoda per ottenere i project_vars
+def get_project_vars(init: bool=False) -> dict[str, Any]:
+    """Funzione comoda per ottenere i project_vars."""
+    return gVars.get_project_vars(init=init)

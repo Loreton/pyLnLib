@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 04-07-2026 16.56.13
+# Date .........: 05-07-2026 19.58.11
 #
 
 # from optparse import Option
-import sys
+import sys; sys.dont_write_bytecode=True; this=sys.modules[__name__]
 
-from typing import Optional; sys.dont_write_bytecode=True; this=sys.modules[__name__]
-#!/usr/bin/env python3
 import sys; sys.dont_write_bytecode=True
 import json
 import yaml
 import copy
 from pathlib import Path
 from datetime   import datetime
+from typing import Optional;
 
 
 
-from ..context import gVars as ctx
+# from ..context import gVars as ctx
+# from pyLnLib import get_logger
+from ..context import get_logger
 # logger = ctx.get_logger()
 
 
@@ -31,7 +32,7 @@ from ..context import gVars as ctx
 class lnDict(dict):
     def __init__(self, data=None, separator='.'):
         super().__setattr__('_sep', separator)  # Inizializziamo prima gli attributi interni per evitare loop con __setattr__
-        super().__setattr__('logger', ctx.my_logger)  # logger, inizializzalo
+        super().__setattr__('logger', get_logger())
         super().__init__()
 
         if data:

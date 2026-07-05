@@ -12,13 +12,16 @@ import os
 import shlex
 import subprocess
 from types import SimpleNamespace
-from typing import Any, Callable, Optional
+from typing import Optional
 
 ### - project modules
 # from pyLnLib import DummyPrintLogger
 # from pyLnLib import Color
-from ..colors import Colors
-from ..logger.dummy_logger import DummyPrintLogger
+# from ..colors import Colors
+# from ..logger.dummy_logger import DummyPrintLogger
+from ..context import get_logger, get_colors
+logger = get_logger()
+C = get_colors()
 
 
 # ##################################################
@@ -31,12 +34,12 @@ def lnRun(
     stacklevel: int = 0,
     fExecute: bool = False,
     timeout: int = 15,
-    toLogger: Optional[DummyPrintLogger] = None,
+    # toLogger: Optional[DummyPrintLogger] = None,
 ) -> tuple[int, str, str]:
 
-    lnRun_STACKLEVEL = stacklevel
-    lnRun_STACKLEVEL = 0
-    logger: LoggerLike = toLogger or DummyPrintLogger()
+    # lnRun_STACKLEVEL = stacklevel
+    # lnRun_STACKLEVEL = 0
+    # logger: LoggerLike = toLogger or DummyPrintLogger()
     result: SimpleNamespace = SimpleNamespace(rcode=0, stdout="", stderr="")
 
     command_args = shlex.split(command) if isinstance(command, str) else command
@@ -62,18 +65,18 @@ def lnRun(
             # log stdout
             if result.stdout:
                 for line in result.stdout.splitlines():
-                    logger.debug(line, color=Color.blue)
+                    logger.debug(line, color=C.blue)
 
             # log stderr
             if result.stderr:
                 for line in result.stderr.splitlines():
-                    logger.error(line, color=Color.redH)
+                    logger.error(line, color=C.redH)
 
             if result.rcode != 0 and exit_on_error:
                 raise SystemExit(result.rcode)
 
         except Exception as e:
-            logger.error(f"Exception: {e}", color=Color.redH)
+            logger.error(f"Exception: {e}", color=C.redH)
             if exit_on_error:
                 raise SystemExit(1)
 
@@ -81,21 +84,21 @@ def lnRun(
 
 
 if __name__ == "__main__":
-    from utils.logger_colored_simple import LoggerColoredSimple
+    # from utils.logger_colored_simple import LoggerColoredSimple
     # from utils.logger_types import DummyLogger
     # from utils.colors import Color
     # from utils.subprocess_run import lnRun
 
     # Creazione di un logger colorato
-    logger = LoggerColoredSimple("MainLogger", level="DEBUG")
+    # logger = LoggerColoredSimple("MainLogger", level="DEBUG")
 
-    # Esempio di log dinamico
-    logger.debug("Debug dinamico!", color=Color.cyan)
-    logger.info("Informazione importante", color=Color.green)
-    logger.warning("Attenzione!", color=Color.yellow)
-    logger.error("Errore!", color=Color.red)
-    logger.critical("Critico!", color=Color.magenta)
-    logger.notify("Notifica speciale", color=Color.blue)
+    # # Esempio di log dinamico
+    # logger.debug("Debug dinamico!", color=Color.cyan)
+    # logger.info("Informazione importante", color=Color.green)
+    # logger.warning("Attenzione!", color=Color.yellow)
+    # logger.error("Errore!", color=Color.red)
+    # logger.critical("Critico!", color=Color.magenta)
+    # logger.notify("Notifica speciale", color=Color.blue)
 
     # Esempio di comando
     rc, out, err = lnRun("echo Ciao mondo!", fExecute=True, toLogger=logger)
@@ -104,17 +107,6 @@ if __name__ == "__main__":
 
 
 """
-    Come usarlo nei tuoi moduli
-    from utils import LoggerColoredSimple, DummyLogger, Color, lnRun
-
-    # fallback logger
-    logger = DummyLogger()
-
-    # o logger colorato
-    logger = LoggerColoredSimple("ModuloX", level="INFO")
-
-    logger.info("Messaggio con colore dinamico", color=Color.greenH)
-
     # eseguire comandi
     lnRun("ls -l", fExecute=True, toLogger=logger)
 """

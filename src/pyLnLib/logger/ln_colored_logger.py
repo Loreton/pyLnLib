@@ -454,7 +454,7 @@ class lnColoredLogger:
         self._log("FUNCTION", msg, *args, color=color, show_caller=True, **kwargs)
 
 
-def testLogger(logger: lnColoredLogger) -> None:
+def testLogger(logger: Any) -> None:
     print("\n--- base colors ---")
     logger.debug("DEBUG default")
     logger.info("INFO default")
