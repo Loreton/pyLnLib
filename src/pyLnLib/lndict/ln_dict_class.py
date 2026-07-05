@@ -28,62 +28,49 @@ from ..context import gVars as ctx
 # if not __name__ == '__main__':
 #     from Source  import getGlobalVars
 
-'''
 class lnDict(dict):
     def __init__(self, data=None, separator='.'):
-        # Inizializziamo prima gli attributi interni per evitare loop con __setattr__
-        super().__setattr__('_sep', separator)
-        # Se hai bisogno del logger, inizializzalo qui
-        # super().__setattr__('logger', ctx.get_logger())
-        super().__setattr__('logger', ctx.my_logger)
-
-        super().__init__()
-        # self.logger = ctx.get_logger()
-        #... carica self con i dati dict
-        if data:
-            self.update(data)
-        # import pdb; pdb.set_trace(); # by Loreto
-'''
-class lnDict(dict):
-    def __init__(self, data=None, separator='.'):
-        super().__setattr__('_sep', separator)
-        super().__setattr__('logger', ctx.my_logger)
+        super().__setattr__('_sep', separator)  # Inizializziamo prima gli attributi interni per evitare loop con __setattr__
+        super().__setattr__('logger', ctx.my_logger)  # logger, inizializzalo
         super().__init__()
 
         if data:
             # Converti ricorsivamente TUTTI i dict in lnDict
-            self._recursive_update(data)
+            self.update(data)
 
-    def _recursive_update(self, data):
+
+
+    # #############################################################################
+    # #  sembra che anche questo aggiorni ricorsivamente tutti i sotto_dict
+    # #############################################################################
+    def update(self, *args, **kwargs):
         """Aggiorna ricorsivamente convertendo tutti i dict in lnDict"""
-        if isinstance(data, dict):
-            for k, v in data.items():
-                if isinstance(v, dict) and not isinstance(v, lnDict):
-                    # Crea un nuovo lnDict e converti i suoi contenuti
-                    new_ln = lnDict(separator=self._sep)
-                    new_ln._recursive_update(v)
-                    super().__setitem__(k, new_ln)
-                elif isinstance(v, list):
-                    # Converti gli elementi della lista se sono dict
-                    converted = []
-                    for item in v:
-                        if isinstance(item, dict) and not isinstance(item, lnDict):
-                            new_ln = lnDict(separator=self._sep)
-                            new_ln._recursive_update(item)
-                            converted.append(new_ln)
-                        else:
-                            converted.append(item)
-                    super().__setitem__(k, converted)
-                else:
-                    super().__setitem__(k, v)
-        elif isinstance(data, list):
-            for i, item in enumerate(data):
-                if isinstance(item, dict) and not isinstance(item, lnDict):
-                    new_ln = lnDict(separator=self._sep)
-                    new_ln._recursive_update(item)
-                    super().__setitem__(i, new_ln)
-                else:
-                    super().__setitem__(i, item)
+        for k, v in dict(*args, **kwargs).items():
+            self[k] = v # ← Questo chiama __setitem__ che fa la magia
+
+    # #############################################################################
+    # #
+    # #############################################################################
+    def __setitem__(self, key, value):
+        """
+        Permette l'uso di config["path.nuovo"] = valore.
+        Se la chiave contiene punti, crea i livelli intermedi necessari.
+        """
+        if isinstance(value, dict) and not isinstance(value, lnDict):
+            value = lnDict(value, separator=self._sep)
+        elif isinstance(value, list):
+            value = [lnDict(i, separator=self._sep) if isinstance(i, dict)
+                     and not isinstance(i, lnDict) else i for i in value]
+
+        if isinstance(key, str) and self._sep in key:
+            if super().__contains__(key):
+                super().__setitem__(key, value)
+            else:
+                self.set_keypath(key, value)
+        else:
+            super().__setitem__(key, value)
+
+
 
     @property
     def separator(self):
@@ -139,28 +126,6 @@ class lnDict(dict):
 
 
 
-
-    # #############################################################################
-    # #
-    # #############################################################################
-    def __setitem__(self, key, value):
-        """
-        Permette l'uso di config["path.nuovo"] = valore.
-        Se la chiave contiene punti, crea i livelli intermedi necessari.
-        """
-        if isinstance(value, dict) and not isinstance(value, lnDict):
-            value = lnDict(value, separator=self._sep)
-        elif isinstance(value, list):
-            value = [lnDict(i, separator=self._sep) if isinstance(i, dict)
-                     and not isinstance(i, lnDict) else i for i in value]
-
-        if isinstance(key, str) and self._sep in key:
-            if super().__contains__(key):
-                super().__setitem__(key, value)
-            else:
-                self.set_keypath(key, value)
-        else:
-            super().__setitem__(key, value)
 
 
 
@@ -273,13 +238,6 @@ class lnDict(dict):
 
 
 
-
-    # #############################################################################
-    # #
-    # #############################################################################
-    def update(self, *args, **kwargs):
-        for k, v in dict(*args, **kwargs).items():
-            self[k] = v
 
 
     # #############################################################################
@@ -462,16 +420,6 @@ class lnDict(dict):
             else:
                 out[k] = v
         return out
-
-    # def clone(self):
-    #     """
-    #     Crea una copia profonda (deep copy) dello lnDict.
-    #     Le modifiche al clone non influenzeranno l'originale.
-    #     """
-    #     # Creiamo un nuovo lnDict partendo dai dati "puliti" del vecchio
-    #     # Mantenendo lo stesso separatore
-    #     return lnDict(self.to_dict(), separator=self._sep)
-
 
 
 

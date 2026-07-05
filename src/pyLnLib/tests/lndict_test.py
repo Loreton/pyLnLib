@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 04-07-2026 18.55.56
+# Date .........: 05-07-2026 14.05.20
 #
 
 
@@ -39,29 +39,65 @@ my_dict='''
           sync_program: rsync
 '''
 
-if __name__ == "__main__":
+def test_attributes():
     import yaml
-    logger.test(logger=logger)
 
     config_str: dict = yaml.load(my_dict, Loader=yaml.FullLoader)
     config = lnDict(data=config_str)
 
-    # TUTTI FUNZIONANO!
-    print(config.main.rclone_config_file)           # rclone.conf ✅
-    print(config.main.get("rclone_config_file"))    # rclone.conf ✅
-    print(config.get("main.rclone_config_file"))    # rclone.conf ✅ (ORA FUNZIONA!)
-    print(config["main.rclone_config_file"])        # rclone.conf ✅
-# -------------------------------
-# Test
-# -------------------------------
-# if __name__ == "__main__":
-#     import yaml
-#     logger.test(logger=logger)
+    print("=== TEST 1: attributes ===")
+    print("config.main.rclone_config_file        :", config.main.rclone_config_file)           # rclone.conf ✅
+    print("config.main.get('rclone_config_file') :", config.main.get("rclone_config_file"))    # rclone.conf ✅
+    print("config.get('main.rclone_config_file') :", config.get("main.rclone_config_file"))    # rclone.conf ✅ (ORA FUNZIONA!)
+    print("config['main.rclone_config_file'])    :", config["main.rclone_config_file"])        # rclone.conf ✅
+    print()
 
-#     config_str: dict = yaml.load(my_dict, Loader=yaml.FullLoader)
-#     config: dict = lnDict(data=config_str)
-#     print(config)
-#     print(config.main.rclone_config_file)
-#     print(config.main.get("rclone_config_file"))
-#     print(config.get("main.rclone_config_file"))
-#     # import pdb; pdb.set_trace();  # by Loreto
+
+
+def test_recursive_update():
+    # Test per vedere recursive
+    data = {
+        "level1": {
+            "level2": {
+                "level3": "valore"
+            }
+        }
+    }
+
+
+    print("=== TEST 1: update() ===")
+    config1 = lnDict()
+    config1.update(data)
+    print("config1.level1:               ",type(config1.level1))           # lnDict
+    print("config1.level1.level2:        ",type(config1.level1.level2))  # ???
+    print("config1.level1.level2.level3: ",type(config1.level1.level2.level3))  # str
+
+
+    print("\n=== TEST 2: costruttore ===")
+    config3 = lnDict(data)
+    print("config3.level1:               ",type(config3.level1))           # lnDict
+    print("config3.level1.level2:        ",type(config3.level1.level2))  # lnDict
+
+
+    # Test con aggiornamenti successivi
+    config = lnDict({"existing": "value"})
+
+    # CASO 1: update() - CONVERSAZIONE SOLO PRIMO LIVELLO
+    new_data = {
+        "new": {
+            "deep": {
+                "nested": "data"
+            }
+        }
+    }
+    config.update(new_data)
+    print("config.new:                   ", type(config["new"]))              # lnDict ✅
+    print("config.new.deep:              ", type(config["new"]["deep"]))      # dict ❌ (NON convertito!)
+
+
+
+
+
+if __name__ == "__main__":
+    test_attributes()
+    test_recursive_update()

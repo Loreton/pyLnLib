@@ -121,7 +121,7 @@ class GlobalVars:
 
 
 
-    def _init_logger(self) -> None:
+    def _init_logger(self, test: bool = False) -> None:
         """Inizializza il logger con i valori di default."""
         # Ottieni la directory dei log
         log_dir = self.get_log_dir()
@@ -144,12 +144,13 @@ class GlobalVars:
         self.my_logger.setNameLength(dynamic=True, length=0)
 
         # Test
-        testLogger(self.my_logger)
+        if test:
+            testLogger(self.my_logger)
 
-    def get_logger(self) -> Any:
+    def get_logger(self, test: bool = False) -> Any:
         """Restituisce il logger."""
         if self.my_logger is None:
-            self._init_logger()
+            self._init_logger(test=test)
         return self.my_logger
 
     def set_logger(self, logger: Any) -> None:
