@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+#
+# updated by ...: Loreto Notarantonio
+# Date .........: 06-07-2026 14.16.41
+#
+
 import sys ; sys.dont_write_bytecode=True
 import os
 import socket
@@ -8,45 +13,18 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
+from typing import TYPE_CHECKING  # TYPE_CHECKING - La soluzione per import circolari
 
-from pyLnLib.logger import lnLogger, testLogger
-# from pyLnLib.lndict import lnDict
+from .logger import lnLogger, testLogger
+from .colors import Colors
 
+if TYPE_CHECKING:
+    from .lndict import lnDict
 
-@dataclass(frozen=True)
-class Colors:
-    """Classe per i codici colore ANSI per il terminale."""
-    red: str = "\033[31m"
-    redH: str = "\033[91m"
-    green: str = "\033[32m"
-    greenH: str = "\033[92m"
-    yellow: str = "\033[33m"
-    yellowH: str = "\033[93m"
-    blue: str = "\033[34m"
-    blueH: str = "\033[94m"
-    purple: str = "\033[35m"
-    purpleH: str = "\033[95m"
-    magenta: str = "\033[35m"
-    magentaH: str = "\033[95m"
-    cyan: str = "\033[36m"
-    cyanH: str = "\033[96m"
-    white: str = "\033[37m"
-    whiteH: str = "\033[97m"
-    reset: str = "\033[0m"
-    bold: str = "\033[1m"
-    underline: str = "\033[4m"
-    blink: str = "\033[5m"
-    reverse: str = "\033[7m"
-    hidden: str = "\033[8m"
-    bg_red: str = "\033[41m"
-    bg_green: str = "\033[42m"
-    bg_yellow: str = "\033[43m"
-    bg_blue: str = "\033[44m"
-    bg_magenta: str = "\033[45m"
-    bg_cyan: str = "\033[46m"
-    bg_white: str = "\033[47m"
-
-
+def _default_lnDict():
+    """Factory function per creare un lnDict vuoto."""
+    from .lndict import lnDict  # ← Import reale a runtime
+    return lnDict()
 
 
 @dataclass
@@ -65,9 +43,8 @@ class GlobalVars:
 
     # Altri dati
     version: str = "0.0.1"
-    args: Any = None
     config: dict = field(default_factory=dict)
-    project_vars: dict = field(default_factory=dict)
+    project_vars: 'lnDict' = field(default_factory=_default_lnDict)
 
     # Colori
     colors: Colors = field(default_factory=Colors)
@@ -77,12 +54,13 @@ class GlobalVars:
     # Logger - inizializzato in __post_init__
     my_logger: Any = field(default=None, repr=False)
 
+    # ==========================================================
+    # = Post-init
+    # ==========================================================
     def __post_init__(self) -> None:
-        # from .lndict import lnDict
         """Inizializza il logger dopo la creazione dell'istanza."""
-        # self.project_vars=lnDict()
-        # Crea il logger
         self._init_logger()
+
 
         """Inizializza il project root."""
         if self.project_root is None:
@@ -95,6 +73,9 @@ class GlobalVars:
                 self.config_search_paths.append(str(self.project_root / 'conf'))
 
 
+    # ==========================================================
+    # = find project root
+    # ==========================================================
     def _find_project_root(self, max_depth: int = 10) -> Path | None:
         """Trova la root del progetto."""
         # Usa il percorso del modulo corrente
@@ -112,6 +93,9 @@ class GlobalVars:
 
 
 
+    # ==========================================================
+    # = initialize logger
+    # ==========================================================
     def _init_logger(self) -> None:
         """Inizializza il logger con i valori di default."""
         # Ottieni la directory dei log
@@ -161,15 +145,9 @@ class GlobalVars:
     def get_colors(self) -> Colors:
         return self.colors
 
-    # def init_project_vars(self) -> dict[str, Any]:
-    #     from pyLnLib.lndict import lnDict
-    #     self.project_vars = lnDict()
-    #     return self.project_vars
-
-    def get_project_vars(self, init: bool=False) -> dict[str, Any]:
-        from .lndict import lnDict
-        if init and not self.project_vars:
-            self.project_vars = lnDict()
+    def get_project_vars(self) -> 'lnDict':
+        """Restituisce i project_vars (già lnDict)."""
+        # from .lndict import lnDict  # ← Import reale a runtime
         return self.project_vars
 
     def get_config_search_paths(self) -> list[str]:
@@ -201,6 +179,6 @@ def get_colors() -> Colors:
     return gVars.get_colors()
 
 # Funzione comoda per ottenere i project_vars
-def get_project_vars(init: bool=False) -> dict[str, Any]:
+def get_project_vars() -> 'lnDict':
     """Funzione comoda per ottenere i project_vars."""
-    return gVars.get_project_vars(init=init)
+    return gVars.get_project_vars()

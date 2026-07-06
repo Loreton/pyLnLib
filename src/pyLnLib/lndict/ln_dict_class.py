@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 05-07-2026 19.58.11
+# Date .........: 06-07-2026 09.14.56
 #
 
 # from optparse import Option
@@ -13,15 +13,6 @@ import yaml
 import copy
 from pathlib import Path
 from datetime   import datetime
-from typing import Optional;
-
-
-
-# from ..context import gVars as ctx
-# from pyLnLib import get_logger
-from ..context import get_logger
-# logger = ctx.get_logger()
-
 
 ### --------------------
 ### --- project modules
@@ -29,16 +20,33 @@ from ..context import get_logger
 # if not __name__ == '__main__':
 #     from Source  import getGlobalVars
 
+
 class lnDict(dict):
     def __init__(self, data=None, separator='.'):
-        super().__setattr__('_sep', separator)  # Inizializziamo prima gli attributi interni per evitare loop con __setattr__
-        super().__setattr__('logger', get_logger())
+        super().__setattr__('_sep', separator)
         super().__init__()
 
         if data:
-            # Converti ricorsivamente TUTTI i dict in lnDict
             self.update(data)
 
+    @property
+    def logger(self):
+        """Logger lazy-loaded per evitare import circolari."""
+        if not hasattr(self, '_logger'):
+            from ..context import get_logger
+            self._logger = get_logger()
+        return self._logger
+
+
+    @property
+    def separator(self):
+        return self._sep
+
+    # Il setter ora è semplice e non propaga,
+    # mantenendo la stabilità che cercavi.
+    @separator.setter
+    def separator(self, value):
+        self._sep = value
 
 
     # #############################################################################
@@ -72,16 +80,6 @@ class lnDict(dict):
             super().__setitem__(key, value)
 
 
-
-    @property
-    def separator(self):
-        return self._sep
-
-    # Il setter ora è semplice e non propaga,
-    # mantenendo la stabilità che cercavi.
-    @separator.setter
-    def separator(self, value):
-        self._sep = value
 
 
     def get(self, key, default=None):
@@ -539,7 +537,7 @@ class lnDict(dict):
     # #############################################################################
     # # title: se valorizzato viene messo in testa al dict
     # #############################################################################
-    def to_yaml(self, title: Optional[str]=None, sort_keys=False, **kwargs):
+    def to_yaml(self, title: str|None=None, sort_keys=False, **kwargs):
         """Converte lo lnDict in una stringa YAML pulita."""
         # Usiamo to_dict() per esportare solo dati standard
         # indent = kwargs.pop("indent", 4)
@@ -553,7 +551,7 @@ class lnDict(dict):
     # # title: se valorizzato viene messo in testa al dict
     # #  utile per avere un'idea di massima del contenuto del dictionary
     # #############################################################################
-    def save_yaml(self, filepath, title: Optional[str]=None, indent: int=0, **kwargs):
+    def save_yaml(self, filepath, title: str|None=None, indent: int=0, **kwargs):
         """Salva lo lnDict in un file .yaml."""
         yaml_data = self.to_yaml(title=title, **kwargs)
         now = datetime.now().strftime("%d-%m-%Y_%H:%M")

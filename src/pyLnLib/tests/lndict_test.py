@@ -8,11 +8,11 @@
 import sys; sys.dont_write_bytecode = True
 import os
 import time
-from pathlib import Path
+# from pathlib import Path
 
 os.environ["LN_PROJECT_NAME"] = "lndict_test"
 from pyLnLib.context import gVars as ctx, get_logger
-from pyLnLib import lnDict, LnDictResolver
+from pyLnLib import lnDict, LnDictResolver, get_project_vars
 
 
 logger = get_logger()
@@ -95,9 +95,30 @@ def test_recursive_update():
     print("config.new.deep:              ", type(config["new"]["deep"]))      # dict ❌ (NON convertito!)
 
 
+def test_project_vars():
+    # Test per vedere recursive
+    data = {
+        "level1": {
+            "level2": {
+                "level3": "valore"
+            }
+        }
+    }
+
+
+    print("=== TEST 1: project_vars() ===")
+    prjVars = get_project_vars()
+
+
+    prjVars.update(data)
+    print("prjVars.level1:               ",type(prjVars.level1))           # lnDict
+    print("prjVars.level1.level2:        ",type(prjVars.level1.level2))  # ???
+    print("prjVars.level1.level2.level3: ",type(prjVars.level1.level2.level3))  # str
+
 
 
 
 if __name__ == "__main__":
     test_attributes()
     test_recursive_update()
+    test_project_vars()
