@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 06-07-2026 19.02.15
+# Date .........: 06-07-2026 21.04.03
 #
 
 #!/usr/bin/env python3
@@ -42,19 +42,14 @@ def context_logger_separated():
     # 2. Importa context e logger_setup
     # 2. Importa context e logger
     from pyLnLib import gVars, init_logger, get_logger
-    # from pyLnLib.logger_setup import init_logger, get_logger
 
     # 3. Inizializza il logger (SUBITO, prima di importare altri moduli)
     logger = init_logger(logger_name="logger_TEST", test=True)
-    # logger = init_logger(logger_name="logger_TEST")
-    # logger = init_logger()
-    # logger = init_logger()
 
     # 4. Ora importa gli altri moduli (che possono usare get_logger())
     # from lnsync.core.parse_input import ParseInput
     # from lnsync.core.lnsync_class import LnSync
 
-    # import pdb; pdb.set_trace(); # by Loreto
     logger.info("Main started")
     logger.info(f"Project: {gVars.project_name}")
     logger.info(f"Temp dir: {gVars.temp_dir}")
