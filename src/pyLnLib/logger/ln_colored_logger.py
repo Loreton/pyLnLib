@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 04-07-2026 13.33.17
+# Date .........: 06-07-2026 21.00.35
 #
 
 import inspect
@@ -114,31 +114,25 @@ class lnColoredLogger:
         self.threads_str: str = "%(threadName)-5.5s." if threads else ""
         self.show_caller = False
         self.module_name_len: int = 0
+        self.logging_dir = logging_dir
 
         self.consoleHandler: logging.Handler | None = None
         self.fileHandler: logging.Handler | None = None
 
         if console_logger_level:
             self.consoleHandler = self.setConsoleLogger()
-            self.consoleHandler.setLevel(
-                getattr(logging, console_logger_level.upper(), logging.INFO)
-            )
+            self.consoleHandler.setLevel(getattr(logging, console_logger_level.upper(), logging.INFO) )
             self.logger.addHandler(self.consoleHandler)
 
-        if logging_dir:
-            self.fileHandler = self.setRotatingLogger(
-                name=name, logging_dir=logging_dir
-            )
-            self.fileHandler.setLevel(
-                getattr(logging, file_logger_level.upper(), logging.WARNING)
-            )
+        if self.logging_dir:
+            self.fileHandler = self.setRotatingLogger()
+            self.fileHandler.setLevel(getattr(logging, file_logger_level.upper(), logging.WARNING) )
             self.logger.addHandler(self.fileHandler)
+
 
         self.lineno_len = 4
         self.setNameLength(dynamic=True, length=0)
-        # self.setShowCaller(show_caller=False)
-        # self.setNameLength(dynamic=False, length=15)
-        # self.setDynNameLength(dynamic=False)
+
 
     def add_custom_levels(self) -> None:
         # --- Livello custom NOTIFY ---
@@ -190,18 +184,16 @@ class lnColoredLogger:
     # -------------------------------
     # Rotating Logger
     # -------------------------------
-    def setRotatingLogger(self, name: str, logging_dir: str | None = None, create_logging_dir: bool = True, ) -> logging.Handler:
-        if logging_dir is None:
-            logging_dir = "logs"
+    def setRotatingLogger(self ) -> logging.Handler:
+        # if self.logging_dir is None:
+        #     self.logging_dir = f"/tmp/{self.name.lower()}/log"
 
-        logging_file = f"{logging_dir}/{name.lower()}.log"
-        if not os.path.exists(logging_dir) and create_logging_dir:
-            os.makedirs(logging_dir)
+        logging_file = f"{self.logging_dir}/{self.name.lower()}.log"
+        if not os.path.exists(self.logging_dir) and create_logging_dir:
+            os.makedirs(self.logging_dir)
 
         fh = RotatingFileHandler(logging_file, maxBytes=5 * 1000 * 1000, backupCount=5)
-        formatter = logging.Formatter(
-            f"%(asctime)s - [{self.threads_str}%(module_formatted)s%(caller_formatted)s [%(levelname)4.4s]: %(message)s"
-        )
+        formatter = logging.Formatter(f"%(asctime)s - [{self.threads_str}%(module_formatted)s%(caller_formatted)s [%(levelname)4.4s]: %(message)s" )
         fh.setFormatter(formatter)
         return fh
 
@@ -267,7 +259,7 @@ class lnColoredLogger:
         if dynamic or length == 0:
             self.dynamic_name_lentgh = True
             self.module_name_len = 0
-            self.notify("name length set to dynamic")
+            self.notify("name length set to dynamic", stacklevel=2)
         else:
             self.dynamic_name_lentgh = False
             if length < 15:
@@ -377,6 +369,7 @@ class lnColoredLogger:
         forceExit: bool = kwargs.pop("exit", False)
         showCaller: bool = kwargs.pop("show_caller", False)
         show_stack: bool = kwargs.pop("show_stack", False)
+
         if not self.consoleHandler:
             return
         if level_value >= self.consoleHandler.level or forceLog:  # type: ignore
@@ -463,8 +456,8 @@ def testLogger(logger: Any) -> None:
     logger.critical("CRITICAL default")
     logger.notify("NOTIFY default")
 
-    saved_level = logger.getConsoleLoggerLevel()
-    logger.setConsoleLoggerLevel("WARNING")
+    # saved_level = logger.getConsoleLoggerLevel()
+    # logger.setConsoleLoggerLevel("WARNING")
     print("\n--- base colors forzando level to WARNING---")
     logger.debug("DEBUG default")
     logger.info("INFO default")
@@ -472,7 +465,7 @@ def testLogger(logger: Any) -> None:
     logger.error("ERROR default")
     logger.critical("CRITICAL default")
     logger.notify("NOTIFY default")
-    logger.setConsoleLoggerLevel(saved_level)
+    # logger.setConsoleLoggerLevel(saved_level)
 
     print("\n--- custom colors ---")
     logger.info("INFO in magenta", color=Color.magenta)
@@ -485,6 +478,77 @@ def testLogger(logger: Any) -> None:
 
     logger.info("This shows caller info + stacklevel=1", show_caller=True, stacklevel=1)
 
-    logger.info(
-        "Test con nome modulo lungo + stacklevel=1", show_caller=True, stacklevel=1
+    logger.info("Test con nome modulo lungo + stacklevel=1", show_caller=True, stacklevel=1 )
+
+
+
+
+
+
+
+
+
+
+
+# ln_colored_logger.py - Aggiungi alla fine del file
+
+# Import lazy per evitare dipendenze circolari
+# def _get_context():
+#     """Importa context solo quando serve (evita dipendenze circolari)."""
+#     from pyLnLib.context import gVars
+#     return gVars
+
+
+# Variabile globale per il logger singleton
+my_logger = None
+
+
+def init_logger(logger_name: str='undefined_logger_name',
+                    console_logger_level: str='info',
+                    file_logger_level: str='warning',
+                    logging_dir: str|None=None,
+                    threads: bool=False,
+                    test: bool=False,
+                ) -> lnColoredLogger:
+    """
+    Inizializza il logger globale usando i dati di context.
+
+    Args:
+        project_name: Nome del progetto (usa context se None)
+        console_level: Livello per console
+        file_level: Livello per file
+        log_dir: Directory per i log (usa context se None)
+        force: Forza la reinizializzazione
+
+    Returns:
+        Logger configurato
+    """
+    global my_logger
+
+    # Crea il logger
+    my_logger = lnColoredLogger(
+        name=logger_name,
+        console_logger_level=console_logger_level,
+        file_logger_level=file_logger_level,
+        logging_dir=logging_dir,
+        threads=threads,
     )
+    print("*" * 20)
+    print(f"\tlogger_name:   {my_logger.name}")
+    print(f"\tconsole level: {my_logger.getConsoleLoggerLevel()}")
+    print(f"\tlogging_dir:   {my_logger.logging_dir}")
+    print(f"\tfile    level: {my_logger.getFileLoggerLevel()}")
+    print("*" * 20)
+
+    # # Test (opzionale, puoi commentare se non serve)
+    if test:
+        testLogger(my_logger)
+
+
+    return my_logger
+
+
+
+def get_logger() -> lnColoredLogger | None:
+    return my_logger
+

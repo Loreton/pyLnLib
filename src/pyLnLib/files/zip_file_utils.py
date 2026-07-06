@@ -12,10 +12,11 @@ from types import SimpleNamespace
 
 
 
-from ..context import gVars as ctx
-C=ctx.colors
+from ..context import gVars as ctx, get_colors
+from ..logger import get_logger
+C=get_colors()
 # logger: Any=ctx.get_logger()
-logger = ctx.my_logger
+logger = get_logger()
 
 def ____zipNameList(zip_filename):
     """ check it its a zip file """

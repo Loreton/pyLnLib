@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 06-07-2026 14.25.04
+# Date .........: 06-07-2026 18.54.52
 #
 
 import sys ; sys.dont_write_bytecode=True
+#!/usr/bin/env python3
 #!/usr/bin/env python3
 import os
 import socket
@@ -13,7 +14,7 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
-from colors import Colors
+from .colors import Colors
 
 @dataclass
 class GlobalVars:
@@ -98,3 +99,14 @@ class GlobalVars:
 
 # Istanza globale
 gVars = GlobalVars()
+
+# # Funzione comoda per ottenere il logger
+# def get_logger(test: bool=False) -> Any:
+#     from pyLnLib.logger_setup import get_logger
+#     """Funzione comoda per ottenere il logger."""
+#     return get_logger()
+
+# # Funzione comoda per ottenere i Colors
+def get_colors() -> Colors:
+    """Funzione comoda per ottenere i Colors."""
+    return gVars.get_colors()

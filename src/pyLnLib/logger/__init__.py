@@ -2,7 +2,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 22-06-2026 21.06.07
+# Date .........: 06-07-2026 18.55.31
 #
 
 
@@ -17,13 +17,14 @@ if __INIT__PY__DEBUG:
 
 
 # from .dummy_logger   import DummyPrintLogger
-from .ln_colored_logger import lnColoredLogger as lnLogger, testLogger
+from .ln_colored_logger import lnColoredLogger as lnLogger, testLogger, get_logger
 
 # Definisci cosa esportare quando si fa "from pyLnLib.logger import *"
 __all__ = [
     # 'DummyPrintLogger',
     'lnLogger',
     'testLogger',
+    'get_logger',
 ]
 
 if __INIT__PY__DEBUG:

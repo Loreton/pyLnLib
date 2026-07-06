@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 04-07-2026 14.26.54
+# Date .........: 06-07-2026 18.57.50
 #
 
 import sys; sys.dont_write_bytecode=True
@@ -15,9 +15,10 @@ from typing import Any
 from .file_utils_new     import searchFileOnFS
 from .zip_file_utils import searchFileInZip
 from ..context import gVars as ctx
+from ..logger import get_logger
 # C=ctx.colors
 # logger: Any=ctx.get_logger()
-logger = ctx.my_logger
+logger = get_logger()
 
 #################################
 # --- Loader Personalizzato ---

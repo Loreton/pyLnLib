@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 04-07-2026 14.00.06
+# Date .........: 06-07-2026 18.56.13
 #
 
 import sys
@@ -14,10 +14,11 @@ from types import SimpleNamespace
 from typing import Any   # Any, List, Optional, Tuple
 
 
-from ..context import gVars as ctx, get_logger
+from ..context import gVars as ctx, get_colors
+from ..logger import get_logger
 from .zip_file_utils import searchFileInZip
 
-C=ctx.colors
+C=get_colors()
 logger=get_logger()
 
 

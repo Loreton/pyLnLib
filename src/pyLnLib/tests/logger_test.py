@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 05-07-2026 14.18.31
+# Date .........: 06-07-2026 19.02.15
 #
 
 #!/usr/bin/env python3
@@ -11,13 +11,13 @@
 # from unittest.main import main; sys.dont_write_bytecode = True
 
 # import pyLnLib
-from pyLnLib.context import gVars as ctx, get_logger, get_colors
-# from pyLnLib.logger import lnLogger
-C=get_colors()
-logger = get_logger(test=True)
 
 
 def main_01():
+    from pyLnLib.context import gVars as ctx, get_logger, get_colors
+    # from pyLnLib.logger import lnLogger
+    C=get_colors()
+    logger = get_logger(test=True)
     logger.info("Logger creato automaticamente. (name: %s)", logger.name)
     logger.setNameLength(dynamic=True, length=0)
     logger.info("Logger personalizzato (name: %s)", logger.name)
@@ -34,8 +34,37 @@ def main_01():
     logger.notify("Notifica speciale", color=C.blue)
 
 
+def context_logger_separated():
+    import os
+    # 1. Imposta il nome del progetto
+    os.environ["LN_PROJECT_NAME"] = "logger_TEST"
+
+    # 2. Importa context e logger_setup
+    # 2. Importa context e logger
+    from pyLnLib import gVars, init_logger, get_logger
+    # from pyLnLib.logger_setup import init_logger, get_logger
+
+    # 3. Inizializza il logger (SUBITO, prima di importare altri moduli)
+    logger = init_logger(logger_name="logger_TEST", test=True)
+    # logger = init_logger(logger_name="logger_TEST")
+    # logger = init_logger()
+    # logger = init_logger()
+
+    # 4. Ora importa gli altri moduli (che possono usare get_logger())
+    # from lnsync.core.parse_input import ParseInput
+    # from lnsync.core.lnsync_class import LnSync
+
+    # import pdb; pdb.set_trace(); # by Loreto
+    logger.info("Main started")
+    logger.info(f"Project: {gVars.project_name}")
+    logger.info(f"Temp dir: {gVars.temp_dir}")
+    logger.info(f"Log dir: {gVars.get_log_dir()}")
+
+        # ... resto del codice
+
 # -------------------------------
 # Test
 # -------------------------------
 if __name__ == "__main__":
-    main_01()
+    # main_01()
+    context_logger_separated()

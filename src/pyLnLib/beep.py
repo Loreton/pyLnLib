@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 04-07-2026 09.08.16
+# Date .........: 06-07-2026 18.58.19
 #
 
 # import sys
@@ -14,8 +14,9 @@ from typing import Union # Any, List, Optional, Union
 
 # import pyLnLib
 from pyLnLib.context import gVars as ctx
+from pyLnLib.logger import get_logger
 
-logger = ctx.my_logger
+logger = get_logger()
 
 
 # Costanti per i suoni predefiniti su Linux
