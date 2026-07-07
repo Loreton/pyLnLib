@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 06-07-2026 18.54.52
+# Date .........: 06-07-2026 21.28.58
 #
 
 import sys ; sys.dont_write_bytecode=True
@@ -45,10 +45,22 @@ class GlobalVars:
     # Project root (opzionale, per trovare file di config)
     project_root: Optional[Path] = field(default=None, repr=False)
 
+    project_vars: 'dict' = field(default_factory=dict)
+
     def __post_init__(self) -> None:
         """Inizializza il project root."""
         if self.project_root is None:
             self.project_root = self._find_project_root()
+
+
+    def get_project_vars(self) -> 'lnDict':
+        """Restituisce i project_vars (già lnDict)."""
+        from .lndict import lnDict  # ← Import reale a runtime
+        if not self.project_vars:
+            self.project_vars=lnDict()
+        return self.project_vars
+
+
 
     def _find_project_root(self, max_depth: int = 10) -> Optional[Path]:
         """Trova la root del progetto."""
@@ -100,13 +112,14 @@ class GlobalVars:
 # Istanza globale
 gVars = GlobalVars()
 
-# # Funzione comoda per ottenere il logger
-# def get_logger(test: bool=False) -> Any:
-#     from pyLnLib.logger_setup import get_logger
-#     """Funzione comoda per ottenere il logger."""
-#     return get_logger()
 
 # # Funzione comoda per ottenere i Colors
 def get_colors() -> Colors:
     """Funzione comoda per ottenere i Colors."""
     return gVars.get_colors()
+
+
+# Funzione comoda per ottenere i project_vars
+def get_project_vars() -> 'lnDict':
+    """Funzione comoda per ottenere i project_vars."""
+    return gVars.get_project_vars()

@@ -2,7 +2,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 06-07-2026 17.12.45
+# Date .........: 07-07-2026 09.54.38
 #
 
 """
@@ -28,6 +28,7 @@ __author__ = "Loreto Notarantonio"
 # ============================================================
 from .system.acquire_lock           import acquire_lock
 from .system.ln_run                 import lnRun
+from .system.modulo02                 import test02
 from .system.ln_run_stream_class    import lnRunStream_Class as lnRunStream
 from .system.signal_handler         import signalHandler
 
@@ -73,7 +74,7 @@ from .lndict.ln_dict_resolver_class import LnDictResolver
 from .keyboard_prompt               import keyboardPrompt
 from .beep                          import playBeep, play_success_sound, play_error_sound, play_notification_sound, get_beep_types
 # from .context                       import gVars, get_logger, get_colors, get_project_vars
-from .context                       import gVars, get_colors
+from .context                       import gVars, get_colors, get_project_vars
 from .ln_utils                      import flatten_nested_list, flatten_and_filter
 from .colors                      import Colors
 
@@ -99,7 +100,7 @@ __all__ = [
     # 'testLogger',
     # 'get_logger',
     # 'get_colors',
-    # 'get_project_vars',
+    'get_project_vars',
     # 'DummyPrintLogger',
 
     # Beep

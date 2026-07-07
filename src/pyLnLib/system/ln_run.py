@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 06-07-2026 18.54.26
+# Date .........: 07-07-2026 09.31.56
 #
 
 
@@ -15,14 +15,10 @@ from types import SimpleNamespace
 from typing import Optional
 
 ### - project modules
-# from pyLnLib import DummyPrintLogger
-# from pyLnLib import Color
-# from ..colors import Colors
-# from ..logger.dummy_logger import DummyPrintLogger
 from ..context import get_colors
 from ..logger import get_logger
-logger = get_logger()
 C = get_colors()
+logger = get_logger()
 
 
 # ##################################################

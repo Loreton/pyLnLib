@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 06-07-2026 21.04.03
+# Date .........: 07-07-2026 12.15.44
 #
 
 #!/usr/bin/env python3
@@ -11,6 +11,10 @@
 # from unittest.main import main; sys.dont_write_bytecode = True
 
 # import pyLnLib
+
+import os
+from pyLnLib import gVars, init_logger, get_logger
+from pyLnLib import  test02
 
 
 def main_01():
@@ -35,25 +39,24 @@ def main_01():
 
 
 def context_logger_separated():
-    import os
     # 1. Imposta il nome del progetto
     os.environ["LN_PROJECT_NAME"] = "logger_TEST"
 
     # 2. Importa context e logger_setup
     # 2. Importa context e logger
-    from pyLnLib import gVars, init_logger, get_logger
 
     # 3. Inizializza il logger (SUBITO, prima di importare altri moduli)
-    logger = init_logger(logger_name="logger_TEST", test=True)
+    logger = init_logger(logger_name="logger_TEST", test=False)
 
     # 4. Ora importa gli altri moduli (che possono usare get_logger())
     # from lnsync.core.parse_input import ParseInput
     # from lnsync.core.lnsync_class import LnSync
 
     logger.info("Main started")
-    logger.info(f"Project: {gVars.project_name}")
-    logger.info(f"Temp dir: {gVars.temp_dir}")
-    logger.info(f"Log dir: {gVars.get_log_dir()}")
+    logger.info(f"logger name:  {logger.name}")
+    logger.info(f"Project:      {gVars.project_name}")
+    logger.info(f"Temp dir:     {gVars.temp_dir}")
+    logger.info(f"Log dir:      {gVars.get_log_dir()}")
 
         # ... resto del codice
 
@@ -63,3 +66,4 @@ def context_logger_separated():
 if __name__ == "__main__":
     # main_01()
     context_logger_separated()
+    test02()

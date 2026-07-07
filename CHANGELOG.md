@@ -1,3 +1,45 @@
+## v0.1.20 - 2026-07-07
+
+### Fixes
+- update on 2026.07.06 21:08:50 (Release 0.1.19) (Release 0.1.19)
+- unificato il logger all'interno di ln_colored_logger (Release 0.1.19) (Release 0.1.19)
+- update on 2026.07.06 16:14:51 (Release 0.1.18) (Release 0.1.18)
+- context stabilizzato per le dipendenze circolari (Release 0.1.18) (Release 0.1.18)
+- gitcommit aggiornato con la nuova pyLnLib (Release 0.1.18) (Release 0.1.18)
+- aggiustamento lnDict_Class con relativo test_lndict.py (Release 0.1.17) (Release 0.1.17)
+- affinato context.py per migliore gestione logger e modificato lnDict per gestione config.get(main.file.ccc) (Release 0.1.16) (Release 0.1.16)
+- risistemato context piu semplice (Release 0.1.15) (Release 0.1.15)
+- update on 2026.06.29 17:36:19 (Release 0.1.14) (Release 0.1.14)
+- update on 2026.06.29 17:06:04 (Release 0.1.14) (Release 0.1.14)
+- affinamenti vari (Release 0.1.13) (Release 0.1.13)
+- affinamenti vari (Release 0.1.12) (Release 0.1.12)
+- affinamenti vari (Release 0.1.11) (Release 0.1.11)
+- affinato context.py e logger (Release 0.1.10) (Release 0.1.10)
+- definito beep.py e beep_test.py (Release 0.1.9) (Release 0.1.9)
+- forse sistemati gli __init__.py (Release 0.1.8) (Release 0.1.8)
+- added type annotations to ln_utils.py (Release 0.1.8)
+- added type annotations to context.py e colors.py (Release 0.1.8)
+- added type annotations to colors.py (Release 0.1.8)
+- added type annotations to ln_colored_logger.py (Release 0.1.8) (Release 0.1.8)
+- aggiunto timeout a lnRun ed altri affinamenti (Release 0.1.8) (Release 0.1.8)
+- rename test files (Release 0.1.7) (Release 0.1.7)
+- aggiunto Beep con relativi suoni (Release 0.1.7) (Release 0.1.7)
+- aggiustamenti con lo stacklevel e ricerca di file in uno zip (Release 0.1.6) (Release 0.1.6)
+- affinamenti (Release 0.1.5)
+- affinamenti ln_colored_logger() (Release 0.1.5)
+- affinamenti ln_colored_logger() (Release 0.1.5)
+- affinament per il _caller() (Release 0.1.5)
+- rivisto logger_colored -> ln_colored_logger per inserire il caller (Release 0.1.4)
+- modificato struttura per renderla compatibile con uv (Release 0.1.3)
+- piccole modifiche files, logger, acwuire_lock (Release 0.1.2)
+- affinamenti per lettura files di config (Release 0.1.2)
+- update on 2026.05.11 10:33:37 (Release 0.1.1)
+- modificato struttura, lnLogger, yaml_loader_class, aggiunta dei test (Release 0.1.1)
+- modificato struttura, lnLogger, yaml_loader_class, aggiunta dei test (Release 0.1.1)
+- modificato struttura, lnLogger, yaml_loader_class, aggiunta dei test (Release 0.1.1)
+- first commit (Release 0.1.0)
+- Initial commit
+
 ## v0.1.19 - 2026-07-06
 
 ### Fixes

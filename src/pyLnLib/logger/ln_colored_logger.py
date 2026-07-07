@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 06-07-2026 21.00.35
+# Date .........: 07-07-2026 13.41.38
 #
 
 import inspect
@@ -550,5 +550,20 @@ def init_logger(logger_name: str='undefined_logger_name',
 
 
 def get_logger() -> lnColoredLogger | None:
+    global my_logger
+    # Lazy initialization: crea un logger temporaneo se get_logger() viene chiamato
+    # prima di init_logger(). Questo risolve il problema dell'ordine di importazione
+    # nei moduli. Quando init_logger() verrà chiamato, sostituirà questo logger
+    # temporaneo con quello configurato correttamente.
+    print("⚠️ Logger non inizializzato! Creazione temporanea in attesa di init_logger()...")
+    if not my_logger:
+        my_logger = init_logger(logger_name="temporary_logger")
     return my_logger
+
+# def get_logger() -> lnColoredLogger | None:
+#     global my_logger
+#     ''' Mi serve per permettere di avere un pointer corretto in tutti i moduli e non None che mi darebbe problemi'''
+#     if not my_logger:
+#         my_logger=init_logger(logger_name="temporary_logger") # waiting for the right init_logger from the main() of project
+#     return my_logger
 
