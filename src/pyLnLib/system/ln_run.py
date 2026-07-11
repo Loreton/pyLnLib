@@ -42,7 +42,7 @@ def lnRun(
     str_command = " ".join(command_args)
 
     # logger.info(f"[{'executing' if fExecute else 'dry-run'}] {str_command}", color=Color.blueH)
-    logger.info(str_command, dry_run=(not fExecute))
+    logger.debug(str_command, dry_run=(not fExecute))
 
     if fExecute:
         try:

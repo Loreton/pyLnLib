@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 07-07-2026 21.21.56
+# Date .........: 11-07-2026 17.48.06
 #
 
 import inspect
@@ -200,7 +200,7 @@ class lnColoredLogger:
     def setConsoleLoggerLevel(self, level: str) -> None:
         if self.consoleHandler is not None:
             self.consoleHandler.setLevel(level.upper())
-            self.notify("console log level has been set to: %s", level.upper())
+            self.debug("console log level has been set to: %s", level.upper())
 
 
     def getConsoleLoggerLevel(self) -> str:

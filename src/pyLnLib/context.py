@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 10-07-2026 18.32.01
+# Date .........: 11-07-2026 17.30.19
 #
 
 import sys ; sys.dont_write_bytecode=True
@@ -64,7 +64,6 @@ class GlobalVars:
         if not self.project_vars:
             self.project_vars=lnDict()
         if keypath:
-            import pdb; pdb.set_trace();  # by Loreto
             return self.project_vars[keypath]
         return self.project_vars
 
@@ -126,18 +125,8 @@ class GlobalVars:
 gVars = GlobalVars()
 
 
-# # Funzione comoda per ottenere i Colors
-# def get_colors() -> Colors:
-#     """Funzione comoda per ottenere i Colors."""
-#     return gVars.get_colors()
-
 
 # Funzione comoda per ottenere i project_vars
 def get_project_vars(keypath: str|None=None) -> dict:
     """Funzione comoda per ottenere i project_vars."""
     return gVars.get_project_vars(keypath)
-
-# # Funzione comoda per ottenere il YAML engine
-# def get_yaml_engine(search_paths: list[Path|str]|None = None, recursive: bool = True) -> Any:
-#     """Funzione comoda per ottenere il YAML engine."""
-#     return gVars.get_yaml_engine(search_paths=search_paths, recursive=recursive)
