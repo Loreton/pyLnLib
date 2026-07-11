@@ -4,18 +4,21 @@
 # updated by ...: Loreto Notarantonio
 # Version ......: 08-01-2021 18.10.41
 #
-import  sys; sys.dont_write_bytecode = True
-import os, stat
-import zipfile, io
-from typing import Any # Any, List, Optional, Tuple
+import  sys
+import os
+import stat
+import zipfile
+import io
 from types import SimpleNamespace
+from pathlib import Path
 
 
-
-from ..context import gVars as ctx, get_colors
+# from ..context import gVars as ctx
+from ..colors import get_colors
 from ..logger import get_logger
+sys.dont_write_bytecode = True
+
 C=get_colors()
-# logger: Any=ctx.get_logger()
 logger = get_logger()
 
 def ____zipNameList(zip_filename):
@@ -48,6 +51,35 @@ def read_file_in_zip_prev(zip_filename, filename):
 
 
 
+def zipDir(source_dir: Path, output_zip: Path) -> bool:
+    """Create zip of library"""
+    if not source_dir.exists():
+        raise FileNotFoundError("source_dir not found: %s", source_dir)
+
+    # check for output_dir
+    if not output_zip.parent.exists():
+        logger.error("output_dir not found: %s", output_zip.parent)
+        raise FileNotFoundError("output_dir not found: %s", output_zip.parent)
+
+    if output_zip.exists():
+        output_zip.unlink()
+
+    logger.info("Building zip")
+    basename = output_zip.stem
+    # import pdb; pdb.set_trace();  # by Loreto
+
+    with zipfile.ZipFile(output_zip, "w", zipfile.ZIP_DEFLATED) as zf:
+        for file in source_dir.rglob("*"):
+            if file.is_file():
+                rel_path = file.relative_to(source_dir).__str__()
+                if rel_path.startswith('.'):
+                    continue
+                arcname = Path(basename) / rel_path
+                logger.info("adding: %s", arcname)
+                zf.write(file, arcname)
+
+    logger.info("zip file Created: %s", output_zip)
+    return True
 
 
 
@@ -62,8 +94,8 @@ def read_file_in_zip_prev(zip_filename, filename):
 #################################
 # -
 #################################
-def searchFileInZip(archive_file: str,
-                        filename: str, *,
+def searchFileInZip(archive_file: str|Path,
+                        filename: str|Path, *,
                         search_paths: list,
                         recursive: bool=False,
                         extract_to: str|None=None,

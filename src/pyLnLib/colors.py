@@ -44,3 +44,9 @@ class Colors:
     bg_magenta: str = "\033[45m"
     bg_cyan: str    = "\033[46m"
     bg_white: str   = "\033[47m"
+
+
+# # Funzione comoda per ottenere i Colors
+def get_colors() -> Colors:
+    """Funzione comoda per ottenere i Colors."""
+    return Colors  # type: ignore

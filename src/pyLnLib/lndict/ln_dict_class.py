@@ -17,25 +17,25 @@ from datetime   import datetime
 ### --------------------
 ### --- project modules
 ### --------------------
-# if not __name__ == '__main__':
-#     from Source  import getGlobalVars
+from ..logger import get_logger
 
 
 class lnDict(dict):
     def __init__(self, data=None, separator='.'):
         super().__setattr__('_sep', separator)
+        super().__setattr__('logger', get_logger())
         super().__init__()
 
         if data:
             self.update(data)
 
-    @property
-    def logger(self):
-        """Logger lazy-loaded per evitare import circolari."""
-        if not hasattr(self, '_logger'):
-            from ..context import get_logger
-            self._logger = get_logger()
-        return self._logger
+    # @property
+    # def logger(self):
+    #     """Logger lazy-loaded per evitare import circolari."""
+    #     if not hasattr(self, '_logger'):
+    #         # from ..logger import get_logger
+    #         self._logger = get_logger()
+    #     return self._logger
 
 
     @property

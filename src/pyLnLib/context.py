@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 06-07-2026 21.28.58
+# Date .........: 10-07-2026 18.32.01
 #
 
 import sys ; sys.dont_write_bytecode=True
@@ -12,7 +12,7 @@ import socket
 import platform
 from pathlib import Path
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 from .colors import Colors
 
@@ -21,14 +21,10 @@ class GlobalVars:
     """Solo dati di configurazione - NESSUN LOGGER QUI!"""
 
     # Variabili d'ambiente
-    project_name: str = field(default_factory=lambda:
-        os.environ.get("LN_PROJECT_NAME", "dummy_project")
-    )
+    project_name: str = field(default_factory=lambda: os.environ.get("LN_PROJECT_NAME", "dummy_project") )
 
     # Path
-    temp_dir: str = field(default_factory=lambda:
-        f"/tmp/{os.environ.get('LN_PROJECT_NAME', 'dummy_project')}"
-    )
+    temp_dir: str = field(default_factory=lambda: f"/tmp/{os.environ.get('LN_PROJECT_NAME', 'dummy_project')}" )
 
     # Sistema
     hostname: str = field(default_factory=lambda: socket.gethostname().split()[0])
@@ -36,16 +32,17 @@ class GlobalVars:
 
     # Altri dati
     version: str = "0.0.1"
-    args: Any = None
+    # args: Any = None
     config: dict = field(default_factory=dict)
 
     # Colori
-    colors: Colors = field(default_factory=Colors)
+    # colors: Colors = field(default_factory=Colors)
 
     # Project root (opzionale, per trovare file di config)
-    project_root: Optional[Path] = field(default=None, repr=False)
+    project_root: Path|None = field(default=None, repr=False)
 
     project_vars: 'dict' = field(default_factory=dict)
+    # yaml_env: 'lnYamlEnvironment' = field(default_factory=lnYamlEnvironment)
 
     def __post_init__(self) -> None:
         """Inizializza il project root."""
@@ -53,7 +50,15 @@ class GlobalVars:
             self.project_root = self._find_project_root()
 
 
-    def get_project_vars(self) -> 'lnDict':
+    # def get_yaml_engine(self, search_paths: list[Path|str]|None, recursive: bool=True) -> Any:
+    #     """Imposta l'ambiente YAML."""
+    #     from .files.yaml_loader_class import YamlEngine
+    #     if search_paths is None:
+    #         search_paths = [self.get_conf_dir()]
+    #     return YamlEngine(search_paths=search_paths, recursive=recursive)
+
+
+    def get_project_vars(self) -> dict:
         """Restituisce i project_vars (già lnDict)."""
         from .lndict import lnDict  # ← Import reale a runtime
         if not self.project_vars:
@@ -62,19 +67,21 @@ class GlobalVars:
 
 
 
-    def _find_project_root(self, max_depth: int = 10) -> Optional[Path]:
+    def _find_project_root(self, max_depth: int = 10) -> Path:
         """Trova la root del progetto."""
-        current = Path(__file__).resolve().parent
-
+        current = Path(sys.argv[0]).resolve().parent
         for _ in range(max_depth):
-            if (current / 'conf').exists() or (current / 'pyproject.toml').exists():
+            if (current / 'conf').exists() or (current / 'pyproject.toml').exists() or (current / 'src').exists():
                 return current
             if current.parent == current:
                 break
             current = current.parent
-        return None
 
-    def get_temp_path(self, subdir: Optional[str] = None) -> Path:
+        if not current or str(current) in ['/']:
+            sys.exit(f"\t[context.py] Project root: {current} not found")
+        return current
+
+    def get_temp_path(self, subdir: str | None = None) -> Path:
         """Restituisce il path temporaneo."""
         temp_path = Path(self.temp_dir)
         if subdir:
@@ -86,16 +93,19 @@ class GlobalVars:
         """Restituisce il path per i log."""
         return self.get_temp_path("logs")
 
-    def get_conf_dir(self) -> Optional[Path]:
-        """Restituisce la directory conf."""
+    def get_conf_dir(self) -> Path:
+        """Restituisce la directory conf oppure exit"""
         if self.project_root:
             conf = self.project_root / 'conf'
             if conf.exists():
                 return conf
-        return None
+            else:
+                sys.exit(f"Conf directory: {conf} not found")
+        else:
+            sys.exit(f"Project root: {self.project_root} not found")
 
-    def get_colors(self) -> Colors:
-        return self.colors
+    # def get_colors(self) -> Colors:
+    #     return self.colors
 
     def to_dict(self) -> dict[str, Any]:
         """Converte l'oggetto in un dizionario."""
@@ -114,12 +124,17 @@ gVars = GlobalVars()
 
 
 # # Funzione comoda per ottenere i Colors
-def get_colors() -> Colors:
-    """Funzione comoda per ottenere i Colors."""
-    return gVars.get_colors()
+# def get_colors() -> Colors:
+#     """Funzione comoda per ottenere i Colors."""
+#     return gVars.get_colors()
 
 
 # Funzione comoda per ottenere i project_vars
-def get_project_vars() -> 'lnDict':
+def get_project_vars() -> dict:
     """Funzione comoda per ottenere i project_vars."""
     return gVars.get_project_vars()
+
+# # Funzione comoda per ottenere il YAML engine
+# def get_yaml_engine(search_paths: list[Path|str]|None = None, recursive: bool = True) -> Any:
+#     """Funzione comoda per ottenere il YAML engine."""
+#     return gVars.get_yaml_engine(search_paths=search_paths, recursive=recursive)

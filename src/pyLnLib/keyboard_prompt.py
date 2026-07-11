@@ -6,7 +6,7 @@
 
 import os
 import sys
-from typing import Any, List, Optional, Union
+from typing import List, Union
 
 from .beep import playBeep
 from .context import Colors as C
@@ -29,8 +29,8 @@ def caller_info(message: str, stacknum: int = 2) -> str:
 # return list[] of choice(s)
 #######################################################
 def keyboardPrompt( text_msg: str,
-                    validKeys: List[str] = ["y", "n"],
-                    exitKeys: List[str] = ["x", "q"],
+                    validKeys: list[str] = ["y", "n"],
+                    exitKeys: list[str] = ["x", "q"],
                     multi_choices: bool = False, ) -> list[str]:
     """
     Funzione per input da tastiera con validazione.
@@ -115,8 +115,8 @@ def keyboardPrompt( text_msg: str,
 
 # Versione con default None per backward compatibility
 def keyboardPrompt_with_default( text_msg: str,
-                                    validKeys: Optional[List[str]] = None,
-                                    exitKeys: Optional[List[str]] = None,
+                                    validKeys: list[str] | None = None,
+                                    exitKeys: list[str] | None = None,
                                     multi_choices: bool = False, ) -> Union[List[str], str]:
     """
     Versione con default None per evitare problemi di mutability.

@@ -2,7 +2,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 03-07-2026 18.18.45
+# Date .........: 11-07-2026 10.34.14
 #
 
 """
@@ -15,11 +15,11 @@ if __INIT__PY__DEBUG:
     print(f"{__name__} - start loading")
 
 
-from .file_utils_new        import searchFile, searchFileOnFS, dirList
+from .file_utils        import searchFile, searchFileOnFS, dirList
 from .ini_file          import loadIni, writeIni
 from .write_file        import writeFile
-from .yaml_loader_class import lnYamlEnvironment
-from .zip_file_utils    import searchFileInZip
+from .yaml_loader_class import get_yaml_engine # YamlEngine
+from .zip_file_utils    import searchFileInZip, zipDir
 
 
 # Definisci cosa esportare quando si fa "from pyLnLib.logger import *"
@@ -30,8 +30,10 @@ __all__ = [
     'loadIni',
     'writeIni',
     'writeFile',
-    'lnYamlEnvironment',
+    # 'YamlEngine',
+    'get_yaml_engine',
     'searchFileInZip',
+    'zipDir',
 ]
 
 if __INIT__PY__DEBUG:

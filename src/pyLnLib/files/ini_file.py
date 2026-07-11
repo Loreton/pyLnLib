@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 06-07-2026 18.57.06
+# Date .........: 11-07-2026 12.11.05
 #
 
 import sys; sys.dont_write_bytecode = True
@@ -12,9 +12,10 @@ from typing import Any
 ### --------------------
 ### --- project modules
 ### --------------------
-from ..context    import gVars as ctx, get_colors
+from ..context    import gVars as ctx
+from ..colors    import get_colors
 from ..logger    import get_logger
-from .file_utils_new import searchFile
+from .file_utils import searchFile
 logger = get_logger()
 
 ###############################################

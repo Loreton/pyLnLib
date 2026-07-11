@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 06-07-2026 18.57.50
+# Date .........: 11-07-2026 12.12.01
 #
 
 import sys; sys.dont_write_bytecode=True
@@ -10,15 +10,13 @@ import os
 import yaml
 import zipfile
 from typing import Any
+from pathlib import Path
 
 
-from .file_utils_new     import searchFileOnFS
+from .file_utils     import searchFileOnFS
 from .zip_file_utils import searchFileInZip
 from ..context import gVars as ctx
 from ..logger import get_logger
-# C=ctx.colors
-# logger: Any=ctx.get_logger()
-logger = get_logger()
 
 #################################
 # --- Loader Personalizzato ---
@@ -84,12 +82,13 @@ class YamlEngine:
     #################################
     # -
     #################################
-    def __init__(self, environment, search_paths: list[str] = [], recursive: bool = False):
-        from ..context import gVars as ctx
-        self.env = environment
-        lnYamlLoader.env_ref = environment
+    # def __init__(self, environment, search_paths: list[str] = [], recursive: bool = False):
+    def __init__(self, search_paths: list[Path|str] = [], recursive: bool = False):
+        # from ..context import gVars as ctx
+        # self.env = environment
+        # lnYamlLoader.env_ref = environment
         # self.logger: Any = ctx.get_logger()
-        self.logger = ctx.my_logger
+        self.logger = get_logger()
         self.recursive = recursive
 
         ### - prepare search paths
@@ -130,32 +129,22 @@ class YamlEngine:
         return result.content
 
 
-    #################################
-    # -
-    #################################
-    # def _get_keypath(self, data: Any, keypath: str) -> Any:
-    #     try:
-    #         for key in keypath.split('.'):
-    #             if isinstance(data, dict):
-    #                 data = data.get(key)
-    #             else:
-    #     return result.content
-
 
     #################################
     # -
     #################################
-    def _get_keypath(self, data: dict, keypath: str) -> Any:
+    def _get_keypath(self, data: dict[str, Any], keypath: str) -> Any:
+        _data: dict=data
         try:
             for key in keypath.split('.'):
                 if isinstance(data, dict):
-                    data = data.get(key)
+                    data = _data.get(key)  # type: ignore
                     break
 
         except Exception as e:
             self.logger.error(str(e))
 
-        return data
+        return _data
 
     #################################
     # -
@@ -166,12 +155,12 @@ class YamlEngine:
         else:
             target_file, keypath = filename_with_pointer, None
 
-        logger.info("trying to load file: %s", target_file)
-        content = self.find_file(target_file)
+        self.logger.info("trying to load file: %s", target_file)
+        content: str | None = self.find_file(target_file)
         if not content:
             self.logger.error("filename: %s is empty", target_file, show_stack=True, exit=True)
 
-        content = os.path.expandvars(content)
+        content = os.path.expandvars(str(content))
         data = yaml.load(content, Loader=lnYamlLoader)
 
         # file_data = self._get_keypath(data, keypath) if keypath else data
@@ -189,17 +178,26 @@ class YamlEngine:
 
 
 
+
+def get_yaml_engine(search_paths: list[Path|str]|None, recursive: bool=True) -> Any:
+    """Imposta l'ambiente YAML."""
+    if search_paths is None:
+        search_paths = [ctx.get_conf_dir()]
+    return YamlEngine(search_paths=search_paths, recursive=recursive)
+
+
+
 #################################
 # -
 #################################
-class lnYamlEnvironment:
-    def __init__(self, search_paths: list=["conf"], recursive=True):
-        # self.logger = logger
+# class lnYamlEnvironment:
+#     def __init__(self, search_paths: list=["conf"], recursive=True):
+#         # self.logger = logger
 
-        # Inizializziamo l'engine con i parametri richiesti
-        self.yaml_engine = YamlEngine(self, search_paths=search_paths, recursive=recursive)
+#         # Inizializziamo l'engine con i parametri richiesti
+#         self.yaml_engine = YamlEngine(self, search_paths=search_paths, recursive=recursive)
 
 
-# Test
-if __name__ == "__main__":
-    ...
+# # Test
+# if __name__ == "__main__":
+#     ...

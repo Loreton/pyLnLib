@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 07-07-2026 13.41.38
+# Date .........: 07-07-2026 21.21.56
 #
 
 import inspect
@@ -114,7 +114,7 @@ class lnColoredLogger:
         self.threads_str: str = "%(threadName)-5.5s." if threads else ""
         self.show_caller = False
         self.module_name_len: int = 0
-        self.logging_dir = logging_dir
+        self.logging_dir: Path | str | None = logging_dir
 
         self.consoleHandler: logging.Handler | None = None
         self.fileHandler: logging.Handler | None = None
@@ -184,13 +184,13 @@ class lnColoredLogger:
     # -------------------------------
     # Rotating Logger
     # -------------------------------
-    def setRotatingLogger(self ) -> logging.Handler:
+    def setRotatingLogger(self) -> logging.Handler:
         # if self.logging_dir is None:
         #     self.logging_dir = f"/tmp/{self.name.lower()}/log"
 
         logging_file = f"{self.logging_dir}/{self.name.lower()}.log"
-        if not os.path.exists(self.logging_dir) and create_logging_dir:
-            os.makedirs(self.logging_dir)
+        if not self.logging_dir or not os.path.exists(self.logging_dir):
+            os.makedirs(str(self.logging_dir), exist_ok=True)
 
         fh = RotatingFileHandler(logging_file, maxBytes=5 * 1000 * 1000, backupCount=5)
         formatter = logging.Formatter(f"%(asctime)s - [{self.threads_str}%(module_formatted)s%(caller_formatted)s [%(levelname)4.4s]: %(message)s" )
@@ -509,6 +509,7 @@ def init_logger(logger_name: str='undefined_logger_name',
                     logging_dir: str|None=None,
                     threads: bool=False,
                     test: bool=False,
+                    temporary: bool=False,
                 ) -> lnColoredLogger:
     """
     Inizializza il logger globale usando i dati di context.
@@ -533,12 +534,14 @@ def init_logger(logger_name: str='undefined_logger_name',
         logging_dir=logging_dir,
         threads=threads,
     )
-    print("*" * 20)
-    print(f"\tlogger_name:   {my_logger.name}")
-    print(f"\tconsole level: {my_logger.getConsoleLoggerLevel()}")
-    print(f"\tlogging_dir:   {my_logger.logging_dir}")
-    print(f"\tfile    level: {my_logger.getFileLoggerLevel()}")
-    print("*" * 20)
+    my_logger.info("*" * 20)
+    my_logger.info("logger_name:   %s", my_logger.name)
+    my_logger.info("console level: %s", my_logger.getConsoleLoggerLevel())
+    my_logger.info("logging_dir:   %s", my_logger.logging_dir)
+    my_logger.info("file    level: %s", my_logger.getFileLoggerLevel())
+    my_logger.info("*" * 20)
+    if not temporary:
+        my_logger.warning("✅ Logger inizializzato")
 
     # # Test (opzionale, puoi commentare se non serve)
     if test:
@@ -549,21 +552,14 @@ def init_logger(logger_name: str='undefined_logger_name',
 
 
 
-def get_logger() -> lnColoredLogger | None:
+def get_logger() -> lnColoredLogger:
     global my_logger
     # Lazy initialization: crea un logger temporaneo se get_logger() viene chiamato
     # prima di init_logger(). Questo risolve il problema dell'ordine di importazione
     # nei moduli. Quando init_logger() verrà chiamato, sostituirà questo logger
     # temporaneo con quello configurato correttamente.
-    print("⚠️ Logger non inizializzato! Creazione temporanea in attesa di init_logger()...")
+    # print("⚠️ Logger non inizializzato! Creazione temporanea in attesa di init_logger()...")
     if not my_logger:
-        my_logger = init_logger(logger_name="temporary_logger")
+        my_logger = init_logger(logger_name="temporary_logger", temporary=True)
+        my_logger.warning("⚠️ Logger non inizializzato! Creazione temporanea in attesa di init_logger()...")
     return my_logger
-
-# def get_logger() -> lnColoredLogger | None:
-#     global my_logger
-#     ''' Mi serve per permettere di avere un pointer corretto in tutti i moduli e non None che mi darebbe problemi'''
-#     if not my_logger:
-#         my_logger=init_logger(logger_name="temporary_logger") # waiting for the right init_logger from the main() of project
-#     return my_logger
-

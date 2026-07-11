@@ -24,7 +24,7 @@ def acquire_lock(filename: str):
 
     except BlockingIOError as e:
         print(f"\tERROR: {str(e)}")
-        print(f"\tERROR: probabilmente un'altra istanza è già attiva!")
+        print("\tERROR: probabilmente un'altra istanza è già attiva!")
         sys.exit(1)
 
     except Exception as e:

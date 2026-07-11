@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 07-07-2026 09.31.56
+# Date .........: 11-07-2026 12.10.03
 #
 
 
 import sys
 
 sys.dont_write_bytecode = True
-import os
+# import os
 import shlex
 import subprocess
 from types import SimpleNamespace
-from typing import Optional
+# from typing import Optional
 
 ### - project modules
-from ..context import get_colors
+from ..colors import get_colors
 from ..logger import get_logger
 C = get_colors()
 logger = get_logger()
@@ -26,12 +26,11 @@ logger = get_logger()
 # ##################################################
 def lnRun(
     command: str | list,
-    cwd: Optional[str] = None,
+    cwd: str|None = None,
     exit_on_error: bool = False,
     stacklevel: int = 0,
     fExecute: bool = False,
     timeout: int = 15,
-    # toLogger: Optional[DummyPrintLogger] = None,
 ) -> tuple[int, str, str]:
 
     # lnRun_STACKLEVEL = stacklevel
@@ -98,9 +97,9 @@ if __name__ == "__main__":
     # logger.notify("Notifica speciale", color=Color.blue)
 
     # Esempio di comando
-    rc, out, err = lnRun("echo Ciao mondo!", fExecute=True, toLogger=logger)
+    rc, out, err = lnRun("echo Ciao mondo!", fExecute=True)
 
-    logger.info(f"Return code: {rc}", color=Color.cyan)
+    logger.info(f"Return code: {rc}", color=C.cyan)
 
 
 """

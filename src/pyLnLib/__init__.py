@@ -2,7 +2,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 07-07-2026 09.54.38
+# Date .........: 11-07-2026 14.25.10
 #
 
 """
@@ -28,7 +28,6 @@ __author__ = "Loreto Notarantonio"
 # ============================================================
 from .system.acquire_lock           import acquire_lock
 from .system.ln_run                 import lnRun
-from .system.modulo02                 import test02
 from .system.ln_run_stream_class    import lnRunStream_Class as lnRunStream
 from .system.signal_handler         import signalHandler
 
@@ -36,9 +35,9 @@ from .system.signal_handler         import signalHandler
 # IMPORT DAL SOTTO-PACKAGE files
 # ============================================================
 from .files.write_file              import writeFile
-from .files.yaml_loader_class       import lnYamlEnvironment
-from .files.zip_file_utils          import searchFileInZip
-from .files.file_utils_new              import searchFile, searchFileOnFS, dirList
+from .files.yaml_loader_class       import get_yaml_engine
+from .files.zip_file_utils          import searchFileInZip, zipDir
+from .files.file_utils              import searchFile, searchFileOnFS, dirList
 from .files.ini_file                import loadIni, writeIni, updateIniKey
 
 # ============================================================
@@ -46,20 +45,12 @@ from .files.ini_file                import loadIni, writeIni, updateIniKey
 # ============================================================
 # from .logger.dummy_logger           import DummyPrintLogger
 # from .logger.ln_colored_logger      import lnColoredLogger as lnLogger, testLogger
-from pyLnLib.logger.ln_colored_logger import (
-    init_logger,
-    lnColoredLogger as lnLogger,
-    get_logger,
-    # set_logger,
-    # is_logger_initialized,
-    # reset_logger,
-    # testLogger,
-)
-# pyLnLib/__init__.py
-"""
-pyLnLib - Libreria di utility per Python
-"""
-
+from .logger.ln_colored_logger import (
+                                        lnColoredLogger as lnLogger,
+                                        init_logger,
+                                        get_logger,
+                                        testLogger,
+                                    )
 
 
 # ============================================================
@@ -73,10 +64,9 @@ from .lndict.ln_dict_resolver_class import LnDictResolver
 # ============================================================
 from .keyboard_prompt               import keyboardPrompt
 from .beep                          import playBeep, play_success_sound, play_error_sound, play_notification_sound, get_beep_types
-# from .context                       import gVars, get_logger, get_colors, get_project_vars
-from .context                       import gVars, get_colors, get_project_vars
+from .context                       import gVars,  get_project_vars
 from .ln_utils                      import flatten_nested_list, flatten_and_filter
-from .colors                      import Colors
+from .colors                      import get_colors
 
 
 # ============================================================
@@ -84,24 +74,14 @@ from .colors                      import Colors
 # ============================================================
 
 __all__ = [
-    'Colors',
+    'get_colors',
 
     # Logger
     'lnLogger',
-    # 'lnColoredLogger',
     'init_logger',
     'get_logger',
-    # 'set_logger',
-    # 'is_logger_initialized',
-    # 'reset_logger',
-    # 'testLogger',
-
-    # 'lnLogger',
-    # 'testLogger',
-    # 'get_logger',
-    # 'get_colors',
+    'testLogger',
     'get_project_vars',
-    # 'DummyPrintLogger',
 
     # Beep
     'playBeep',
@@ -112,6 +92,8 @@ __all__ = [
     # Context
     'gVars',
     # 'Colors',
+    # 'get_yaml_engine',
+    'get_colors',
     'dirList',
     'get_logger',
     'get_beep_types',
@@ -129,6 +111,8 @@ __all__ = [
     'loadIni',
     'writeIni',
     'updateIniKey',
+    'zipDir',
+    'get_yaml_engine',
 
     # system
     'lnRun',
@@ -150,5 +134,3 @@ __all__ = [
 
 if __INIT__PY__DEBUG == "True":
     print(f"{__name__} - end loading")
-
-
