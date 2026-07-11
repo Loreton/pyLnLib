@@ -120,14 +120,6 @@ class LnDictResolver():
                             continue
 
                         source_data = self.target.get_keypath(final_target, default=object())
-                        # if source_data is object():
-                        #     msg = f"ERRORE CRITICO: Il path '{final_target}' richiesto da '{key}' non esiste!"
-                        #     self.errors.append(msg)
-                        #     self.target.logger.error(msg) # Così lo vedi subito in console
-                        #     continue
-                            # self.errors.append(f"Non trovato: {final_target} richiesto da {key}")
-                            # continue
-
 
                         if source_data is object() or source_data is None:
                             msg = f"ERRORE CRITICO: Il target '{final_target}' (richiesto da '{self.sep.join(current_stack + [key])}') non esiste o è vuoto!"

@@ -537,14 +537,12 @@ class lnDict(dict):
     # #############################################################################
     # # title: se valorizzato viene messo in testa al dict
     # #############################################################################
-    def to_yaml(self, title: str|None=None, sort_keys=False, **kwargs):
+    def to_yaml(self, title: str|None=None, indent: int=2, sort_keys=False, **kwargs):
         """Converte lo lnDict in una stringa YAML pulita."""
-        # Usiamo to_dict() per esportare solo dati standard
-        # indent = kwargs.pop("indent", 4)
         d={title: self.to_dict()} if title else self.to_dict()
         # return yaml.dump(d, sort_keys=sort_keys, indent=indent, default_flow_style=False, **kwargs)
         # return yaml.dump(d, sort_keys=sort_keys, indent=indent, default_flow_style=False)
-        return yaml.dump(d, default_flow_style=False, **kwargs)
+        return yaml.dump(d, indent=indent, default_flow_style=False, **kwargs)
 
 
     # #############################################################################
@@ -553,7 +551,7 @@ class lnDict(dict):
     # #############################################################################
     def save_yaml(self, filepath, title: str|None=None, indent: int=0, **kwargs):
         """Salva lo lnDict in un file .yaml."""
-        yaml_data = self.to_yaml(title=title, **kwargs)
+        yaml_data = self.to_yaml(title=title, indent=indent, **kwargs)
         now = datetime.now().strftime("%d-%m-%Y_%H:%M")
         _cmnt=f"#{'-'*20}"
         yaml_data = f"{_cmnt}\n#- {now}\n{_cmnt}\n{yaml_data}"

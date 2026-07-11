@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 11-07-2026 12.12.01
+# Date .........: 11-07-2026 18.12.21
 #
 
 import sys; sys.dont_write_bytecode=True
@@ -163,7 +163,6 @@ class YamlEngine:
         content = os.path.expandvars(str(content))
         data = yaml.load(content, Loader=lnYamlLoader)
 
-        # file_data = self._get_keypath(data, keypath) if keypath else data
         if keypath:
             file_data = self._get_keypath(data, keypath)
             if file_data is None:
@@ -186,18 +185,3 @@ def get_yaml_engine(search_paths: list[Path|str]|None, recursive: bool=True) -> 
     return YamlEngine(search_paths=search_paths, recursive=recursive)
 
 
-
-#################################
-# -
-#################################
-# class lnYamlEnvironment:
-#     def __init__(self, search_paths: list=["conf"], recursive=True):
-#         # self.logger = logger
-
-#         # Inizializziamo l'engine con i parametri richiesti
-#         self.yaml_engine = YamlEngine(self, search_paths=search_paths, recursive=recursive)
-
-
-# # Test
-# if __name__ == "__main__":
-#     ...

@@ -4,15 +4,18 @@
 # Date .........: 11-07-2026 17.30.19
 #
 
-import sys ; sys.dont_write_bytecode=True
-#!/usr/bin/env python3
-#!/usr/bin/env python3
+import sys
 import os
 import socket
 import platform
 from pathlib import Path
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, TYPE_CHECKING
+if TYPE_CHECKING:
+    from .lndict import lnDict  # per permettere di definitre il type di project_vars
+
+
+
 
 from .colors import Colors
 
@@ -50,13 +53,9 @@ class GlobalVars:
             self.project_root = self._find_project_root()
 
 
-    # def get_yaml_engine(self, search_paths: list[Path|str]|None, recursive: bool=True) -> Any:
-    #     """Imposta l'ambiente YAML."""
-    #     from .files.yaml_loader_class import YamlEngine
-    #     if search_paths is None:
-    #         search_paths = [self.get_conf_dir()]
-    #     return YamlEngine(search_paths=search_paths, recursive=recursive)
-
+    def set_project_name(self, name: str) -> None:
+        self.project_name = name
+        self.temp_dir = f"/tmp/{name}"
 
     def get_project_vars(self, keypath: str|None=None) -> dict:
         """Restituisce i project_vars (già lnDict)."""
@@ -127,6 +126,6 @@ gVars = GlobalVars()
 
 
 # Funzione comoda per ottenere i project_vars
-def get_project_vars(keypath: str|None=None) -> dict:
+def get_project_vars(keypath: str|None=None) -> lnDict:
     """Funzione comoda per ottenere i project_vars."""
     return gVars.get_project_vars(keypath)
