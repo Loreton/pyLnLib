@@ -58,11 +58,14 @@ class GlobalVars:
     #     return YamlEngine(search_paths=search_paths, recursive=recursive)
 
 
-    def get_project_vars(self) -> dict:
+    def get_project_vars(self, keypath: str|None=None) -> dict:
         """Restituisce i project_vars (già lnDict)."""
         from .lndict import lnDict  # ← Import reale a runtime
         if not self.project_vars:
             self.project_vars=lnDict()
+        if keypath:
+            import pdb; pdb.set_trace();  # by Loreto
+            return self.project_vars[keypath]
         return self.project_vars
 
 
@@ -130,9 +133,9 @@ gVars = GlobalVars()
 
 
 # Funzione comoda per ottenere i project_vars
-def get_project_vars() -> dict:
+def get_project_vars(keypath: str|None=None) -> dict:
     """Funzione comoda per ottenere i project_vars."""
-    return gVars.get_project_vars()
+    return gVars.get_project_vars(keypath)
 
 # # Funzione comoda per ottenere il YAML engine
 # def get_yaml_engine(search_paths: list[Path|str]|None = None, recursive: bool = True) -> Any:

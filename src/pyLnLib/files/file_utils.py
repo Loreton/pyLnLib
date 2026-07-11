@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 11-07-2026 12.10.24
+# Date .........: 11-07-2026 15.37.33
 #
 
 import sys; sys.dont_write_bytecode=True; this=sys.modules[__name__]
@@ -20,125 +20,6 @@ from .zip_file_utils import searchFileInZip
 C=get_colors()
 logger=get_logger()
 
-
-# from pathlib import Path
-# from typing import Optional
-
-# def find_project_root_XXX(start_path: Optional[Path] = None, max_depth: int = 10) -> Optional[Path]:
-#     """
-#     Trova la root del progetto risalendo la gerarchia delle directory.
-
-#     Cerca:
-#     1. Una directory 'conf'
-#     2. Un file 'pyproject.toml'
-
-#     Args:
-#         start_path: Percorso di partenza (default: directory del file chiamante)
-#         max_depth: Numero massimo di livelli da risalire
-
-#     Returns:
-#         Path della directory root se trovata, altrimenti None
-#     """
-#     if start_path is None:
-#         start_path = Path(__file__).resolve().parent
-
-#     # Assicurati che sia una directory
-#     if start_path.is_file():
-#         start_path = start_path.parent
-
-#     current = start_path.resolve()
-
-#     for _ in range(max_depth):
-#         # Cerca directory 'conf'
-#         conf_dir = current / 'conf'
-#         if conf_dir.exists() and conf_dir.is_dir():
-#             return current
-
-#         # Cerca file 'pyproject.toml'
-#         pyproject = current / 'pyproject.toml'
-#         if pyproject.exists() and pyproject.is_file():
-#             return current
-
-#         # Se siamo alla root, fermati
-#         if current.parent == current:
-#             break
-
-#         # Risali di un livello
-#         current = current.parent
-
-#     return None
-
-
-
-# def get_conf_dir(start_path: Path | None = None, max_depth: int = 10) -> Path:
-#     """
-#     Trova la directory 'conf' nella root del progetto.
-
-#     Returns:
-#         Path della directory conf se trovata, altrimenti None
-#     """
-#     root = find_project_root(start_path, max_depth)
-#     if root:
-#         conf_dir = root / 'conf'
-#         if conf_dir.exists() and conf_dir.is_dir():
-#             return conf_dir
-#     return None
-
-# def get_project_root(start_path: Path | None = None, max_depth: int = 10) -> Path:
-#     """
-#     Trova la root del progetto (dove si trova pyproject.toml o conf/).
-
-#     Returns:
-#         Path della root se trovata, altrimenti None
-#     """
-#     return find_project_root(start_path, max_depth)
-
-
-# def find_project_root(max_depth: int = 10) -> Path:
-#     """Trova la root del progetto."""
-#     current = Path(sys.argv[0]).resolve().parent
-#     for _ in range(max_depth):
-#         if (current / 'conf').exists() or (current / 'pyproject.toml').exists() or (current / 'src').exists():
-#             return current
-#         if current.parent == current:
-#             break
-#         current = current.parent
-
-#     if not current or str(current) in ['/']:
-#         sys.exit(f"\t[context.py] Project root: {current} not found")
-#     return current
-
-
-# def get_conf_dir() -> Path:
-#     """Restituisce la directory conf oppure exit"""
-#     if self.project_root:
-#         conf = self.project_root / 'conf'
-#         if conf.exists():
-#             return conf
-#         else:
-#             sys.exit(f"Conf directory: {conf} not found")
-#     else:
-#         sys.exit(f"Project root: {self.project_root} not found")
-
-# Esempio di utilizzo
-# if __name__ == "__main__":
-#     # Test con percorso specifico
-#     test_path = Path("/home/loreto/filu/Programming/gitREPO/lnSync/src/lnsync/main.py")
-
-#     root = find_project_root(test_path)
-#     if root:
-#         print(f"Root trovata: {root}")
-#         conf = root / 'conf'
-#         if conf.exists():
-#             print(f"Directory conf: {conf}")
-#         else:
-#             print("Nessuna directory conf trovata")
-
-#         pyproject = root / 'pyproject.toml'
-#         if pyproject.exists():
-#             print(f"pyproject.toml: {pyproject}")
-#     else:
-#         print("Root non trovata")
 
 def findFile(root: str, filename: str):
     for dirpath, _, files in os.walk(root):
