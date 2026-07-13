@@ -12,6 +12,9 @@ import traceback
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any, Callable
+from webbrowser import get
+
+
 
 # Type aliases
 LevelName = str
@@ -43,6 +46,7 @@ class Color:
     purple: str   = magenta
     purpleH: str  = magentaH
 
+C=Color
 
 """
     Level       Numeric value What it means / When to use it
@@ -390,7 +394,7 @@ class lnColoredLogger:
 
             dry_run: bool = kwargs.pop("dry_run", False)
             if dry_run:
-                msg = f"[dry-run] {msg}"
+                msg = f"{C.white}[dry-run]{C.reset} {C.green}{msg}{C.reset}"
 
             # override colore
             if color:

@@ -31,8 +31,11 @@ def lnRun(
     stacklevel: int = 0,
     fExecute: bool = False,
     timeout: int = 15,
+    logger_level: str = "warning", # questo pervitare di scrivere se non richiesto
 ) -> tuple[int, str, str]:
 
+    saved_logger_level = logger.getConsoleLoggerLevel()
+    logger.setConsoleLoggerLevel(logger_level)
     # lnRun_STACKLEVEL = stacklevel
     # lnRun_STACKLEVEL = 0
     # logger: LoggerLike = toLogger or DummyPrintLogger()
@@ -42,7 +45,7 @@ def lnRun(
     str_command = " ".join(command_args)
 
     # logger.info(f"[{'executing' if fExecute else 'dry-run'}] {str_command}", color=Color.blueH)
-    logger.debug(str_command, dry_run=(not fExecute))
+    logger.info(str_command, dry_run=(not fExecute))
 
     if fExecute:
         try:
@@ -76,6 +79,7 @@ def lnRun(
             if exit_on_error:
                 raise SystemExit(1)
 
+    logger.setConsoleLoggerLevel(saved_logger_level)
     return result.rcode, result.stdout, result.stderr
 
 
