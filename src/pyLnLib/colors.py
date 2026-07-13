@@ -45,6 +45,13 @@ class Colors:
     bg_cyan: str    = "\033[46m"
     bg_white: str   = "\033[47m"
 
+    debug:str= cyan
+    info:str= green
+    warning:str= yellow
+    error:str= red
+    critical:str= magenta
+    exception:str= magenta
+    notify:str= blue
 
 # # Funzione comoda per ottenere i Colors
 def get_colors() -> Colors:

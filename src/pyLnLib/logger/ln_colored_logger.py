@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 11-07-2026 17.48.06
+# Date .........: 13-07-2026 13.41.39
 #
 
 import inspect
@@ -14,8 +14,8 @@ from pathlib import Path
 from typing import Any, Callable
 from webbrowser import get
 
-
-
+from ..colors import get_colors
+C = get_colors()
 # Type aliases
 LevelName = str
 Message = str
@@ -26,27 +26,35 @@ LoggerName = str
 sys.dont_write_bytecode = True
 
 
-class Color:
-    red: str      = "\033[31m"
-    redH: str     = "\033[91m"
-    green: str    = "\033[32m"
-    greenH: str   = "\033[92m"
-    yellow: str   = "\033[33m"
-    yellowH: str  = "\033[93m"
-    blue: str     = "\033[34m"
-    blueH: str    = "\033[94m"
-    magenta: str  = "\033[35m"
-    magentaH: str = "\033[95m"
-    cyan: str     = "\033[36m"
-    cyanH: str    = "\033[96m"
-    white: str    = "\033[37m"
-    whiteH: str   = "\033[97m"
-    reset: str    = "\033[0m"
+# class Color:
+#     red: str      = "\033[31m"
+#     redH: str     = "\033[91m"
+#     green: str    = "\033[32m"
+#     greenH: str   = "\033[92m"
+#     yellow: str   = "\033[33m"
+#     yellowH: str  = "\033[93m"
+#     blue: str     = "\033[34m"
+#     blueH: str    = "\033[94m"
+#     magenta: str  = "\033[35m"
+#     magentaH: str = "\033[95m"
+#     cyan: str     = "\033[36m"
+#     cyanH: str    = "\033[96m"
+#     white: str    = "\033[37m"
+#     whiteH: str   = "\033[97m"
+#     reset: str    = "\033[0m"
 
-    purple: str   = magenta
-    purpleH: str  = magentaH
+#     purple: str   = magenta
+#     purpleH: str  = magentaH
 
-C=Color
+#     debug:str= cyan
+#     info:str= green
+#     warning:str= yellow
+#     error:str= red
+#     critical:str= magenta
+#     exception:str= magenta
+#     notify:str= blue
+
+# C=Color
 
 """
     Level       Numeric value What it means / When to use it
@@ -90,14 +98,14 @@ class ColorFormatter(logging.Formatter):
 # -------------------------------
 class lnColoredLogger:
     LEVEL_COLORS: dict[str, str] = {
-        "DEBUG": Color.cyan,
-        "INFO": Color.green,
-        "WARNING": Color.yellow,
-        "ERROR": Color.red,
-        "CRITICAL": Color.magenta,
-        "EXCEPTION": Color.magenta,
-        "NOTIFY": Color.blue,
-    }
+                                    "DEBUG": C.debug,
+                                    "INFO": C.info,
+                                    "WARNING": C.warning,
+                                    "ERROR": C.error,
+                                    "CRITICAL": C.critical,
+                                    "EXCEPTION": C.exception,
+                                    "NOTIFY": C.notify,
+                                }
 
     def __init__(self, name: str,
                         console_logger_level: str | None = None,
@@ -171,10 +179,10 @@ class lnColoredLogger:
         use_color = hasattr(ch.stream, "isatty") and ch.stream.isatty()
 
         formatter = ColorFormatter(
-            f"{Color.cyan}%(asctime)s "
-            f"{Color.blue}%(module_formatted)s"  # <--- Usa il campo formattato
-            f"{Color.magenta}%(caller_formatted)s"  # <--- Usa il campo formattato
-            f"{Color.reset}"
+            f"{C.cyan}%(asctime)s "
+            f"{C.blue}%(module_formatted)s"  # <--- Usa il campo formattato
+            f"{C.magenta}%(caller_formatted)s"  # <--- Usa il campo formattato
+            f"{C.reset}"
             "%(level_color)s[%(levelname)4.4s]%(reset)s "
             "%(msg_color)s%(message)s%(reset)s",
             "%H:%M:%S",
@@ -390,7 +398,7 @@ class lnColoredLogger:
                 caller_formatted = ""
             #     caller_formatted = self._caller(additional_levels=1)  # <<<--- Salta un livello extra!
 
-            level_color = self.LEVEL_COLORS.get(level_name, Color.white)
+            level_color = self.LEVEL_COLORS.get(level_name, C.white)
 
             dry_run: bool = kwargs.pop("dry_run", False)
             if dry_run:
@@ -401,7 +409,7 @@ class lnColoredLogger:
                 msg_color = color
                 level_color = color
             elif dry_run:
-                msg_color = Color.magentaH
+                msg_color = C.magentaH
             else:
                 msg_color = level_color
 
@@ -409,7 +417,7 @@ class lnColoredLogger:
             extra.update( {
                     "msg_color": msg_color,
                     "level_color": level_color,
-                    "reset": Color.reset,
+                    "reset": C.reset,
                     "module_formatted": module_formatted,  # <<<--- modulo formattato
                     "caller_formatted": caller_formatted,  # <<<--- caller formattato
                 }
@@ -442,7 +450,7 @@ class lnColoredLogger:
         self._log("CRITICAL", msg, *args, color=color, **kwargs)
 
     def exception(self, msg: str, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
-        self._log("EXCEPTION", msg, *args, color=Color.redH, **kwargs)
+        self._log("EXCEPTION", msg, *args, color=C.redH, **kwargs)
 
     def notify(self, msg: str, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
         self._log("NOTIFY", msg, *args, color=color, **kwargs)
@@ -472,9 +480,9 @@ def testLogger(logger: Any) -> None:
     # logger.setConsoleLoggerLevel(saved_level)
 
     print("\n--- custom colors ---")
-    logger.info("INFO in magenta", color=Color.magenta)
-    logger.warning("WARNING in cyan", color=Color.cyan)
-    logger.error("ERROR in yellowH", color=Color.yellowH)
+    logger.info("INFO in magenta", color=C.magenta)
+    logger.warning("WARNING in cyan", color=C.cyan)
+    logger.error("ERROR in yellowH", color=C.yellowH)
 
     logger.info("This shows caller info", show_caller=True)
 
