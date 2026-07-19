@@ -12,7 +12,7 @@ import traceback
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any, Callable
-from webbrowser import get
+# from webbrowser import get
 
 from ..colors import get_colors
 C = get_colors()
@@ -127,6 +127,7 @@ class lnColoredLogger:
         self.show_caller = False
         self.module_name_len: int = 0
         self.logging_dir: Path | str | None = logging_dir
+        self.name_function: bool = True # come nome modulo melle module_name.func_name
 
         self.consoleHandler: logging.Handler | None = None
         self.fileHandler: logging.Handler | None = None
@@ -267,7 +268,8 @@ class lnColoredLogger:
     ###########################################################
     #
     ###########################################################
-    def setNameLength(self, dynamic: bool, length: int) -> None:
+    def setNameLength(self, dynamic: bool, length: int, f_name_function: bool=True) -> None:
+        self.name_function = f_name_function
         if dynamic or length == 0:
             self.dynamic_name_lentgh = True
             self.module_name_len = 0
@@ -279,7 +281,7 @@ class lnColoredLogger:
             self.module_name_len = length
             self.notify("name length set to: %s (dynamic: %s)", self.module_name_len, self.dynamic_name_lentgh, stacklevel=2)
 
-    def _format_name(self, name: str, lineno: int) -> str:
+    def _format_name(self, name: str, lineno: int, function: str) -> str:
         """
         Formatta nome e numero di linea come [nome:1234]
         con troncamento e padding appropriati
@@ -304,7 +306,39 @@ class lnColoredLogger:
         name = f"{name}".ljust(self.module_name_len)
 
         # Formatta il numero di linea con padding a sinistra
+        return f"[{name}:{lineno:-04d} ({function:10.10})]"
+        return f"[{name}.{function:10.10}:{lineno:-04d})]"
+
+    def _format_name_func(self, name: str, lineno: int, function: str) -> str:
+        """
+        Formatta nome e numero di linea come [nome:1234]
+        con troncamento e padding appropriati
+        """
+        fDEBUG=False
+        # Tronca il nome se necessario
+        if fDEBUG:
+            print(f"before: {self.module_name_len = } {len(name) = } {len(function) = }")
+
+        my_name = name.strip() + "." + function.strip()
+        my_len = len(my_name)
+        if self.dynamic_name_lentgh:
+            if my_len >= self.module_name_len:
+                self.module_name_len = my_len
+        else:
+            if my_len >= self.module_name_len:
+                name = (
+                    my_name[: self.module_name_len - 2] + "."
+                )  ### per far capire che è troncato
+
+        # Padding del nome con spazi a destra
+        if fDEBUG:
+            print(f"after:  {self.module_name_len = } {len(my_name) = }")
+        # name = f"{name}:".ljust(self.module_name_len)
+        name = f"{my_name}".ljust(self.module_name_len)
+
+        # Formatta il numero di linea con padding a sinistra
         return f"[{name}:{lineno:-04d}]"
+        # return f"[{name}.{function:10.10}:{lineno:-04d})]"
 
     # ######################################################
     # 0  _caller() - la funzione corrente
@@ -339,17 +373,19 @@ class lnColoredLogger:
                 lineno = inspect.stack()[i].lineno
                 print(i, filename, lineno)
 
-        # Calcola gli indici (evitando di andare otut of range)
+        # Calcola gli indici (evitando di andare out of range)
         module_idx = min(stacklevel, n_levels - 1)
         module_frame = frames[module_idx]
         module_filename = module_frame.filename
         module_name = Path(module_frame.filename).stem
         module_lineno = module_frame.lineno
+        module_func = module_frame.function
 
         if n_levels - stacklevel <= 1:
             caller_filename = "out_of_index"
             caller_name = "out_of_index"
             caller_lineno = 0
+            caller_func = "out_of_index"
             caller_frame = "no_frame"
             caller_idx = min(module_idx + 1, n_levels - 1)  # module_idx+1
         else:
@@ -358,17 +394,25 @@ class lnColoredLogger:
             caller_filename = caller_frame.filename
             caller_name = Path(caller_frame.filename).stem
             caller_lineno = caller_frame.lineno
+            caller_func = caller_frame.function
 
         if show_stack:
             print("-" * 40)
-            print("module:", module_idx, module_filename, module_lineno)
-            print("caller:", caller_idx, caller_filename, caller_lineno)
+            print("module:", module_idx, module_filename, module_lineno, module_func)
+            print("caller:", caller_idx, caller_filename, caller_lineno, caller_func)
             print("-" * 40)
 
-        return (
-            self._format_name(module_name, module_lineno),
-            self._format_name(caller_name, caller_lineno),
-        )
+        # self.name_function: bool=True
+        if self.name_function:
+            return (
+                self._format_name_func(module_name, module_lineno, module_func),
+                self._format_name_func(caller_name, caller_lineno, caller_func),
+            )
+        else:
+            return (
+                self._format_name(module_name, module_lineno, module_func),
+                self._format_name(caller_name, caller_lineno, caller_func),
+            )
 
     # -------------------------------
     # Core logging
@@ -401,8 +445,6 @@ class lnColoredLogger:
             level_color = self.LEVEL_COLORS.get(level_name, C.white)
 
             dry_run: bool = kwargs.pop("dry_run", False)
-            if dry_run:
-                msg = f"{C.white}[dry-run]{C.reset} {C.green}{msg}{C.reset}"
 
             # override colore
             if color:
@@ -413,6 +455,7 @@ class lnColoredLogger:
             else:
                 msg_color = level_color
 
+            msg_dry_run = f"{C.white}[dry-run]{msg_color}" if dry_run else ""
             extra = kwargs.pop("extra", {})
             extra.update( {
                     "msg_color": msg_color,
@@ -424,7 +467,7 @@ class lnColoredLogger:
             )
             kwargs["extra"] = extra
 
-            self.logger.log(level_value, msg, *args, **kwargs)
+            self.logger.log(level_value, f"{msg_dry_run} {msg}", *args, **kwargs)
             if forceExit:
                 sys.exit(1)
 

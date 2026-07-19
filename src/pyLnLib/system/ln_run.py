@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 11-07-2026 12.10.03
+# Date .........: 19-07-2026 11.25.09
 #
 
 
-import sys
+# import sys
+# sys.dont_write_bytecode = True
 
-sys.dont_write_bytecode = True
 # import os
 import shlex
 import subprocess
@@ -25,29 +25,27 @@ logger = get_logger()
 # # lnRun
 # ##################################################
 def lnRun(
-    command: str | list,
-    cwd: str|None = None,
-    exit_on_error: bool = False,
-    stacklevel: int = 0,
-    fExecute: bool = False,
-    timeout: int = 15,
-    logger_level: str = "warning", # questo pervitare di scrivere se non richiesto
-) -> tuple[int, str, str]:
+            command: str | list,
+            cwd: str|None = None,
+            exit_on_error: bool = False,
+            stacklevel: int = 0,
+            f_execute: bool = False,
+            timeout: int = 15,
+            logger_level: str = "warning", # questo pervitare di scrivere se non richiesto
+            shell: bool = False,
+        ) -> tuple[int, str, str]:
 
-    saved_logger_level = logger.getConsoleLoggerLevel()
-    logger.setConsoleLoggerLevel(logger_level)
-    # lnRun_STACKLEVEL = stacklevel
-    # lnRun_STACKLEVEL = 0
-    # logger: LoggerLike = toLogger or DummyPrintLogger()
     result: SimpleNamespace = SimpleNamespace(rcode=0, stdout="", stderr="")
 
     command_args = shlex.split(command) if isinstance(command, str) else command
     str_command = " ".join(command_args)
+    # logger.info(str_command, dry_run=(not f_execute), stacklevel=stacklevel)
+    logger.info(f"[{'executing' if f_execute else 'dry-run'}] {str_command}", color=C.blueH, stacklevel=stacklevel+1)
 
-    # logger.info(f"[{'executing' if fExecute else 'dry-run'}] {str_command}", color=Color.blueH)
-    logger.info(str_command, dry_run=(not fExecute))
+    saved_logger_level = logger.getConsoleLoggerLevel()
+    logger.setConsoleLoggerLevel(logger_level)
 
-    if fExecute:
+    if f_execute:
         try:
             p = subprocess.run(
                 command_args,
@@ -56,6 +54,7 @@ def lnRun(
                 text=True,
                 cwd=cwd,
                 timeout=timeout,
+                shell=shell,
             )
             result.rcode = p.returncode
             result.stdout = p.stdout

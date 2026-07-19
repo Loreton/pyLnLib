@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 06-07-2026 09.14.56
+# Date .........: 17-07-2026 14.02.18
 #
 
 # from optparse import Option
@@ -193,7 +193,7 @@ class lnDict(dict):
         except KeyError:
             # Logghiamo l'errore se vuoi, ma dobbiamo SEMPRE sollevare AttributeError
             # per essere conformi al comportamento atteso da Python
-            self.logger.error("lnDict non ha la chiave/attributo '%s'", item)
+            self.logger.error("lnDict non ha la chiave/attributo '%s'", item, stacklevel=1)
             raise AttributeError(f"lnDict non ha l'attributo '{item}'") from None
 
 

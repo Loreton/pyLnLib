@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 11-07-2026 17.30.19
+# Date .........: 15-07-2026 20.06.17
 #
 
 import sys
@@ -22,40 +22,34 @@ from .colors import Colors
 @dataclass
 class GlobalVars:
     """Solo dati di configurazione - NESSUN LOGGER QUI!"""
+    print(sys.argv[0])
 
-    # Variabili d'ambiente
-    project_name: str = field(default_factory=lambda: os.environ.get("LN_PROJECT_NAME", "dummy_project") )
-
-    # Path
-    temp_dir: str = field(default_factory=lambda: f"/tmp/{os.environ.get('LN_PROJECT_NAME', 'dummy_project')}" )
 
     # Sistema
     hostname: str = field(default_factory=lambda: socket.gethostname().split()[0])
     op_sys: str = field(default_factory=lambda: platform.system())
 
-    # Altri dati
+
+    # Project
+    project_name: str = field(default_factory=lambda: os.environ.get("LN_PROJECT_NAME", "dummy_project") )
     version: str = "0.0.1"
-    # args: Any = None
+    temp_dir: str = field(default_factory=lambda: f"/tmp/{os.environ.get('LN_PROJECT_NAME', 'dummy_project')}" )
     config: dict = field(default_factory=dict)
-
-    # Colori
-    # colors: Colors = field(default_factory=Colors)
-
-    # Project root (opzionale, per trovare file di config)
     project_root: Path|None = field(default=None, repr=False)
-
     project_vars: 'dict' = field(default_factory=dict)
-    # yaml_env: 'lnYamlEnvironment' = field(default_factory=lnYamlEnvironment)
+
 
     def __post_init__(self) -> None:
         """Inizializza il project root."""
+
         if self.project_root is None:
             self.project_root = self._find_project_root()
-
+        print(f"Project root: {self.project_root}")
 
     def set_project_name(self, name: str) -> None:
         self.project_name = name
         self.temp_dir = f"/tmp/{name}"
+        print(f"Project name: {self.project_name}")
 
     def get_project_vars(self, keypath: str|None=None) -> dict:
         """Restituisce i project_vars (già lnDict)."""
@@ -94,7 +88,7 @@ class GlobalVars:
         """Restituisce il path per i log."""
         return self.get_temp_path("logs")
 
-    def get_conf_dir(self) -> Path:
+    def get_conf_dir_(self) -> Path:
         """Restituisce la directory conf oppure exit"""
         if self.project_root:
             conf = self.project_root / 'conf'
@@ -105,8 +99,28 @@ class GlobalVars:
         else:
             sys.exit(f"Project root: {self.project_root} not found")
 
-    # def get_colors(self) -> Colors:
-    #     return self.colors
+
+    # def get_conf_dir_solo_per_zed(self) -> Path:
+    def get_conf_dir(self) -> Path:
+        """Restituisce la directory conf oppure exit"""
+        if self.project_root:
+            conf = self.project_root / 'conf'
+            if conf.exists():
+                return conf
+            else:  # vale per zed (non so perché self.project_root è sbagliato)
+                if  os.environ.get("ZED_TERM"):
+                    print(f"Conf directory: {conf} not found")
+                    current = self._find_project_root()
+                    conf = current / 'conf'
+                    if conf.exists():
+                        return conf
+                    else:
+                        sys.exit(f"Conf directory: {conf} not found")
+                else:
+                    sys.exit(f"Conf directory: {conf} not found")
+        else:
+            sys.exit(f"Project root: {self.project_root} not found")
+
 
     def to_dict(self) -> dict[str, Any]:
         """Converte l'oggetto in un dizionario."""
@@ -122,6 +136,7 @@ class GlobalVars:
 
 # Istanza globale
 gVars = GlobalVars()
+ctx = GlobalVars()
 
 
 
