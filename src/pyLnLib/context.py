@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 15-07-2026 20.06.17
+# Date .........: 19-07-2026 17.25.59
 #
 
 import sys
@@ -22,7 +22,7 @@ from .colors import Colors
 @dataclass
 class GlobalVars:
     """Solo dati di configurazione - NESSUN LOGGER QUI!"""
-    print(sys.argv[0])
+    # print(sys.argv[0])
 
 
     # Sistema
@@ -44,12 +44,12 @@ class GlobalVars:
 
         if self.project_root is None:
             self.project_root = self._find_project_root()
-        print(f"Project root: {self.project_root}")
+        # print(f"Project root: {self.project_root}")
 
     def set_project_name(self, name: str) -> None:
         self.project_name = name
         self.temp_dir = f"/tmp/{name}"
-        print(f"Project name: {self.project_name}")
+        # print(f"Project name: {self.project_name}")
 
     def get_project_vars(self, keypath: str|None=None) -> dict:
         """Restituisce i project_vars (già lnDict)."""
