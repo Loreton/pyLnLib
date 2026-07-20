@@ -4,15 +4,17 @@
 # Date .........: 19-07-2026 17.25.59
 #
 
+from mimetypes import suffix_map
 import sys
 import os
 import socket
 import platform
 from pathlib import Path
 from dataclasses import dataclass, field
-from typing import Any, TYPE_CHECKING
-if TYPE_CHECKING:
-    from .lndict import lnDict  # per permettere di definitre il type di project_vars
+from typing import Any #, TYPE_CHECKING
+# if TYPE_CHECKING:
+# from .lndict import lnDict  # per permettere di definitre il type di project_vars
+from .lndict import lnDict  # per permettere di definitre il type di project_vars
 
 
 
@@ -51,9 +53,9 @@ class GlobalVars:
         self.temp_dir = f"/tmp/{name}"
         # print(f"Project name: {self.project_name}")
 
-    def get_project_vars(self, keypath: str|None=None) -> dict:
+    def get_project_vars(self, keypath: str|None=None) -> lnDict:
         """Restituisce i project_vars (già lnDict)."""
-        from .lndict import lnDict  # ← Import reale a runtime
+        # from .lndict import lnDict  # ← Import reale a runtime
         if not self.project_vars:
             self.project_vars=lnDict()
         if keypath:
@@ -64,7 +66,12 @@ class GlobalVars:
 
     def _find_project_root(self, max_depth: int = 10) -> Path:
         """Trova la root del progetto."""
-        current = Path(sys.argv[0]).resolve().parent
+        # import pdb; pdb.set_trace();  # by Loreto
+        main_prg=Path(sys.argv[0])
+        current = main_prg.resolve().parent
+        if main_prg.suffix in [".zip", ".pyz"]:
+            return current
+
         for _ in range(max_depth):
             if (current / 'conf').exists() or (current / 'pyproject.toml').exists() or (current / 'src').exists():
                 return current
@@ -143,4 +150,4 @@ ctx = GlobalVars()
 # Funzione comoda per ottenere i project_vars
 def get_project_vars(keypath: str|None=None) -> lnDict:
     """Funzione comoda per ottenere i project_vars."""
-    return gVars.get_project_vars(keypath)
+    return ctx.get_project_vars(keypath)

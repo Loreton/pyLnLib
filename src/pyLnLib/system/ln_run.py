@@ -67,14 +67,15 @@ def lnRun(
 
             # log stderr
             if result.stderr:
+                logger.error(f"executing: {str(command)}", color=C.blueH, show_caller=True)
                 for line in result.stderr.splitlines():
-                    logger.error(line, color=C.redH)
+                    logger.error(line, color=C.redH, show_caller=True)
 
             if result.rcode != 0 and exit_on_error:
                 raise SystemExit(result.rcode)
 
         except Exception as e:
-            logger.error(f"Exception: {e}", color=C.redH)
+            logger.error(f"Exception: {e}", color=C.redH, show_caller=True)
             if exit_on_error:
                 raise SystemExit(1)
 

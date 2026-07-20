@@ -22,6 +22,16 @@ __author__ = "Loreto Notarantonio"
 
 
 # ✅ Import dal package principale (usa pyLnLib/__init__.py)
+# ============================================================
+# IMPORT DAL SOTTO-PACKAGE logger (messo per primo in modo che venga caricato prima di altri sotto-package)
+# ============================================================
+from .logger.ln_colored_logger import (
+                                        lnColoredLogger as lnLogger,
+                                        init_logger,
+                                        get_logger,
+                                        testLogger,
+                                    )
+
 
 # ============================================================
 # IMPORT DAL SOTTO-PACKAGE  system
@@ -40,18 +50,6 @@ from .files.zip_file_utils          import searchFileInZip, zipDir
 from .files.file_utils              import searchFile, searchFileOnFS, dirList
 from .files.ini_file                import loadIni, writeIni, updateIniKey
 
-# ============================================================
-# IMPORT DAL SOTTO-PACKAGE logger
-# ============================================================
-# from .logger.dummy_logger           import DummyPrintLogger
-# from .logger.ln_colored_logger      import lnColoredLogger as lnLogger, testLogger
-from .logger.ln_colored_logger import (
-                                        lnColoredLogger as lnLogger,
-                                        init_logger,
-                                        get_logger,
-                                        testLogger,
-                                    )
-
 
 # ============================================================
 # IMPORT DAL SOTTO-PACKAGE lndict
@@ -66,15 +64,25 @@ from .keyboard_prompt               import keyboardPrompt
 from .beep                          import playBeep, play_success_sound, play_error_sound, play_notification_sound, get_beep_types
 from .context                       import gVars,  get_project_vars
 from .ln_utils                      import flatten_nested_list, flatten_and_filter
-from .colors                      import get_colors
+from .colors                        import get_colors
 
+# ============================================================
+# IMPORT DAL SOTTO-PACKAGE  git
+# ============================================================
+from .git.pyproject_class           import PyProjectManager
+from .git.changelog_class           import ChangeLogManager
 
+# =========================================================
 # ============================================================
 # ESPORTAZIONE PER `from pyLnLib import *`
 # ============================================================
 
 __all__ = [
     'get_colors',
+
+    # git
+    'PyProjectManager',
+    'ChangeLogManager',
 
     # Logger
     'lnLogger',

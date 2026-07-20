@@ -1,3 +1,27 @@
+## [0.1.22] - 2026-07-20
+
+## Other
+
+- ci siamo quasi - (Release 0.1.21)
+- update on 2026.07.19 - (Release 0.1.21)
+- sostituito  Color dal logger con colors.get_colors() (Release 0.1.21) (Release 0.1.21)
+- aggiunto colore al [dry-run] e change logger_level in lnRune (Release 0.1.21) (Release 0.1.21)
+- aggiustamenti (Release 0.1.21) (Release 0.1.21)
+- modificato lnLogger (Release 0.1.21) (Release 0.1.21)
+- inserito keypath nel get_project_vars() (Release 0.1.21) (Release 0.1.21)
+
+## [0.1.21] - 2026-07-19
+
+## Other
+
+- ci siamo quasi - (Release 0.1.21)
+- update on 2026.07.19 - (Release 0.1.21)
+- sostituito  Color dal logger con colors.get_colors() (Release 0.1.21) (Release 0.1.21)
+- aggiunto colore al [dry-run] e change logger_level in lnRune (Release 0.1.21) (Release 0.1.21)
+- aggiustamenti (Release 0.1.21) (Release 0.1.21)
+- modificato lnLogger (Release 0.1.21) (Release 0.1.21)
+- inserito keypath nel get_project_vars() (Release 0.1.21) (Release 0.1.21)
+
 ## [0.1.21] - 2026-07-19
 
 ## Other
