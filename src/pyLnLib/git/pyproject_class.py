@@ -73,19 +73,33 @@ class PyProjectManager:
             self.logger.error(f"Directory {self.pyproject_path.parent} non esiste")
             return False
 
-        if f_execute:
-            try:
+        try:
+            if f_execute:
                 import tomli_w
                 with open(self.pyproject_path, "wb") as f:
                     tomli_w.dump(self._data, f)
                 self.logger.info(f"pyproject.toml aggiornato con successo in {self.pyproject_path}")
-                return True
-            except Exception as e:
-                self.logger.error(f"Errore nella scrittura di pyproject.toml: {e}")
-                return False
-        else:
-            self.logger.info("DRY-RUN: pyproject.toml non modificato")
+            else:
+                self.logger.notify("DRY-RUN: pyproject.toml will be modified")
             return True
+        except Exception as e:
+            self.logger.error(f"Errore nella scrittura di pyproject.toml: {e}")
+            return False
+
+        # if f_execute:
+        #     try:
+        #         import tomli_w
+        #         with open(self.pyproject_path, "wb") as f:
+        #             tomli_w.dump(self._data, f)
+        #         self.logger.info(f"pyproject.toml aggiornato con successo in {self.pyproject_path}")
+        #         return True
+        #     except Exception as e:
+        #         self.logger.error(f"Errore nella scrittura di pyproject.toml: {e}")
+        #         return False
+        # else:
+        #     self.logger.info("DRY-RUN: pyproject.toml non modificato")
+        #     return True
+
 
     def get_version(self) -> str:
         """
