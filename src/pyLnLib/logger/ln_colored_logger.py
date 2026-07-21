@@ -417,6 +417,83 @@ class lnColoredLogger:
     # -------------------------------
     # Core logging
     # -------------------------------
+    def _log_multiline(self, level_name: str, msg: str, *args: Any, color: str | None = None, **kwargs: Any, ) -> None:
+        level_value = getattr(logging, level_name, logging.INFO)
+        stacklevel: int = kwargs.pop("stacklevel", 0)
+        # print(f"....required stacklevel: {stacklevel}")
+        forceLog: bool = kwargs.pop("force_log", False)
+        forceExit: bool = kwargs.pop("exit", False)
+        showCaller: bool = kwargs.pop("show_caller", False)
+        show_stack: bool = kwargs.pop("show_stack", False)
+
+        if not self.consoleHandler:
+            return
+        if level_value >= self.consoleHandler.level or forceLog:  # type: ignore
+            kwargs["stacklevel"] = stacklevel + 3
+
+            # Calcola caller formattato se necessario
+            # Il caller deve essere il chiamante del metodo pubblico (un livello sopra)
+            # module_formatted, caller_formatted = self._callerMIO(stacklevel=3+stacklevel)
+            module_formatted, caller_formatted = self._caller(stacklevel=kwargs["stacklevel"], show_stack=show_stack )
+
+            if showCaller or self.show_caller:
+                ...
+            else:
+                caller_formatted = ""
+            #     caller_formatted = self._caller(additional_levels=1)  # <<<--- Salta un livello extra!
+
+            level_color = self.LEVEL_COLORS.get(level_name, C.white)
+
+            dry_run: bool = kwargs.pop("dry_run", False)
+
+            # override colore
+            if color:
+                msg_color = color
+                level_color = color
+            elif dry_run:
+                msg_color = C.magentaH
+            else:
+                msg_color = level_color
+
+            # remove from kwargs
+            extra = kwargs.pop("extra", {})
+            extra.update( {
+                    "msg_color": msg_color,
+                    "level_color": level_color,
+                    "2nd_line_color": C.blue,
+                    "reset": C.reset,
+                    "module_formatted": module_formatted,  # <<<--- modulo formattato
+                    "caller_formatted": caller_formatted,  # <<<--- caller formattato
+                }
+            )
+            # add modified to kwargs
+            kwargs["extra"] = extra
+
+
+            # Se il msg contiene placeholder come %s, sostituiscili
+            if args:
+                formatted_msg = msg % args
+                args=() # azzera args
+            else:
+                formatted_msg = msg
+
+            # Logga ogni riga separatamente
+            lines=formatted_msg.splitlines()
+            msg_dry_run = f"{C.white}[dry-run]{msg_color}" if dry_run else ""
+            for index, line in enumerate(lines):  # splitlines() gestisce vari tipi di newline
+                if index > 0:
+                    line = f"\t{line}"
+                if line:  # Salta righe vuote
+                    self.logger.log(level_value, f"{msg_dry_run} {line}", *args,  **kwargs)
+
+            if forceExit:
+                sys.exit(1)
+
+
+
+    # -------------------------------
+    # Core logging
+    # -------------------------------
     def _log(self, level_name: str, msg: str, *args: Any, color: str | None = None, **kwargs: Any, ) -> None:
         level_value = getattr(logging, level_name, logging.INFO)
         stacklevel: int = kwargs.pop("stacklevel", 0)
@@ -466,7 +543,6 @@ class lnColoredLogger:
                 }
             )
             kwargs["extra"] = extra
-
             self.logger.log(level_value, f"{msg_dry_run} {msg}", *args, **kwargs)
             if forceExit:
                 sys.exit(1)
@@ -475,31 +551,31 @@ class lnColoredLogger:
     # API pubbliche
     #########################################################################
     def trace(self, msg: str, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
-        self._log("TRACE", msg, *args, color=color, **kwargs)
+        self._log_multiline("TRACE", msg, *args, color=color, **kwargs)
 
     def debug(self, msg: str, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
-        self._log("DEBUG", msg, *args, color=color, **kwargs)
+        self._log_multiline("DEBUG", msg, *args, color=color, **kwargs)
 
     def info(self, msg: str, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
-        self._log("INFO", msg, *args, color=color, **kwargs)
+        self._log_multiline("INFO", msg, *args, color=color, **kwargs)
 
     def warning(self, msg: str, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
-        self._log("WARNING", msg, *args, color=color, **kwargs)
+        self._log_multiline("WARNING", msg, *args, color=color, **kwargs)
 
     def error(self, msg: str, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
-        self._log("ERROR", msg, *args, color=color, **kwargs)
+        self._log_multiline("ERROR", msg, *args, color=color, **kwargs)
 
     def critical(self, msg: str, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
-        self._log("CRITICAL", msg, *args, color=color, **kwargs)
+        self._log_multiline("CRITICAL", msg, *args, color=color, **kwargs)
 
     def exception(self, msg: str, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
-        self._log("EXCEPTION", msg, *args, color=C.redH, **kwargs)
+        self._log_multiline("EXCEPTION", msg, *args, color=C.redH, **kwargs)
 
     def notify(self, msg: str, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
-        self._log("NOTIFY", msg, *args, color=color, **kwargs)
+        self._log_multiline("NOTIFY", msg, *args, color=color, **kwargs)
 
     def function(self, msg: str, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
-        self._log("FUNCTION", msg, *args, color=color, show_caller=True, **kwargs)
+        self._log_multiline("FUNCTION", msg, *args, color=color, show_caller=True, **kwargs)
 
 
 def testLogger(logger: Any) -> None:
@@ -617,5 +693,5 @@ def get_logger() -> lnColoredLogger:
     # print("⚠️ Logger non inizializzato! Creazione temporanea in attesa di init_logger()...")
     if not my_logger:
         my_logger = init_logger(logger_name="temporary_logger", temporary=True)
-        my_logger.warning("⚠️ Logger non inizializzato! Creazione temporanea in attesa di init_logger()...")
+        my_logger.warning("⚠️ Logger non inizializzato!\nCreazione temporanea in attesa di init_logger()...")
     return my_logger
