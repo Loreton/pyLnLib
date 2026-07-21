@@ -13,8 +13,7 @@
 # import sys
 # sys.dont_write_bytecode = True
 from pathlib import Path
-from typing import Optional, TYPE_CHECKING
-from webbrowser import get
+# from typing import Optional #, TYPE_CHECKING
 
 ### - project modules
 # if TYPE_CHECKING:
@@ -23,7 +22,7 @@ from pyLnLib import get_logger
 class PyProjectManager:
     """Classe per gestire la lettura e scrittura del file pyproject.toml"""
 
-    def __init__(self, git_root: str):
+    def __init__(self, git_root: str|Path):
         """
         Inizializza il manager per pyproject.toml
 
@@ -35,7 +34,7 @@ class PyProjectManager:
         self._data = None
         self.logger = get_logger()
 
-    def read(self) -> Optional[dict]:
+    def read(self) -> dict:
         """
         Legge il file pyproject.toml
 
@@ -44,7 +43,7 @@ class PyProjectManager:
         """
         if not self.pyproject_path.exists():
             self.logger.error(f"File 'pyproject.toml' NOT found in {self.git_root}")
-            return None
+            return {}
 
         try:
             import tomllib
@@ -53,7 +52,7 @@ class PyProjectManager:
             return self._data
         except Exception as e:
             self.logger.error(f"Errore nella lettura di pyproject.toml: {e}")
-            return None
+            return {}
 
     def write(self, f_execute: bool = True) -> bool:
         """
@@ -86,19 +85,6 @@ class PyProjectManager:
             self.logger.error(f"Errore nella scrittura di pyproject.toml: {e}")
             return False
 
-        # if f_execute:
-        #     try:
-        #         import tomli_w
-        #         with open(self.pyproject_path, "wb") as f:
-        #             tomli_w.dump(self._data, f)
-        #         self.logger.info(f"pyproject.toml aggiornato con successo in {self.pyproject_path}")
-        #         return True
-        #     except Exception as e:
-        #         self.logger.error(f"Errore nella scrittura di pyproject.toml: {e}")
-        #         return False
-        # else:
-        #     self.logger.info("DRY-RUN: pyproject.toml non modificato")
-        #     return True
 
 
     def get_version(self) -> str:

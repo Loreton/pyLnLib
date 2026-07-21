@@ -273,13 +273,13 @@ class lnColoredLogger:
         if dynamic or length == 0:
             self.dynamic_name_lentgh = True
             self.module_name_len = 0
-            self.notify("name length set to dynamic", stacklevel=2)
+            self.debug("name length set to dynamic", stacklevel=2)
         else:
             self.dynamic_name_lentgh = False
             if length < 15:
                 length = 15
             self.module_name_len = length
-            self.notify("name length set to: %s (dynamic: %s)", self.module_name_len, self.dynamic_name_lentgh, stacklevel=2)
+            self.debug("name length set to: %s (dynamic: %s)", self.module_name_len, self.dynamic_name_lentgh, stacklevel=2)
 
     def _format_name(self, name: str, lineno: int, function: str) -> str:
         """
@@ -589,14 +589,15 @@ def init_logger(logger_name: str='undefined_logger_name',
         logging_dir=logging_dir,
         threads=threads,
     )
-    my_logger.info("*" * 20)
-    my_logger.info("logger_name:   %s", my_logger.name)
-    my_logger.info("console level: %s", my_logger.getConsoleLoggerLevel())
-    my_logger.info("logging_dir:   %s", my_logger.logging_dir)
-    my_logger.info("file    level: %s", my_logger.getFileLoggerLevel())
-    my_logger.info("*" * 20)
+    # if logger_name:
     if not temporary:
         my_logger.warning("✅ Logger inizializzato")
+        my_logger.info("*" * 20)
+        my_logger.info("* logger_name:   %s", my_logger.name)
+        my_logger.info("* console level: %s", my_logger.getConsoleLoggerLevel())
+        my_logger.info("* logging_dir:   %s", my_logger.logging_dir)
+        my_logger.info("* file    level: %s", my_logger.getFileLoggerLevel())
+        my_logger.info("*" * 20)
 
     # # Test (opzionale, puoi commentare se non serve)
     if test:

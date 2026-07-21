@@ -39,12 +39,12 @@ def lnRun(
 
     command_args = shlex.split(command) if isinstance(command, str) else command
     str_command = " ".join(command_args)
-    # logger.info(str_command, dry_run=(not f_execute), stacklevel=stacklevel)
-    # logger.info(f"[{'executing' if f_execute else 'dry-run'}] {str_command}", color=C.blueH, stacklevel=stacklevel+1)
-    logger.notify(f"[{'executing' if f_execute else 'dry-run'}] {str_command}", stacklevel=stacklevel+1)
 
     saved_logger_level = logger.getConsoleLoggerLevel()
     logger.setConsoleLoggerLevel(logger_level)
+    logger.notify(f"[{'executing' if f_execute else 'dry-run'}] {str_command}", stacklevel=stacklevel+1)
+
+
 
     if f_execute:
         try:
