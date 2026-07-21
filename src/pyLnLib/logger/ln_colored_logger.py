@@ -105,7 +105,7 @@ class lnColoredLogger:
                                     "CRITICAL": C.critical,
                                     "EXCEPTION": C.exception,
                                     "NOTIFY": C.notify,
-                                }
+                                }  # type: ignore
 
     def __init__(self, name: str,
                         console_logger_level: str | None = None,
@@ -126,7 +126,8 @@ class lnColoredLogger:
         self.threads_str: str = "%(threadName)-5.5s." if threads else ""
         self.show_caller = False
         self.module_name_len: int = 0
-        self.logging_dir: Path | str | None = logging_dir
+        # self.logging_dir: Path | str | None = logging_dir
+        self.logging_dir = Path(logging_dir) if logging_dir else None
         self.name_function: bool = True # come nome modulo melle module_name.func_name
 
         self.consoleHandler: logging.Handler | None = None
@@ -414,65 +415,62 @@ class lnColoredLogger:
                 self._format_name(caller_name, caller_lineno, caller_func),
             )
 
-
+    ################################################################
+    # supporta sia %s che {}
+    #   msg1 = "moving version:\n %s\nto %s"  # Stile %
+    #   msg2 = "moving version:\n {}\nto {}"  # Stile format()
+    ################################################################
     def _write_log_line(self, level_value: int, msg: str, *args: Any, color: str | None = None, **kwargs: Any, ) -> None:
+        extra = kwargs["extra"]
         try:
-            dry_run = kwargs.pop("dry_run", False)
-            msg_color = kwargs.pop("msg_color", C.info)
-            extra = kwargs["extra"]
-            msg_dry_run = f"{C.white}[dry-run]{msg_color}" if dry_run else ""
+            msg_dry_run = extra["msg_dry_run"]
 
-            # Formatta il messaggio solo se ci sono args
+            # Prova a formattare il messaggio
             if args:
-                # Supporta sia %s che {} formattazione
-                if '%' in msg and isinstance(args, tuple):
+                try:
+                    # Primo tentativo: stile %
                     formatted_msg = msg % args
-                    args=()
-                else:
-                    formatted_msg = msg.format(*args)
+                except (TypeError, ValueError):
+                    try:
+                        # Secondo tentativo: stile format()
+                        formatted_msg = msg.format(*args)
+                    except (IndexError, KeyError):
+                        # Fallback: usa il messaggio originale
+                        formatted_msg = msg
+                        _level_value = getattr(logging, "WARNING", logging.WARNING)
+                        self.logger.log(_level_value, f"Formatting failed for: {msg}")
             else:
                 formatted_msg = msg
 
             # Dividi in righe
-            lines = formatted_msg.split('\n')
+            # Usa splitlines() per robustezza
+            # lines = formatted_msg.split('\n')
+            lines = formatted_msg.splitlines()
 
             for i, line in enumerate(lines):
-                # Salta righe completamente vuote
-                if not line and i == len(lines) - 1:
-                    continue
-
                 if i > 0:
                     # Aggiungi indentazione per le righe successive
                     line = f"\t{line.strip()}" if line else ""
                     extra["msg_color"] = C.second_line
 
                 if line:  # Logga solo se non vuota
-                    # self._actual_log(level_name, log_line, color=color, **kwargs)
-                    self.logger.log(level_value, f"{msg_dry_run} {line}", **kwargs)
+                    self.logger.log(level_value, f"{msg_dry_run}{line}", **kwargs)
 
         except Exception as e:
-            error_level_value = getattr(logging, "ERROR", logging.ERROR)
             # Fallback: logga il messaggio originale in caso di errori
+            extra["msg_color"] = C.error
+            error_level_value = getattr(logging, "ERROR", logging.ERROR)
+            print(f"{error_level_value = }")
             self.logger.log(error_level_value, f"Error in logging: {msg}", **kwargs)
-            self.logger.log(error_level_value, f"Error details: {e}", **kwargs)
+            self.logger.log(error_level_value, f"Error details:    {e}", **kwargs)
 
 
     # -------------------------------
     # Core logging
     # -------------------------------
-    def _log_multiline(self, level_name: str, msg: str, *args: Any, color: str | None = None, **kwargs: Any, ) -> None:
-
-        if not self.consoleHandler:
-            return
-
-        level_value = getattr(logging, level_name, logging.INFO)
-        forceLog: bool = kwargs.pop("force_log", False)
-        if level_value < self.consoleHandler.level and not forceLog:  # type: ignore
-            return
-
+    def _prepare_for_logging(self, level_name: str, msg: str, *args: Any, color: str | None = None, **kwargs: Any, ) -> dict:
         ### ok processiamo la linea
         stacklevel: int = kwargs.pop("stacklevel", 0)
-        forceExit: bool = kwargs.pop("exit", False)
         showCaller: bool = kwargs.pop("show_caller", False)
         show_stack: bool = kwargs.pop("show_stack", False)
         dry_run: bool = kwargs.pop("dry_run", False)
@@ -501,8 +499,10 @@ class lnColoredLogger:
         else:
             msg_color = level_color
 
+        msg_dry_run = f"{C.white}[dry-run]{msg_color}" if dry_run else ""
         # extract extra from kwargs
         extra = kwargs.pop("extra", {})
+
         extra.update( {
                 "msg_color": msg_color,
                 "level_color": level_color,
@@ -510,92 +510,46 @@ class lnColoredLogger:
                 "reset": C.reset,
                 "module_formatted": module_formatted,  # <<<--- modulo formattato
                 "caller_formatted": caller_formatted,  # <<<--- caller formattato
-                "dry_run": dry_run,
+                "msg_dry_run": msg_dry_run,
             }
         )
         # add updated extra to kwargs
         kwargs["extra"] = extra
+        return kwargs # sono obbligato altrimenti lo perdo
 
+
+    # -------------------------------
+    # - check if level is valid
+    # -------------------------------
+    def _is_valid_level(self, level_value: int, forceLog: bool ) -> bool:
+        if not self.consoleHandler:
+            return False
+
+        ### controllo livello
+        if level_value < self.consoleHandler.level and not forceLog:  # type: ignore
+            return False
+
+        return True
+
+    # -------------------------------
+    # Core logging
+    # -------------------------------
+    def _log_multiline(self, level_name: str, msg: str, *args: Any, color: str | None = None, **kwargs: Any, ) -> None:
+        forceExit: bool = kwargs.pop("exit", False)
+        forceLog: bool = kwargs.pop("force_log", False)
+
+        level_value = getattr(logging, level_name, logging.INFO)
+        if not self._is_valid_level(level_value, forceLog):
+            return
+
+        ### ok processiamo la linea
+        kwargs = self._prepare_for_logging(level_name, msg, *args, color=color, **kwargs)
         self._write_log_line(level_value, msg, *args, color=color, **kwargs)
-
-
-        # Se il msg contiene placeholder come %s, sostituiscili
-        # if args:
-        #     formatted_msg = msg % args
-        #     args=() # azzera args
-        # else:
-        #     formatted_msg = msg
-
-        # # Logga ogni riga separatamente
-        # lines=formatted_msg.splitlines()
-        # msg_dry_run = f"{C.white}[dry-run]{msg_color}" if dry_run else ""
-        # for index, line in enumerate(lines):  # splitlines() gestisce vari tipi di newline
-        #     if index > 0:
-        #         line = f"\t{line.strip()}"
-        #         extra["msg_color"] = C.second_line
-        #     if line:  # Salta righe vuote
-        #         self.logger.log(level_value, f"{msg_dry_run} {line}", *args,  **kwargs)
 
         if forceExit:
             sys.exit(1)
 
 
-
-    # -------------------------------
-    # Core logging
-    # -------------------------------
-    def _log(self, level_name: str, msg: str, *args: Any, color: str | None = None, **kwargs: Any, ) -> None:
-        level_value = getattr(logging, level_name, logging.INFO)
-        stacklevel: int = kwargs.pop("stacklevel", 0)
-        # print(f"....required stacklevel: {stacklevel}")
-        forceLog: bool = kwargs.pop("force_log", False)
-        forceExit: bool = kwargs.pop("exit", False)
-        showCaller: bool = kwargs.pop("show_caller", False)
-        show_stack: bool = kwargs.pop("show_stack", False)
-
-        if not self.consoleHandler:
-            return
-        if level_value >= self.consoleHandler.level or forceLog:  # type: ignore
-            kwargs["stacklevel"] = stacklevel + 3
-
-            # Calcola caller formattato se necessario
-            # Il caller deve essere il chiamante del metodo pubblico (un livello sopra)
-            # module_formatted, caller_formatted = self._callerMIO(stacklevel=3+stacklevel)
-            module_formatted, caller_formatted = self._caller(stacklevel=kwargs["stacklevel"], show_stack=show_stack )
-
-            if showCaller or self.show_caller:
-                ...
-            else:
-                caller_formatted = ""
-            #     caller_formatted = self._caller(additional_levels=1)  # <<<--- Salta un livello extra!
-
-            level_color = self.LEVEL_COLORS.get(level_name, C.white)
-
-            dry_run: bool = kwargs.pop("dry_run", False)
-
-            # override colore
-            if color:
-                msg_color = color
-                level_color = color
-            elif dry_run:
-                msg_color = C.magentaH
-            else:
-                msg_color = level_color
-
-            msg_dry_run = f"{C.white}[dry-run]{msg_color}" if dry_run else ""
-            extra = kwargs.pop("extra", {})
-            extra.update( {
-                    "msg_color": msg_color,
-                    "level_color": level_color,
-                    "reset": C.reset,
-                    "module_formatted": module_formatted,  # <<<--- modulo formattato
-                    "caller_formatted": caller_formatted,  # <<<--- caller formattato
-                }
-            )
-            kwargs["extra"] = extra
-            self.logger.log(level_value, f"{msg_dry_run} {msg}", *args, **kwargs)
-            if forceExit:
-                sys.exit(1)
 
     #########################################################################
     # API pubbliche
@@ -666,20 +620,6 @@ def testLogger(logger: Any) -> None:
 
 
 
-
-
-
-
-
-# ln_colored_logger.py - Aggiungi alla fine del file
-
-# Import lazy per evitare dipendenze circolari
-# def _get_context():
-#     """Importa context solo quando serve (evita dipendenze circolari)."""
-#     from pyLnLib.context import gVars
-#     return gVars
-
-
 # Variabile globale per il logger singleton
 my_logger = None
 
@@ -742,6 +682,6 @@ def get_logger() -> lnColoredLogger:
     # temporaneo con quello configurato correttamente.
     # print("⚠️ Logger non inizializzato! Creazione temporanea in attesa di init_logger()...")
     if not my_logger:
-        my_logger = init_logger(logger_name="temporary_logger", temporary=True)
-        my_logger.warning("⚠️ Logger non inizializzato!\nCreazione temporanea in attesa di init_logger()...")
+        my_logger = init_logger(logger_name="TEMPORARY_LOGGER", temporary=True)
+        my_logger.warning("⚠️ Logger non inizializzato!\nLogger temporaneo {} in attesa di init_logger()...", my_logger.name, exit=False)
     return my_logger
