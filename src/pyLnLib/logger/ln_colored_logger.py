@@ -423,6 +423,7 @@ class lnColoredLogger:
     def _write_log_line(self, level_value: int, msg: str, *args: Any, color: str | None = None, **kwargs: Any, ) -> None:
         extra = kwargs["extra"]
         try:
+            trim_line = extra.get("trim_line", False)
             msg_dry_run = extra["msg_dry_run"]
 
             # Prova a formattare il messaggio
@@ -450,7 +451,9 @@ class lnColoredLogger:
             for i, line in enumerate(lines):
                 if i > 0:
                     # Aggiungi indentazione per le righe successive
-                    line = f"\t{line.strip()}" if line else ""
+                    if trim_line:
+                        line = line.strip()
+                    line = f"\t{line}" if line else ""
                     extra["msg_color"] = C.second_line
 
                 if line:  # Logga solo se non vuota
@@ -474,6 +477,7 @@ class lnColoredLogger:
         showCaller: bool = kwargs.pop("show_caller", False)
         show_stack: bool = kwargs.pop("show_stack", False)
         dry_run: bool = kwargs.pop("dry_run", False)
+        trim_line = kwargs.pop("trim_line", False)
 
         kwargs["stacklevel"] = stacklevel + 3
 
@@ -511,6 +515,7 @@ class lnColoredLogger:
                 "module_formatted": module_formatted,  # <<<--- modulo formattato
                 "caller_formatted": caller_formatted,  # <<<--- caller formattato
                 "msg_dry_run": msg_dry_run,
+                "trim_line": trim_line,
             }
         )
         # add updated extra to kwargs
