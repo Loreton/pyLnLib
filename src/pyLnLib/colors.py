@@ -52,6 +52,7 @@ class Colors:
     critical:str= magenta
     exception:str= magenta
     notify:str= blueH
+    second_line:str= cyan
 
 # # Funzione comoda per ottenere i Colors
 def get_colors() -> Colors:
