@@ -55,7 +55,7 @@ class ChangeLogManager:
 
     def _get_last_tag(self) -> Optional[str]:
         """Recupera l'ultimo tag dal repository git"""
-        _rcode, stdout, _stderr = lnRun( 'git describe --tags --abbrev=0', cwd=self.git_root, f_execute=True )
+        _rcode, stdout, _stderr = lnRun('git describe --tags --abbrev=0', cwd=self.git_root, f_execute=True )
         if _rcode == 0 and stdout:
             return stdout.strip()
         return None
