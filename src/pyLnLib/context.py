@@ -39,6 +39,7 @@ class GlobalVars:
     config: dict = field(default_factory=dict)
     project_root: Path|None = field(default=None, repr=False)
     project_vars: 'dict' = field(default_factory=dict)
+    logger: Any = None
 
 
     def __post_init__(self) -> None:

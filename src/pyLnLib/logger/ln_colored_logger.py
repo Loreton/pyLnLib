@@ -98,13 +98,13 @@ class ColorFormatter(logging.Formatter):
 # -------------------------------
 class lnColoredLogger:
     LEVEL_COLORS: dict[str, str] = {
-                                    "DEBUG": C.debug,
-                                    "INFO": C.info,
-                                    "WARNING": C.warning,
-                                    "ERROR": C.error,
-                                    "CRITICAL": C.critical,
-                                    "EXCEPTION": C.exception,
-                                    "NOTIFY": C.notify,
+                                    "debug": C.debug,
+                                    "info": C.info,
+                                    "warning": C.warning,
+                                    "error": C.error,
+                                    "critical": C.critical,
+                                    "exception": C.exception,
+                                    "notify": C.notify,
                                 }  # type: ignore
 
     def __init__(self, name: str,
@@ -241,18 +241,19 @@ class lnColoredLogger:
             return logging.getLevelName(level_value)
         return "NOTSET"
 
-    def get_all_log_levels(self) -> dict[str, str]:
+    def get_log_levels(self) -> list[str]:
         """
         Restituisce un dizionario con tutti i livelli di logging correnti.
 
         Returns:
             Dizionario con {'console': 'INFO', 'file': 'DEBUG', ...}
         """
-        return {
-            'console': self.getConsoleLoggerLevel(),
-            'file': self.getFileLoggerLevel(),
-            'logger': logging.getLevelName(self.logger.level),
-        }
+        return list(self.LEVEL_COLORS.keys())
+        # return {
+        #     'console': self.getConsoleLoggerLevel(),
+        #     'file': self.getFileLoggerLevel(),
+        #     'logger': logging.getLevelName(self.logger.level),
+        # }
 
     def showMaxLength(self) -> int:
         self.notify("name_len: %s, lineno_len: %s (total+[]: %s)", self.module_name_len, self.lineno_len, self.module_name_len + self.lineno_len + 1 + 2)
@@ -489,7 +490,7 @@ class lnColoredLogger:
         else:
             caller_formatted = ""
 
-        level_color = self.LEVEL_COLORS.get(level_name, C.white)
+        level_color = self.LEVEL_COLORS.get(level_name.lower(), C.white)
 
 
         # ----------------------
