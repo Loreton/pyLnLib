@@ -1,0 +1,4 @@
+# oppure mettere in cima al file: ruff: noqa: SIM103
+[lint]
+ignore = ["SIM103xxx"]
+ignore = ["PLE1205"] # Too many arguments for `logging` format string (Ruff PLE1205

@@ -37,6 +37,17 @@ reportUnusedImport = "warning"
 reportOptionalMemberAccess = "warning"
 reportMissingTypeStubs = false
 
+[tool.ruff.lint.isort]
+# Riconosci commenti che separano le sezioni
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder"
+]
+
+
 [tool.setuptools.packages.find]
 where = [
     "src",

@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+# ruff: noqa: SIM102 Use a single `if` statement instead of nested `if` statements help: Combine `if` statements using `and` (Ruff SIM102)
+# ruff: noqa: I001 Import block is un-sorted or un-formatted help: Organize imports (Ruff I001)
 #
 # updated by ...: Loreto Notarantonio
 # Date .........: 11-07-2026 15.37.33
 #
+from __future__ import annotations
 
 import sys; sys.dont_write_bytecode=True; this=sys.modules[__name__]
 import os
@@ -12,7 +15,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 
-from ..context import gVars as ctx
+from ..context import ctx
 from ..colors import get_colors
 from ..logger import get_logger
 from .zip_file_utils import searchFileInZip
@@ -103,6 +106,7 @@ def searchFileOnFS(filename: str|Path,
     # --- 1. Ricerca Esterna (Filesystem) tramite search_paths ---
     search_paths.append(str(ctx.get_config_dir()))
     for base_path in search_paths:
+        base_path = str(base_path)
         logger.debug("searching: %s/.../%s", base_path, filename, stacklevel=STACKLEVEL)
         if os.path.exists(base_path):
             if recursive:
@@ -187,7 +191,7 @@ def searchFile(filename:           str|Path,
     sys.exit()
 '''
 ######################################################################
-def dirList(top_dir: str, file_pattern: str, recursive: bool=False):
+def dirList(top_dir: str|Path, file_pattern: str, recursive: bool=False):
     files=Path(top_dir).glob(file_pattern)
     for file in files:
         yield file

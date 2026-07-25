@@ -9,16 +9,18 @@
 pyLnLib - libreria personale di utility Python
 Autore: Loreto Notarantonio
 """
+
 import os
-__INIT__PY__DEBUG=os.environ.get("__INIT__PY__DEBUG", "False") == "True"
+
+__INIT__PY__DEBUG = os.environ.get("__INIT__PY__DEBUG", "False") == "True"
 if __INIT__PY__DEBUG:
     print(f"{__name__} - start loading")
 
 
-from .acquire_lock        import acquire_lock
-from .ln_run              import lnRun
+from .acquire_lock import acquire_lock
+from .ln_run import lnRun
 from .ln_run_stream_class import lnRunStream_Class as lnRunStream
-from .signal_handler      import signalHandler
+from .signal_handler import signalHandler
 
 all = [
     acquire_lock,
@@ -26,7 +28,6 @@ all = [
     lnRunStream,
     signalHandler,
 ]
-
 
 
 if __INIT__PY__DEBUG:

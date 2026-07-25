@@ -3,89 +3,173 @@
 # updated by ...: Loreto Notarantonio
 # Date .........: 06-07-2026 18.58.19
 #
+from __future__ import annotations
 
-# import sys
 import os
 import platform
 import subprocess
-# from ossaudiodev import SOUND_MIXER_SPEAKER
 from pathlib import Path, PurePosixPath
-from typing import Union # Any, List, Optional, Union
+from typing import ClassVar, Dict
 
-# import pyLnLib
-# from pyLnLib.context import gVars as ctx
 from pyLnLib.logger import get_logger
 
 logger = get_logger()
 
 
-# Costanti per i suoni predefiniti su Linux
-class SoundFiles:
-    """Classe con i percorsi dei file audio comuni su Linux."""
+class BeepPlayer:
+    """Classe per la riproduzione di suoni di notifica cross-platform."""
 
-
-    AVAILABLE_SOUNDS: dict[str, str] = {
-        "ALARM":  "/usr/share/sounds/freedesktop/stereo/alarm-clock-elapsed.oga",
-        "BELL":  "/usr/share/sounds/freedesktop/stereo/bell.oga",
+    # Attributo di classe immutabile (per risolvere RUF012)
+    # Usiamo ClassVar per indicare che è un attributo di classe
+    DEFAULT_SOUNDS: ClassVar[dict[str, str]] = {
+        "ALARM": "/usr/share/sounds/freedesktop/stereo/alarm-clock-elapsed.oga",
+        "BELL": "/usr/share/sounds/freedesktop/stereo/bell.oga",
         "CAMERA_SHUTTER": "/usr/share/sounds/freedesktop/stereo/camera-shutter.oga",
-        "COMPLETE":  "/usr/share/sounds/freedesktop/stereo/complete.oga",
-        "INFO":  "/usr/share/sounds/freedesktop/stereo/dialog-information.oga",
-        "ERROR":  "/usr/share/sounds/freedesktop/stereo/dialog-error.oga",
-        "MESSAGE":  "/usr/share/sounds/freedesktop/stereo/message.oga",
-        "MESSAGE_NEW":  "/usr/share/sounds/freedesktop/stereo/message-new-instant.oga",
-        "WARNING":  "/usr/share/sounds/freedesktop/stereo/dialog-warning.oga",
+        "COMPLETE": "/usr/share/sounds/freedesktop/stereo/complete.oga",
+        "INFO": "/usr/share/sounds/freedesktop/stereo/dialog-information.oga",
+        "ERROR": "/usr/share/sounds/freedesktop/stereo/dialog-error.oga",
+        "MESSAGE": "/usr/share/sounds/freedesktop/stereo/message.oga",
+        "MESSAGE_NEW": "/usr/share/sounds/freedesktop/stereo/message-new-instant.oga",
+        "WARNING": "/usr/share/sounds/freedesktop/stereo/dialog-warning.oga",
     }
 
+    def __init__(self, custom_sounds: dict[str, str] | None = None):
+        """
+        Inizializza il player audio.
+
+        Args:
+            custom_sounds: Dizionario personalizzato di suoni (opzionale)
+        """
+        # Se vengono forniti suoni personalizzati, li fondiamo con quelli predefiniti
+        self.sounds = self.DEFAULT_SOUNDS.copy()
+        if custom_sounds:
+            self.sounds.update(custom_sounds)
+
+        self._system = platform.system()
+        self._paplay_path = "/usr/bin/paplay"
+        self._paplay_exists = os.path.exists(self._paplay_path)
+
+        # Inizializza il logger
+        self.logger = logger or get_logger()
+
+    def play(self, sound_req: str | Path | PurePosixPath) -> bool:
+        """
+        Riproduce un suono di notifica.
+
+        Args:
+            sound_req: Nome del suono predefinito o percorso del file audio
+
+        Returns:
+            bool: True se la riproduzione è riuscita, False altrimenti
+        """
+        try:
+            sound_path = str(sound_req)
+
+            # Controlla se è un nome predefinito
+            if sound_path in self.sounds:
+                sound_path = self.sounds[sound_path]
+
+            # Verifica esistenza del file
+            if os.path.exists(sound_path):
+                self.logger.debug("Riproduzione suono: %s", sound_path)
+
+                # Usa paplay se disponibile, altrimenti beep semplice
+                if self._paplay_exists:
+                    subprocess.Popen([self._paplay_path, sound_path])
+                else:
+                    self._fallback_beep()
+                return True
+            else:
+                self.logger.warning("File audio non trovato: %s", sound_path)
+                self._fallback_beep()
+                return False
+
+        except Exception as e:
+            self.logger.error(
+                "Errore durante la riproduzione del beep: %s", e, exc_info=True
+            )
+            self._fallback_beep()
+            return False
+
+    def _fallback_beep(self) -> None:
+        """Metodo di fallback per il beep base."""
+        if not self._paplay_exists:
+            self.logger.warning("paplay non trovato, uso beep semplice")
+        print("\a", flush=True)
+
+    # Metodi di comodo per suoni specifici
+    def play_success(self) -> bool:
+        """Riproduce un suono di successo/completamento."""
+        return self.play("COMPLETE")
+
+    def play_error(self) -> bool:
+        """Riproduce un suono di errore/warning."""
+        return self.play("WARNING")
+
+    def play_notification(self) -> bool:
+        """Riproduce un suono di notifica."""
+        return self.play("MESSAGE_NEW")
+
+    def play_info(self) -> bool:
+        """Riproduce un suono di informazione."""
+        return self.play("INFO")
+
+    def play_alarm(self) -> bool:
+        """Riproduce un suono di allarme."""
+        return self.play("ALARM")
+
+    def get_sound_types(self) -> dict[str, str]:
+        """
+        Ritorna la lista dei suoni disponibili.
+
+        Returns:
+            Dict[str, str]: Dizionario con i suoni disponibili
+        """
+        return self.sounds.copy()
+
+    @classmethod
+    def get_default_sound_types(cls) -> dict[str, str]:
+        """
+        Ritorna la lista dei suoni predefiniti (senza copia).
+
+        Returns:
+            Dict[str, str]: Dizionario con i suoni predefiniti
+        """
+        return cls.DEFAULT_SOUNDS.copy()
 
 
-def playBeep(req_sound: Union[str, Path, PurePosixPath]) -> None:
-    """
-    Riproduce un suono di notifica in modo cross-platform.
-
-    Args:
-        sound_path: Percorso del file audio da riprodurre.
-    """
-    _system: str = platform.system()
-
-    try:
-        sound_path: str = str(req_sound)
-        paplay_exists: bool = os.path.exists("/usr/bin/paplay")
-        if not paplay_exists:
-            logger.warning("paplay non trovato, uso beep semplice")
-            print("\a")
-
-        if sound_path in SoundFiles.AVAILABLE_SOUNDS.keys():
-            sound_path = SoundFiles.AVAILABLE_SOUNDS[sound_path]
-
-        sound_exists: bool = os.path.exists(sound_path)
-        if sound_exists:
-            logger.debug("Riproduzione suono: %s", sound_path)
-            subprocess.Popen(["paplay", sound_path])
-
-        else:
-            logger.warning("File audio non trovato: %s", sound_path)
-            print("\a")
-
-    except Exception as e:
-        logger.error("Errore durante la riproduzione del beep: %s", e, exc_info=True)
-        print("\a")
+# Funzioni di compatibilità per mantenere l'API esistente
+# (opzionale, se vuoi mantenere la compatibilità con codice esistente)
 
 
-def get_beep_types() -> dict:
-    """Ritorna la lista dei suoni."""
-    return SoundFiles.AVAILABLE_SOUNDS
+def playBeep(req_sound: str | Path | PurePosixPath) -> None:
+    """Funzione di compatibilità."""
+    player = BeepPlayer()
+    player.play(req_sound)
+
+
+def get_beep_types() -> dict[str, str]:
+    """Funzione di compatibilità."""
+    return BeepPlayer.get_default_sound_types()
 
 
 def play_success_sound() -> None:
-    """Riproduce un suono di successo/completamento."""
-    playBeep("COMPLETE")
+    """Funzione di compatibilità."""
+    player = BeepPlayer()
+    player.play_success()
 
 
 def play_error_sound() -> None:
-    """Riproduce un suono di errore/warning."""
-    playBeep("WARNING")
+    """Funzione di compatibilità."""
+    player = BeepPlayer()
+    player.play_error()
 
 
 def play_notification_sound() -> None:
-    """Riproduce un suono di notifica."""
-    playBeep("MESSAGE_NEW")
+    """Funzione di compatibilità."""
+    player = BeepPlayer()
+    player.play_notification()
+
+
+# Istanza singleton opzionale
+# default_player = BeepPlayer()

@@ -82,7 +82,7 @@ class lnDict(dict):
 
 
 
-    def get(self, key, default=None):
+    def get(self, key, default=None) -> Any:
         """
         Override del metodo get() per supportare percorsi con separatore.
         """
@@ -549,7 +549,7 @@ class lnDict(dict):
     # # title: se valorizzato viene messo in testa al dict
     # #  utile per avere un'idea di massima del contenuto del dictionary
     # #############################################################################
-    def save_yaml(self, filepath, title: str|None=None, indent: int=0, **kwargs):
+    def save_yaml(self, filepath, title: str='', indent: int=0, **kwargs):
         """Salva lo lnDict in un file .yaml."""
         yaml_data = self.to_yaml(title=title, indent=indent, **kwargs)
         now = datetime.now().strftime("%d-%m-%Y_%H:%M")
@@ -564,7 +564,7 @@ class lnDict(dict):
 
 
     # --- Collegamento al Resolver ---
-    def resolve_all(self):
+    def resolve_cross_references(self):
         from pyLnLib.lndict import LnDictResolver
         resolver = LnDictResolver(self)
         return resolver.run()

@@ -1,46 +1,51 @@
 #!/usr/bin/env python3
+
 #
 # updated by ...: Loreto Notarantonio
 # Date .........: 19-07-2026 17.25.59
 #
+from __future__ import annotations
 
-from mimetypes import suffix_map
-import sys
 import os
-import socket
 import platform
-from pathlib import Path
+import socket
+import sys
 from dataclasses import dataclass, field
-from typing import Any #, TYPE_CHECKING
+from mimetypes import suffix_map
+from pathlib import Path
+from typing import Any  # , TYPE_CHECKING
+
+from .colors import Colors
+
 # if TYPE_CHECKING:
+# from .logger import lnLogger  # per permettere di definitre il type di project_vars
 # from .lndict import lnDict  # per permettere di definitre il type di project_vars
 from .lndict import lnDict  # per permettere di definitre il type di project_vars
 
 
-
-
-from .colors import Colors
-
 @dataclass
 class GlobalVars:
     """Solo dati di configurazione - NESSUN LOGGER QUI!"""
-    # print(sys.argv[0])
 
+    # print(sys.argv[0])
 
     # Sistema
     hostname: str = field(default_factory=lambda: socket.gethostname().split()[0])
     op_sys: str = field(default_factory=lambda: platform.system())
 
-
     # Project
-    project_name: str = field(default_factory=lambda: os.environ.get("LN_PROJECT_NAME", "dummy_project") )
+    project_name: str = field( default_factory=lambda: os.environ.get("LN_PROJECT_NAME", "dummy_project") )
     version: str = "0.0.1"
-    temp_dir: str = field(default_factory=lambda: f"/tmp/{os.environ.get('LN_PROJECT_NAME', 'dummy_project')}" )
+    temp_dir: str = field(
+        default_factory=lambda: (
+            f"/tmp/{os.environ.get('LN_PROJECT_NAME', 'dummy_project')}"
+        )
+    )
     config: dict = field(default_factory=dict)
-    project_root: Path|None = field(default=None, repr=False)
-    project_vars: 'dict' = field(default_factory=dict)
-    logger: Any = None
-
+    project_root: Path | None = field(default=None, repr=False)
+    project_vars: dict = field(default_factory=dict)
+    # logger: 'lnLogger' = field(default_factory='lnLogger')
+    # logger: Any = None
 
     def __post_init__(self) -> None:
         """Inizializza il project root."""
@@ -54,33 +59,35 @@ class GlobalVars:
         self.temp_dir = f"/tmp/{name}"
         # print(f"Project name: {self.project_name}")
 
-    def get_project_vars(self, keypath: str|None=None) -> lnDict:
+    def get_project_vars(self, keypath: str | None = None) -> lnDict:
         """Restituisce i project_vars (già lnDict)."""
         # from .lndict import lnDict  # ← Import reale a runtime
         if not self.project_vars:
-            self.project_vars=lnDict()
+            self.project_vars = lnDict()
         if keypath:
             return self.project_vars[keypath]
         return self.project_vars
 
-
-
     def _find_project_root(self, max_depth: int = 10) -> Path:
         """Trova la root del progetto."""
         # import pdb; pdb.set_trace();  # by Loreto
-        main_prg=Path(sys.argv[0])
+        main_prg = Path(sys.argv[0])
         current = main_prg.resolve().parent
         if main_prg.suffix in [".zip", ".pyz"]:
             return current
 
         for _ in range(max_depth):
-            if (current / 'conf').exists() or (current / 'pyproject.toml').exists() or (current / 'src').exists():
+            if (
+                (current / "conf").exists()
+                or (current / "pyproject.toml").exists()
+                or (current / "src").exists()
+            ):
                 return current
             if current.parent == current:
                 break
             current = current.parent
 
-        if not current or str(current) in ['/']:
+        if not current or str(current) in ["/"]:
             sys.exit(f"\t[context.py] Project root: {current} not found")
         return current
 
@@ -99,7 +106,7 @@ class GlobalVars:
     def get_conf_dir_(self) -> Path:
         """Restituisce la directory conf oppure exit"""
         if self.project_root:
-            conf = self.project_root / 'conf'
+            conf = self.project_root / "conf"
             if conf.exists():
                 return conf
             else:
@@ -107,19 +114,18 @@ class GlobalVars:
         else:
             sys.exit(f"Project root: {self.project_root} not found")
 
-
     # def get_conf_dir_solo_per_zed(self) -> Path:
-    def get_conf_dir(self) -> Path:
+    def get_config_dir(self) -> Path:
         """Restituisce la directory conf oppure exit"""
         if self.project_root:
-            conf = self.project_root / 'conf'
+            conf = self.project_root / "conf"
             if conf.exists():
                 return conf
             else:  # vale per zed (non so perché self.project_root è sbagliato)
-                if  os.environ.get("ZED_TERM"):
+                if os.environ.get("ZED_TERM"):
                     print(f"Conf directory: {conf} not found")
                     current = self._find_project_root()
-                    conf = current / 'conf'
+                    conf = current / "conf"
                     if conf.exists():
                         return conf
                     else:
@@ -128,7 +134,6 @@ class GlobalVars:
                     sys.exit(f"Conf directory: {conf} not found")
         else:
             sys.exit(f"Project root: {self.project_root} not found")
-
 
     def to_dict(self) -> dict[str, Any]:
         """Converte l'oggetto in un dizionario."""
@@ -147,8 +152,7 @@ gVars = GlobalVars()
 ctx = GlobalVars()
 
 
-
 # Funzione comoda per ottenere i project_vars
-def get_project_vars(keypath: str|None=None) -> lnDict:
+def get_project_vars(keypath: str | None = None) -> lnDict:
     """Funzione comoda per ottenere i project_vars."""
     return ctx.get_project_vars(keypath)
