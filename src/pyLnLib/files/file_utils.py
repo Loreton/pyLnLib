@@ -37,7 +37,7 @@ def findFile(root: str, filename: str):
 
 
 
-def unique_filename(filename: Path) -> Path:
+def unique_filename(filename: Path, suffix_pattern: str = "-{:03d}") -> Path:
     """Return a non-existing filename.
 
     Example:
@@ -57,7 +57,12 @@ def unique_filename(filename: Path) -> Path:
     index = 1
 
     while True:
-        candidate = parent / f"{stem}_{index:03d}{suffix}"
+        # candidate = parent / f"{stem}_{index:03d}{suffix}"
+        candidate = parent / (
+            stem +
+            suffix_pattern.format(index) +
+            suffix
+        )
 
         if not candidate.exists():
             return candidate
