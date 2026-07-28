@@ -1,3 +1,11 @@
+## [0.1.28] - 2026-07-28
+
+## Other
+
+- rivisitazione di lnSync - (Release 0.1.27)
+- update on 2026.07.22 19:16:30 - (Release 0.1.27)
+- update on 2026.07.22 - (Release 0.1.27)
+
 ## [0.1.24] - 2026-07-21
 
 ## Other

@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyLnLib"
-version = "0.1.27"
+version = "0.1.28"
 description = "Libreria personale di utility Python"
 authors = [
     { name = "Loreto Notarantonio" },
@@ -29,6 +29,15 @@ ignore = [
     "E701",
 ]
 
+[tool.ruff.lint.isort]
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
+
 [tool.pyright]
 pythonVersion = "3.11"
 typeCheckingMode = "standard"
@@ -36,17 +45,6 @@ reportUnusedVariable = "warning"
 reportUnusedImport = "warning"
 reportOptionalMemberAccess = "warning"
 reportMissingTypeStubs = false
-
-[tool.ruff.lint.isort]
-# Riconosci commenti che separano le sezioni
-section-order = [
-    "future",
-    "standard-library",
-    "third-party",
-    "first-party",
-    "local-folder"
-]
-
 
 [tool.setuptools.packages.find]
 where = [

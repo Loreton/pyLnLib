@@ -1,4 +1,61 @@
-# oppure mettere in cima al file: ruff: noqa: SIM103
+# ruff.toml - Configurazione per il progetto
+
+# Versione di Python target
+target-version = "py314"
+
+# ------------------------------------------------------------
+# FORMATTAZIONE
+# ------------------------------------------------------------
+line-length = 88
+
+# ------------------------------------------------------------
+# LINTING
+# ------------------------------------------------------------
 [lint]
-ignore = ["SIM103xxx"]
-ignore = ["PLE1205"] # Too many arguments for `logging` format string (Ruff PLE1205
+# Regole da ignorare globalmente
+ignore = [
+    "SIM103",  # Return the negated condition directly
+    "PLE1205", # Too many arguments for logging format string
+    "BLE001",  # Do not catch blind exception: Exception
+    "G201",    # Logging .exception should be used instead of .error
+    "TRY401",  # Redundant exception object included in logging.exception
+    "FA102",   # Missing from __future__ import annotations
+    "I001",    # Import block is un-sorted or un-formatted
+]
+
+# Regole da applicare (se vuoi essere selettivo)
+# select = ["E", "W", "F", "I", "N", "UP", "B", "SIM"]
+
+# ------------------------------------------------------------
+# ISORT (ordinamento import)
+# ------------------------------------------------------------
+# [lint.isort]
+# section-order = [
+#     "future",
+#     "standard-library",
+#     "third-party",
+#     "first-party",
+#     "local-folder"
+# ]
+
+# ------------------------------------------------------------
+# PER-FILE IGNORE
+# ------------------------------------------------------------
+# [lint.per-file-ignores]
+# "__init__.py" = ["F401", "F403"]  # Import non usati negli __init__
+# "tests/**/*.py" = ["D100", "D101", "D102", "D103", "D104"]
+
+
+
+# ------------------------------------------------------------
+# VERIFICA
+# ------------------------------------------------------------
+
+# Verifica se la configurazione è valida
+# ruff check --show-settings
+
+# Esegui il linting
+# ruff check tuo_file.py
+
+# Se vuoi vedere cosa viene ignorato
+# ruff check --show-files tuo_file.py

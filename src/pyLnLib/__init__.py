@@ -34,7 +34,8 @@ from .logger.ln_colored_logger import (
 from .beep import BeepPlayer
 from .colors import get_colors
 from .context import ctx, get_project_vars
-from .files.file_utils import dirList, searchFile, searchFileOnFS
+from .context_V2 import init_context, get_context
+from .files.file_utils import get_file_list, searchFile, searchFileOnFS
 from .files.ini_file import loadIni, updateIniKey, writeIni
 
 # ============================================================
@@ -84,7 +85,10 @@ __all__ = [
     "PyProjectManager",
     "acquire_lock",
     "ctx",
-    "dirList",
+    # "GlobalVars_V2",
+    "init_context",
+    "get_context",
+    "get_file_list",
     "flatten_and_filter",
     "flatten_nested_list",
     # "get_beep_types",

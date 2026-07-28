@@ -7,13 +7,13 @@
 #
 from __future__ import annotations
 
-import sys; sys.dont_write_bytecode=True; this=sys.modules[__name__]
+import sys
+
 import os
 # import stat
 import zipfile
 from pathlib import Path
 from types import SimpleNamespace
-
 
 from ..context import ctx
 from ..colors import get_colors
@@ -32,6 +32,34 @@ def findFile(root: str, filename: str):
             logger.notify("found: %s", file_path)
             return file_path
     return None
+
+
+def scan_directory(root_dir: Path|str, pattern: str, recursive: bool = True) -> list[Path]:
+    """
+    Scansiona una directory per trovare file EPUB
+
+    Args:
+        root_dir: Directory root da scansionare
+        pattern: Pattern dei file da cercare
+        recursive: Se cercare ricorsivamente
+
+    Returns:
+        list[Path]: Lista di percorsi dei file trovati
+    """
+    root_path = Path(root_dir)
+    if not root_path.exists():
+        self.logger.error(f"Directory non trovata: {root_path}")
+        return []
+
+    if recursive:
+        file_list = list(root_path.glob(f'**/{pattern}'))
+    else:
+        file_list = list(root_path.glob(pattern))
+
+    logger.info(f"Trovati {len(file_list)} file {pattern} in {root_path}")
+    return file_list
+
+
 
 #################################
 # - read file content as str
@@ -138,23 +166,6 @@ def searchFileOnFS(filename: str|Path,
 
 
 
-def findFileInPaths_prev(filename: str, search_paths: list, exit_on_not_found: bool=True):
-    filepath = None
-
-    # if os.path.isabs(filename) and os.path.isfile(filename):
-    if os.path.isfile(filename):
-        return filename
-
-    for path in search_paths:
-        if file_path := this.findFile(root=path, filename=filename):
-            filepath = file_path
-            break
-    if not filepath:
-        logger.error("filename: %s not found in searching paths: %s", filename, search_paths, stacklevel=2)
-        sys.exit(1)
-
-    return filepath
-
 
 
 
@@ -184,17 +195,34 @@ def searchFile(filename:           str|Path,
 
 
 
-######################################################################
-''' example:
-   for file in dirlist(top_dir='/usr/share/sounds/freedesktop/stereo', file_pattern="*.oga", recursive=False):
-        print(file)
-    sys.exit()
-'''
-######################################################################
-def dirList(top_dir: str|Path, file_pattern: str, recursive: bool=False):
-    files=Path(top_dir).glob(file_pattern)
-    for file in files:
-        yield file
+# ######################################################################
+# ''' example:
+#    for file in dirlist(top_dir='/usr/share/sounds/freedesktop/stereo', file_pattern="*.oga", recursive=False):
+#         print(file)
+#     sys.exit()
+# '''
+# ######################################################################
+# def dirList(top_dir: str|Path, file_pattern: str, recursive: bool=False):
+#     files=Path(top_dir).glob(file_pattern)
+#     yield from files
+#     for _element in files:
+#         y = _element
+#         yield y
+#     # for file in files:
+#     #     yield file
+
+
+
+def get_file_list(top_dir, file_pattern="*", verbose=False):
+    """Genera lista file che soddisfano i filtri"""
+    for filepath in Path(top_dir).glob(f"**/{file_pattern}"):
+        if not filepath.is_file():
+            continue
+
+        if verbose:
+            print(f"{C.yellow}Included: {filepath}{C.reset}")
+        yield filepath
+
 
 
 ##################################################################################################################################

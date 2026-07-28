@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-# ruff: noqa: E402 Module level import not at top of file (Ruff E402)
+# ruff: noqa: I001 Import block is un-sorted or un-formatted help: Organize imports (Ruff I001)
+# ruff: noqa: RUF022 `__all__` is not sorted help: Apply an isort-style sorting to `__all__` (Ruff RUF022)
+# ruff_: noqa: E402 Module level import not at top of file (Ruff E402)
 # updated by ...: Loreto Notarantonio
 # Date .........: 11-07-2026 10.34.14
 #
@@ -16,7 +18,7 @@ if __INIT__PY__DEBUG:
     print(f"{__name__} - start loading")
 
 
-from .file_utils import dirList, searchFile, searchFileOnFS
+from .file_utils import get_file_list, searchFile, searchFileOnFS, scan_directory
 from .ini_file import loadIni, writeIni
 from .write_file import writeFile
 from .yaml_loader_class import get_yaml_engine  # YamlEngine
@@ -26,7 +28,7 @@ from .zip_file_utils import searchFileInZip, zipDir
 __all__ = [
     "searchFile",
     "searchFileOnFS",
-    "dirList",
+    "get_file_list",
     "loadIni",
     "writeIni",
     "writeFile",
@@ -34,6 +36,7 @@ __all__ = [
     "get_yaml_engine",
     "searchFileInZip",
     "zipDir",
+    "scan_directory",
 ]
 
 if __INIT__PY__DEBUG:
