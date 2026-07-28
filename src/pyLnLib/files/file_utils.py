@@ -34,6 +34,39 @@ def findFile(root: str, filename: str):
     return None
 
 
+
+
+
+def unique_filename(filename: Path) -> Path:
+    """Return a non-existing filename.
+
+    Example:
+        report.txt
+        report_001.txt
+        report_002.txt
+        ...
+    """
+
+    if not filename.exists():
+        return filename
+
+    stem = filename.stem
+    suffix = filename.suffix
+    parent = filename.parent
+
+    index = 1
+
+    while True:
+        candidate = parent / f"{stem}_{index:03d}{suffix}"
+
+        if not candidate.exists():
+            return candidate
+
+        index += 1
+
+
+
+
 def scan_directory(root_dir: Path|str, pattern: str, recursive: bool = True) -> list[Path]:
     """
     Scansiona una directory per trovare file EPUB

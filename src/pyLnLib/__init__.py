@@ -35,7 +35,7 @@ from .beep import BeepPlayer
 from .colors import get_colors
 from .context import ctx, get_project_vars
 from .context_V2 import init_context, get_context
-from .files.file_utils import get_file_list, searchFile, searchFileOnFS
+from .files.file_utils import get_file_list, searchFile, searchFileOnFS, scan_directory, unique_filename
 from .files.ini_file import loadIni, updateIniKey, writeIni
 
 # ============================================================
@@ -108,9 +108,11 @@ __all__ = [
     "searchFile",
     "searchFileInZip",
     "searchFileOnFS",
+    "scan_directory",
     "signalHandler",
     "testLogger",
     "updateIniKey",
+    "unique_filename",
     "writeFile",
     "writeIni",
     "zipDir",

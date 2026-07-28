@@ -18,7 +18,7 @@ if __INIT__PY__DEBUG:
     print(f"{__name__} - start loading")
 
 
-from .file_utils import get_file_list, searchFile, searchFileOnFS, scan_directory
+from .file_utils import get_file_list, searchFile, searchFileOnFS, scan_directory, unique_filename
 from .ini_file import loadIni, writeIni
 from .write_file import writeFile
 from .yaml_loader_class import get_yaml_engine  # YamlEngine
@@ -37,6 +37,7 @@ __all__ = [
     "searchFileInZip",
     "zipDir",
     "scan_directory",
+    "unique_filename",
 ]
 
 if __INIT__PY__DEBUG:
