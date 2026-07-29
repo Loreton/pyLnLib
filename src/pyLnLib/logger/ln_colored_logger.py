@@ -566,6 +566,7 @@ class lnColoredLogger:
         if isinstance(msg, list):
             # convert in string with '\n' on each item and the index of each item
             msg = f"list items ({len(msg)}):\n" + "\n".join(f"{i+1}. {item}" for i, item in enumerate(msg))
+
         kwargs = self._prepare_for_logging( level_name, msg, *args, color=color, **kwargs )
         self._write_log_line(level_value, msg, *args, color=color, **kwargs)
 

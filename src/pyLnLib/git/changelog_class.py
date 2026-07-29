@@ -236,7 +236,7 @@ class ChangeLogManager:
         self.logger.notify(f"✅ CHANGELOG.md aggiornato con versione {self.new_version}")
         return True
 
-    def get_summary(self) -> Dict[str, int]:
+    def get_summary(self) -> dict[str, int]:
         """
         Ottiene un riepilogo dei commit per tipo (utile per debug)
         """

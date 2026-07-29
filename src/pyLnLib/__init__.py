@@ -71,50 +71,61 @@ from .system.acquire_lock import acquire_lock
 from .system.ln_run import lnRun
 from .system.ln_run_stream_class import lnRunStream_Class as lnRunStream
 from .system.signal_handler import signalHandler
+from .regex.ln_regex import multi_near_words, multi_near_words_any_order
 
 # ============================================================
 # ESPORTAZIONE PER `from pyLnLib import *`
 # ============================================================
 __all__ = [
+    # logger
     "lnLogger",
     "get_logger",
+    "init_logger",
+    "testLogger",
 
+
+    "get_context",
     "BeepPlayer",
     "ChangeLogManager",
-    "LnDictResolver",
     "PyProjectManager",
     "acquire_lock",
     "ctx",
-    # "GlobalVars_V2",
+
+    # lndict
+    "lnDict",
+    "LnDictResolver",
+
+    # ln_utils
     "init_context",
-    "get_context",
-    "get_file_list",
     "flatten_and_filter",
     "flatten_nested_list",
-    # "get_beep_types",
+
     "get_colors",
     "get_project_vars",
-    "get_yaml_engine",
-    "init_logger",
     "keyboardPrompt",
-    "lnDict",
     "lnRun",
     "lnRunStream",
+
+    # regex
+    "multi_near_words",
+    "multi_near_words_any_order",
+    # "multi_near_words_token_based",
+
+    # files
+    "get_yaml_engine",
+    "get_file_list",
     "loadIni",
-    # "playBeep",
-    # "play_error_sound",
-    # "play_notification_sound",
-    # "play_success_sound",
+    "scan_directory",
     "searchFile",
     "searchFileInZip",
     "searchFileOnFS",
-    "scan_directory",
-    "signalHandler",
-    "testLogger",
-    "updateIniKey",
     "unique_filename",
+    "updateIniKey",
     "writeFile",
     "writeIni",
+
+    # system
+    "signalHandler",
     "zipDir",
 ]
 

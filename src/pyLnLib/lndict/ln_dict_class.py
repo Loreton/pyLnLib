@@ -82,7 +82,7 @@ class lnDict(dict):
 
 
 
-    def get(self, key, default=None) -> Any:
+    def get(self, key, default=None) -> any:
         """
         Override del metodo get() per supportare percorsi con separatore.
         """
