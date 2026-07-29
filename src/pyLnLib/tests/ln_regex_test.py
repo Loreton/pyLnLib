@@ -94,9 +94,11 @@ def ParseInput() -> argparse.Namespace:
     def operatorsFlags(my_parser):
         operation = my_parser.add_argument_group(f'{C.white}Operators Group (mandatory) {C.reset}')
         operators_group = operation.add_mutually_exclusive_group(required=True)
-        operators_group.add_argument('--and',    action='store_true', default=False, help=f'{C.cyan}and between words{C.reset}')
+        operators_group.add_argument('--and-search',    action='store_true', default=False, help=f'{C.cyan}and between words{C.reset}')
+        operators_group.add_argument('--and-any-order',    action='store_true', default=False, help=f'{C.cyan}and between words in any order{C.reset}')
         operators_group.add_argument('--or',     action='store_true', default=False, help=f'{C.cyan}or several words{C.reset}')
         operators_group.add_argument('--near',   action='store_true', default=False, help=f'{C.cyan}match string{C.reset}')
+        operators_group.add_argument('--near-any-order',   action='store_true', default=False, help=f'{C.cyan}match word in any order{C.reset}')
         operators_group.add_argument('--string', action='store_true', default=False, help=f'{C.cyan}match string{C.reset}')
 
     # wd_required = True if '--near' in sys.argv else False
@@ -124,34 +126,108 @@ def ParseInput() -> argparse.Namespace:
     return  args
 
 
+####################################################
+#
+####################################################
 def chack_near_words(data: str):
     words_list=["chiama", "nomignoli"]
     words_list=["chiama", "nomignoli", "sentire"]
     words_list=["saprei", "successo", "neanche",  "capito",  "riuscivo", "importanza"]
-    near_distance: list = [1, 30]
-    result = regex.multi_near_words( source_data=data,
+    words_distance: list = [1, 30]
+    occurrencies = regex.multi_near_words( source_data=data,
                                     words_list=words_list,
-                                    words_distance=near_distance,
+                                    words_distance=words_distance,
                                     normalize_text=False,
                                     ignore_case=True,
                                     context_length=100 )
-    # for item in result:
-    #     logger.info(item)
-    logger.info("normale")
-    logger.info(result)
+    logger.debug(occurrencies)
+    if len(occurrencies) > 0:
+        logger.info("words to find: \n%s", words_list)
+        for item in occurrencies:
+            content = item.context
+            for word in words_list:
+                content=content.replace(word, f"{C.yellowH}{word}{C.reset}")
+            logger.info(content)
+    else:
+        logger.info("non trovate")
 
-    # mishciamo le words_list, dovrebberossere trovate tutte
+
+####################################################
+#
+####################################################
+def chack_near_words_any_order(data: str):
+    # mischiamo le words_list, dovrebberossere trovate tutte
     words_list=[ "importanza", "saprei", "SUCCESSO", "capito",  "riuscivo","neanche"]
-    result = regex.multi_near_words_any_order( source_data=data,
+    words_distance: list = [1, 30]
+    occurrencies = regex.multi_near_words_any_order( source_data=data,
                                     words_list=words_list,
-                                    words_distance=near_distance,
+                                    words_distance=words_distance,
                                     normalize_text=False,
                                     ignore_case=True,
-                                    context_length=0 )
-    # for item in result:
-    #     logger.info(item)
-    logger.info("any order")
-    logger.info(result)
+                                    context_length=100 )
+    logger.debug(occurrencies)
+    if len(occurrencies) > 0:
+        logger.info("words to find: \n%s", words_list)
+        for item in occurrencies:
+            content = item.context
+            for word in words_list:
+                content=content.replace(word, f"{C.yellowH}{word}{C.reset}")
+            logger.info(content)
+    else:
+        logger.info("non trovate")
+
+
+####################################################
+#
+####################################################
+def chack_AND_search(data: str):
+    words_list=["saprei", "successo", "neanche",  "capito",  "riuscivo", "importanza"]
+    words_distance: list = [1, 30]
+    # words_distance: list = [0,0]
+    occurrencies = regex.and_search( source_data=data,
+                                    words_list=words_list,
+                                    words_distance=words_distance,
+                                    normalize_text=False,
+                                    ignore_case=True,
+                                    any_order=True,
+                                    context_length=100 )
+    logger.debug(occurrencies)
+    if len(occurrencies) > 0:
+        logger.info("words to find: \n%s", words_list)
+        for item in occurrencies:
+            content = item.context
+            for word in words_list:
+                content=content.replace(word, f"{C.yellowH}{word}{C.reset}")
+            logger.info(content)
+    else:
+        logger.info("non trovate")
+
+
+####################################################
+#
+####################################################
+def chack_AND_any_order(data: str):
+    # mischiamo le words_list, dovrebberossere trovate tutte
+    words_list=[ "importanza", "saprei", "SUCCESSO", "capito",  "riuscivo","neanche"]
+    words_distance: list = [0,0]
+    words_distance: list = [1, 30]
+    occurrencies = regex.and_search( source_data=data,
+                                    words_list=words_list,
+                                    words_distance=words_distance,
+                                    normalize_text=False,
+                                    any_order=True,
+                                    ignore_case=True,
+                                    context_length=100 )
+    logger.debug(occurrencies)
+    if len(occurrencies) > 0:
+        logger.info("words to find: \n%s", words_list)
+        for item in occurrencies:
+            content = item.context
+            for word in words_list:
+                content=content.replace(word, f"{C.yellowH}{word}{C.reset}")
+            logger.info(content)
+    else:
+        logger.info("non trovate")
 
 
 
@@ -163,23 +239,12 @@ if __name__ == '__main__':
 
     if args.near:
         chack_near_words(data)
-
-        sys.exit("multi_near_words completato")
-
-        result = multi_near_words_unordered( source_data=mydata,
-                                        words_list=args.NEAR,
-                                        near=args.distance,
-                                        normalize_text=False,
-                                        ignore_case=args.ignore_case)
-
-        occurrencies = 0
-        # import pdb; pdb.set_trace() # by Loreto
-        for item, value in result.items():
-            occurrencies += 1
-            for k, v in value.items():
-                logger.info("[%s]%-10s: %s", occurrencies,  k, v)
-                # occurrencies += len(value)
-        logger.info("found %s occurrences of words: %s (distances: %s)", occurrencies, args.NEAR, args.distance)
+    elif args.near_any_order:
+        chack_near_words_any_order(data)
+    elif args.and_search:
+        chack_AND_search(data)
+    elif args.and_any_order:
+        chack_AND_any_order(data)
 
     sys.exit("Temporary exit")
 

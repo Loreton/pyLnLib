@@ -6,6 +6,7 @@
 #
 
 
+from audioop import mul
 import sys; sys.dont_write_bytecode = True
 
 import re
@@ -124,7 +125,8 @@ def multi_near_words(source_data: str,
 
     py_flags = re.UNICODE | re.IGNORECASE if ignore_case else re.UNICODE
     min_words, max_words = words_distance
-
+    if min_words == 0: min_words = 1
+    if max_words == 0: max_words = 999999999
     # Costruisci il pattern come nel tuo codice ma per N parole
     pattern_parts = [rf'\b{words_list[0]}\b']
 
@@ -154,7 +156,8 @@ def multi_near_words_any_order(source_data: str,
         source_data = ' '.join(source_data.split())
 
     min_words, max_words = words_distance
-
+    if min_words == 0: min_words = 1
+    if max_words == 0: max_words = 999999999
     # Se abbiamo poche parole, usa le permutazioni (più veloce)
     if len(words_list) <= 4:
         py_flags = re.UNICODE | re.IGNORECASE if ignore_case else re.UNICODE
@@ -178,7 +181,7 @@ def multi_near_words_any_order(source_data: str,
         return _multi_near_words_token_based(source_data, words_list, words_distance,
                                             normalize_text, ignore_case, context_length)
 
-@this_function_executing_time
+# @this_function_executing_time
 def _multi_near_words_token_based(source_data: str,
                                  words_list: list,
                                  words_distance: list,
@@ -190,6 +193,9 @@ def _multi_near_words_token_based(source_data: str,
         source_data = ' '.join(source_data.split())
 
     min_words, max_words = words_distance
+    if min_words == 0: min_words = 1
+    if max_words == 0: max_words = 999999999
+
     results = []
 
     # Tokenizza il testo
@@ -234,3 +240,74 @@ def _multi_near_words_token_based(source_data: str,
                 ))
 
     return results
+
+
+def and_search(source_data: str,
+                        words_list: list[str],
+                        words_distance: list,
+                        any_order: bool = False,
+                        ignore_case: bool = True,
+                        normalize_text: bool = False,
+                        context_length: int = 0) -> list[RegexItems]:
+    """
+    Versione ottimizzata che riutilizza le tue funzioni esistenti.
+    """
+    if not source_data or not words_list or len(words_list) < 2:
+        return []
+
+    # if normalize_text:
+        # source_data = ' '.join(source_data.split())
+    # Usa le tue funzioni esistenti
+    if any_order:
+        # Se vuoi qualsiasi ordine
+        return multi_near_words_any_order(
+            source_data=source_data,
+            words_list=words_list,
+            words_distance=words_distance,
+            ignore_case=ignore_case,
+            normalize_text=normalize_text,
+            context_length=context_length)
+    else:
+        # Usa la tua multi_near_words per l'ordine specificato
+        return multi_near_words(
+            source_data=source_data,
+            words_list=words_list,
+            words_distance=words_distance,
+            normalize_text=normalize_text,
+            ignore_case=ignore_case,
+            context_length=context_length
+        )
+
+def _and_search_with_permutations(text: str,
+                                 words: list[str],
+                                 max_distance: int | None = None,
+                                 ignore_case: bool = True,
+                                 context_length: int = 0) -> list[RegexItems]:
+    """
+    Cerca le parole in qualsiasi ordine usando permutazioni.
+    """
+    if len(words) > 4:
+        # Per molte parole, usa l'approccio token-based
+        return _and_search_token_based(text, words, max_distance, ignore_case, context_length)
+
+    flags = re.UNICODE | re.IGNORECASE if ignore_case else re.UNICODE
+    escaped_words = [re.escape(word) for word in words]
+
+    if max_distance is not None:
+        middle = rf'(?:\W+\w+){{0,{max_distance}}}'
+    else:
+        middle = r'(?:\W+\w+)*'
+
+    # Genera tutte le permutazioni
+    all_patterns = []
+    for perm in permutations(escaped_words):
+        pattern_parts = [rf'\b{perm[0]}\b']
+        for i in range(1, len(perm)):
+            pattern_parts.append(rf'{middle}\b{perm[i]}\b')
+        all_patterns.append(''.join(pattern_parts))
+
+    pattern = '|'.join(all_patterns)
+    p = re.compile(pattern, flags=flags)
+
+    # Usa la tua processItems
+    return _processItems(p=p, source_data=text, context_length=context_length)

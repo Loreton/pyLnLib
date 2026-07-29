@@ -450,6 +450,7 @@ class lnColoredLogger:
             else:
                 formatted_msg = msg
 
+
             # Dividi in righe
             # Usa splitlines() per robustezza
             # lines = formatted_msg.split('\n')
@@ -464,6 +465,8 @@ class lnColoredLogger:
                     extra["msg_color"] = C.second_line
 
                 if line:  # Logga solo se non vuota
+                    if C.reset in line:
+                        line = line.replace(C.reset, extra["msg_color"])  # Sostituisci il reset con il colore secondario
                     self.logger.log(level_value, f"{msg_dry_run}{line}", **kwargs)
 
         except Exception as e:
