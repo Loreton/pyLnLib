@@ -13,13 +13,16 @@ if __INIT__PY__DEBUG:
     print(f"{__name__} - start loading")
 
 
-from .ln_regex import and_search, multi_near_words, multi_near_words_any_order, and_search
+from .ln_regex import replace, and_search, or_search
 
 # Definisci cosa esportare quando si fa "from pyLnLib.regex import *"
 __all__ = [
     'and_search',
-    'multi_near_words',
-    'multi_near_words_any_order',
+    'or_search',
+    'replace',
+    # 'multi_near_words',
+    # 'multi_near_words_any_order',
+    # 'search_anywhere',
     # 'multi_near_words_token_based',
 ]
 

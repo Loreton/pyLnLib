@@ -4,7 +4,12 @@
 # ruff: noqa: SIM210 - Remove unnecessary `True if ... else False` help: Remove unnecessary `True if ... else False` (Ruff SIM210)
 
 
+from codecs import ignore_errors
+from decimal import MAX_EMAX
+from readline import replace_history_item
 import sys
+
+from src.pyLnLib.logger.dummy_logger import testLogger
 sys.dont_write_bytecode = True
 
 import json
@@ -96,10 +101,9 @@ def ParseInput() -> argparse.Namespace:
         operators_group = operation.add_mutually_exclusive_group(required=True)
         operators_group.add_argument('--and-search',    action='store_true', default=False, help=f'{C.cyan}and between words{C.reset}')
         operators_group.add_argument('--and-any-order',    action='store_true', default=False, help=f'{C.cyan}and between words in any order{C.reset}')
-        operators_group.add_argument('--or',     action='store_true', default=False, help=f'{C.cyan}or several words{C.reset}')
-        operators_group.add_argument('--near',   action='store_true', default=False, help=f'{C.cyan}match string{C.reset}')
-        operators_group.add_argument('--near-any-order',   action='store_true', default=False, help=f'{C.cyan}match word in any order{C.reset}')
-        operators_group.add_argument('--string', action='store_true', default=False, help=f'{C.cyan}match string{C.reset}')
+        operators_group.add_argument('--and-anywhere',    action='store_true', default=False, help=f'{C.cyan}search words in all text{C.reset}')
+        operators_group.add_argument('--or-search',     action='store_true', default=False, help=f'{C.cyan}or several words{C.reset}')
+        operators_group.add_argument('--replace',     action='store_true', default=False, help=f'{C.cyan}replace string{C.reset}')
 
     # wd_required = True if '--near' in sys.argv else False
     # flags.add_argument('--words-dist',  type=int, nargs=2, metavar='', default=[], required=wd_required,
@@ -129,286 +133,202 @@ def ParseInput() -> argparse.Namespace:
 ####################################################
 #
 ####################################################
-def chack_near_words(data: str):
-    words_list=["chiama", "nomignoli"]
-    words_list=["chiama", "nomignoli", "sentire"]
-    words_list=["saprei", "successo", "neanche",  "capito",  "riuscivo", "importanza"]
-    words_distance: list = [1, 30]
-    occurrencies = regex.multi_near_words( source_data=data,
-                                    words_list=words_list,
-                                    words_distance=words_distance,
-                                    normalize_text=False,
-                                    ignore_case=True,
-                                    context_length=100 )
-    logger.debug(occurrencies)
-    if len(occurrencies) > 0:
-        logger.info("words to find: \n%s", words_list)
-        for item in occurrencies:
-            content = item.context
-            for word in words_list:
-                content=content.replace(word, f"{C.yellowH}{word}{C.reset}")
-            logger.info(content)
-    else:
-        logger.info("non trovate")
+# def and_anywhere(data: str):
+#     # words_list=["chiama", "nomignoli"]
+#     # words_list=["chiama", "nomignoli", "sentire"]
+#     # words_list=["saprei", "successo", "neanche",  "capito",  "riuscivo", "importanza"]
+#     words_list=["saprei", "dirvi"]
+#     words_list=["Saprei"]
+#     # words_distance: list = [1, 30]
+#     # words_distance: list = [0, 0]
+#     occurrencies = regex.search_anywhere( source_data=data,
+#                                     words_list=words_list,
+#                                     # words_distance=words_distance,
+#                                     normalize_text=False,
+#                                     ignore_case=True,
+#                                     context_length=100 )
+#     logger.debug(occurrencies)
+#     if len(occurrencies) > 0:
+#         logger.info("words to find: \n%s", words_list)
+#         for item in occurrencies:
+#             content = item.context
+#             for word in words_list:
+#                 content=content.replace(word, f"{C.yellowH}{word}{C.reset}")
+#             logger.info(content)
+#     else:
+#         logger.info("non trovate")
 
 
 ####################################################
 #
 ####################################################
-def chack_near_words_any_order(data: str):
-    # mischiamo le words_list, dovrebberossere trovate tutte
-    words_list=[ "importanza", "saprei", "SUCCESSO", "capito",  "riuscivo","neanche"]
-    words_distance: list = [1, 30]
-    occurrencies = regex.multi_near_words_any_order( source_data=data,
-                                    words_list=words_list,
-                                    words_distance=words_distance,
-                                    normalize_text=False,
-                                    ignore_case=True,
-                                    context_length=100 )
-    logger.debug(occurrencies)
-    if len(occurrencies) > 0:
-        logger.info("words to find: \n%s", words_list)
-        for item in occurrencies:
-            content = item.context
-            for word in words_list:
-                content=content.replace(word, f"{C.yellowH}{word}{C.reset}")
-            logger.info(content)
-    else:
-        logger.info("non trovate")
+# def chack_near_words(data: str):
+#     words_list=["chiama", "nomignoli"]
+#     words_list=["chiama", "nomignoli", "sentire"]
+#     words_list=["saprei", "successo", "neanche",  "capito",  "riuscivo", "importanza"]
+#     words_list=["saprei", "dirvi"]
+#     words_distance: list = [1, 30]
+#     words_distance: list = [0, 0]
+#     occurrencies = regex.multi_near_words( source_data=data,
+#                                     words_list=words_list,
+#                                     # words_distance=words_distance,
+#                                     normalize_text=False,
+#                                     ignore_case=True,
+#                                     context_length=100 )
+#     logger.debug(occurrencies)
+#     if len(occurrencies) > 0:
+#         logger.info("words to find: \n%s", words_list)
+#         for item in occurrencies:
+#             content = item.context
+#             for word in words_list:
+#                 content=content.replace(word, f"{C.yellowH}{word}{C.reset}")
+#             logger.info(content)
+#     else:
+#         logger.info("non trovate")
 
 
 ####################################################
 #
 ####################################################
-def chack_AND_search(data: str):
-    words_list=["saprei", "successo", "neanche",  "capito",  "riuscivo", "importanza"]
-    words_distance: list = [1, 30]
-    # words_distance: list = [0,0]
+# def chack_near_words_any_order(data: str):
+#     # mischiamo le words_list, dovrebberossere trovate tutte
+#     words_list=[ "importanza", "saprei", "SUCCESSO", "capito",  "riuscivo","neanche"]
+#     words_distance: list = [1, 30]
+#     occurrencies = regex.multi_near_words_any_order( source_data=data,
+#                                     words_list=words_list,
+#                                     words_distance=words_distance,
+#                                     normalize_text=False,
+#                                     ignore_case=True,
+#                                     context_length=100 )
+#     logger.debug(occurrencies)
+#     if len(occurrencies) > 0:
+#         logger.info("words to find: \n%s", words_list)
+#         for item in occurrencies:
+#             content = item.context
+#             for word in words_list:
+#                 content=content.replace(word, f"{C.yellowH}{word}{C.reset}")
+#             logger.info(content)
+#     else:
+#         logger.info("non trovate")
+
+
+####################################################
+#
+####################################################
+def check_AND_search(data: str):
+    words_list=["saprei", "dirvi", "successo", "neanche",  "capito",  "riuscivo", "importanza"]
+    words_list=["saprei", "dirvi"]
+    words_list=["saprei"]
+    words_list=["saprei", "Successo"]
+
+    f_near: bool = False
+    max_words_between = 10 if f_near else None
+
+    f_any_order: bool = True
+    f_boundary = True
+    f_boundary = False
+
+    if f_any_order:
+        import random
+        random.shuffle(words_list)
+
+
     occurrencies = regex.and_search( source_data=data,
                                     words_list=words_list,
-                                    words_distance=words_distance,
-                                    normalize_text=False,
+                                    max_words_between=max_words_between,
+                                    normalize_text=True,
                                     ignore_case=True,
-                                    any_order=True,
-                                    context_length=100 )
-    logger.debug(occurrencies)
-    if len(occurrencies) > 0:
-        logger.info("words to find: \n%s", words_list)
-        for item in occurrencies:
-            content = item.context
-            for word in words_list:
-                content=content.replace(word, f"{C.yellowH}{word}{C.reset}")
-            logger.info(content)
-    else:
-        logger.info("non trovate")
+                                    any_order=f_any_order,
+                                    context_length=100,
+                                    boundary=f_boundary)
+    printOccurrences(occurrencies, words_list)
+
+####################################################
+#
+####################################################
+def check_OR_search(data: str):
+    words_list=["saprei", "dirvi"]
+    words_list=["saprei", "successo"]
+    words_list=["saprei", "dirvi", "successo", "neanche",  "capito",  "riuscivo", "importanza", "mortificata"]
+    words_list=["capito"]
+    words_list=["saprei"]
+    words_list=["saprei", "capito"]
+    words_list=["saprei", "dirvi", "successo", "neanche",  "capito",  "riuscivo", "importanza"]
+
+    f_boundary = True
+    f_boundary = False
+
+    occurrencies = regex.or_search( source_data=data,
+                                    words_list=words_list,
+                                    normalize_text=True,
+                                    ignore_case=True,
+                                    context_length=100,
+                                    boundary=f_boundary)
+    printOccurrences(occurrencies, words_list)
 
 
 ####################################################
 #
 ####################################################
-def chack_AND_any_order(data: str):
-    # mischiamo le words_list, dovrebberossere trovate tutte
-    words_list=[ "importanza", "saprei", "SUCCESSO", "capito",  "riuscivo","neanche"]
-    words_distance: list = [0,0]
-    words_distance: list = [1, 30]
-    occurrencies = regex.and_search( source_data=data,
-                                    words_list=words_list,
-                                    words_distance=words_distance,
-                                    normalize_text=False,
-                                    any_order=True,
-                                    ignore_case=True,
-                                    context_length=100 )
-    logger.debug(occurrencies)
+# def chack_AND_any_order(data: str):
+#     # mischiamo le words_list, dovrebberossere trovate tutte
+#     words_list=[ "importanza", "saprei", "SUCCESSO", "capito",  "riuscivo","neanche"]
+#     words_distance: list = [0,0]
+#     words_distance: list = [1, 30]
+#     occurrencies = regex.and_search( source_data=data,
+#                                     words_list=words_list,
+#                                     words_distance=words_distance,
+#                                     normalize_text=False,
+#                                     any_order=True,
+#                                     ignore_case=True,
+#                                     context_length=100 )
+#     logger.debug(occurrencies)
+#     if len(occurrencies) > 0:
+#         logger.info("words to find: \n%s", words_list)
+#         for item in occurrencies:
+#             content = item.context
+#             for word in words_list:
+#                 content=content.replace(word, f"{C.yellowH}{word}{C.reset}")
+#             logger.info(content)
+#     else:
+#         logger.info("non trovate")
+
+####################################################
+#
+####################################################
+def check_replace():
+    input_string = "Hello TutorialsPOINT Python"
+    substring = "tutorialspoint"
+    replace_string = f"{C.yellowH}{substring}{C.reset}"
+    result = regex.replace(input_string=input_string, substring=substring, replace_string=replace_string, ignore_case=True)
+    logger.info(result)
+
+
+
+def printOccurrences(occurrencies: list, words_list: list):
+    logger.info("found occurrencies: %s", len(occurrencies))
     if len(occurrencies) > 0:
         logger.info("words to find: \n%s", words_list)
         for item in occurrencies:
             content = item.context
             for word in words_list:
-                content=content.replace(word, f"{C.yellowH}{word}{C.reset}")
-            logger.info(content)
+                content = regex.replace(content, word, f"{C.yellowH}{word}{C.reset}", ignore_case=True)
+            logger.info("content[:500]: %s ...", content[:500])
     else:
         logger.info("non trovate")
-
-
+    logger.info("found occurrencies: %s", len(occurrencies))
 
 if __name__ == '__main__':
-    logger = init_logger()
+    logger = init_logger(console_logger_level="function", test=False)
     args = ParseInput()
     data: str = get_data()
     mydata = ' '.join(data.split()) ### --- normalize source data
 
-    if args.near:
-        chack_near_words(data)
-    elif args.near_any_order:
-        chack_near_words_any_order(data)
+    if args.replace:
+        check_replace()
     elif args.and_search:
-        chack_AND_search(data)
-    elif args.and_any_order:
-        chack_AND_any_order(data)
+        check_AND_search(data)
+    elif args.or_search:
+        check_OR_search(data)
 
     sys.exit("Temporary exit")
-
-
-    if args.STRING:
-        result: list = lnRE.STRING(   source_data=mydata,
-                            stringa=args.STRING,
-                            word_boundary=args.boundary,
-                            normalize_text=False,
-                            context_length=args.context_length,
-                            ignore_case=args.ignore_case)
-
-        for index, item in enumerate(result):
-            json_data=json.dumps(item, indent=True, sort_keys=False, separators=(',', ': '), default=str)
-            print(f"[{index:02}]:", json_data)
-
-
-
-    elif args.OR:
-        result = lnRE.OR(   source_data=mydata,
-                            string_list=args.OR,
-                            word_boundary=args.boundary,
-                            context_length=args.context_length,
-                            normalize_text=False,
-                            return_dict=True,
-                            ignore_case=args.ignore_case)
-
-        notFounds=0
-        # print(result)
-        # import pdb; pdb.set_trace() # by Loreto
-        for key, value in result.items():
-            logger.info("%-10s: %s", key, value)
-            if value == "NOT_FOUND":
-                notFounds += 1
-
-        n_occurrencies = len(result)
-        if n_occurrencies > 0:
-            logger.notify("OK - %s string/s was/were found", n_occurrencies)
-        else:
-            logger.error("ERRORE - NO string found.")
-        if notFounds > 0:
-            logger.warning("[%s NOT FOUND] NOT ALL the strings were found", notFounds)
-
-
-
-
-
-    elif args.AND:
-        result = lnRE.AND_justCheck(source_data=mydata,
-                                    string_list=args.AND,
-                                    word_boundary=args.boundary,
-                                    normalize_text=False,
-                                    ignore_case=args.ignore_case)
-        if not result:
-            logger.error("ERRORE - some string not found.")
-
-
-
-        ### --- return DICT
-        result = lnRE.AND(  source_data=mydata,
-                            string_list=args.AND,
-                            word_boundary=args.boundary,
-                            context_length=args.context_length,
-                            normalize_text=False,
-                            ignore_case=args.ignore_case,
-                            return_dict=True,
-                            exit_on_first_notfound=False)
-
-        notFounds=0
-        for key, value in result.items():
-            logger.info("%-10s: %s", key, value)
-            if value == "NOT_FOUND":
-                notFounds += 1
-
-        n_occurrencies = len(result)
-        if n_occurrencies > 0:
-            logger.notify("OK - %s string/s was/were found", n_occurrencies)
-        else:
-            logger.error("ERRORE - NO string found.")
-        if notFounds > 0:
-            logger.warning("[%s NOT FOUND] NOT ALL the strings were found", notFounds)
-
-        from keybPrompt import keyb_prompt; keyb_prompt() # by Loreto
-
-        ### --- return LIST
-        result = lnRE.AND(  source_data=mydata,
-                            string_list=args.AND,
-                            word_boundary=args.boundary,
-                            context_length=args.context_length,
-                            normalize_text=False,
-                            ignore_case=args.ignore_case,
-                            return_dict=False,
-                            exit_on_first_notfound=False)
-
-        notFounds=0
-        for key, value in result.items():
-            logger.info("%-10s: %s", key, value)
-            if value == "NOT_FOUND":
-                notFounds += 1
-
-        n_occurrencies = len(result)
-        if n_occurrencies > 0:
-            logger.notify("OK - %s string/s was/were found", n_occurrencies)
-        else:
-            logger.error("ERRORE - NO string found.")
-        if notFounds > 0:
-            logger.warning("[%s NOT FOUND] NOT ALL the strings were found", notFounds)
-
-
-
-
-
-
-        # Caso 1: Parentesi tonde
-    elif args.tonda:
-        test_data = "Questo è un esempio (  di stringa1 ) e qui (  di stringa2 ) e qui c'è un altro ${valore_importante} in un testo."
-
-        prefix = "("
-        suffix = ")"
-        risultato1 = lnRE.FindEnclosedStrings(test_data, prefix, suffix)
-        print(test_data)
-        print(f"Prefisso='{prefix}', Suffisso='{suffix}' -> Risultato: {risultato1}")
-
-        new_data = lnRE.FindFirstEnclosed(test_data, prefix, suffix, replace_with="")
-        print(test_data)
-        print(new_data)
-
-        result = lnRE.FindFirstEnclosed(test_data, prefix, suffix, replace_with=None)
-        print(test_data)
-        json_data=json.dumps(result, indent=True, sort_keys=False, separators=(',', ': '), default=str)
-        print(json_data)
-
-
-        # Caso 2: Graffe e dollaro (caratteri speciali che richiedono re.escape)
-    elif args.variable:
-        test_data = "Questo è un esempio ( di stringa ) e qui c'è un altro ${valore_importante} in un testo."
-        prefix = "${"
-        suffix = "}"
-        prefix = "esempio"
-        suffix = ""
-        risultato1 = lnRE.FindEnclosedStrings(test_data, prefix, suffix)
-        print(test_data)
-        print(f"Prefisso='{prefix}', Suffisso='{suffix}' -> Risultato: {risultato1}")
-
-        new_data = lnRE.FindFirstEnclosed(test_data, prefix, suffix, replace_with="")
-        print(test_data)
-        print(new_data)
-
-        result = lnRE.FindFirstEnclosed(test_data, prefix, suffix, replace_with=None)
-        print(test_data)
-        json_data=json.dumps(result, indent=True, sort_keys=False, separators=(',', ': '), default=str)
-        print(json_data)
-        # Output: ['valore_importante']
-
-        # Caso 3: Nessuna corrispondenza
-    elif args.minor:
-        test_data = "Questo è un esempio (di stringa) e qui c'è un altro ${valore_importante} in un testo."
-        prefix3 = "<"
-        suffix3 = ">"
-        risultato3 = lnRE.FindEnclosedStrings(test_data, prefix3, suffix3)
-        print(f"Prefisso='{prefix3}', Suffisso='{suffix3}' -> Risultato: {risultato3}")
-        # Output: []
-
-
-
-
-    print()

@@ -33,9 +33,9 @@ sys.dont_write_bytecode = True
 my_NOTSET_value: int = 0
 my_TRACE_value: int = 9
 my_DEBUG_value: int = 10
+my_FUNCTION_value: int = 15
 my_INFO_value: int = 20
 my_NOTIFY_value: int = 21
-my_FUNCTION_value: int = 22
 my_WARNING_value: int = 30
 my_ERROR_value: int = 40
 my_EXCEPTION_value: int = 45
@@ -80,7 +80,9 @@ class lnColoredLogger:
         threads: bool = False,
     ) -> None:
         self.LEVEL_COLORS: dict[str, str] = {
+            "trace": C.debug,
             "debug": C.debug,
+            "function": C.debug,
             "info": C.info,
             "warning": C.warning,
             "error": C.error,
@@ -462,7 +464,11 @@ class lnColoredLogger:
                     if trim_line:
                         line = line.strip()
                     line = f"\t{line}" if line else ""
-                    extra["msg_color"] = C.second_line
+                    extra["msg_color"] = C.logger_second_line
+                else:
+                    if len(lines) > 1:
+                        extra["msg_color"] = C.logger_first_line
+
 
                 if line:  # Logga solo se non vuota
                     if C.reset in line:
@@ -546,6 +552,13 @@ class lnColoredLogger:
         if not self.consoleHandler:
             return False
 
+        # if level_value < self.consoleHandler.level:
+        #     print(f"level_value: {level_value} < consoleHandler.level: {self.consoleHandler.level}")
+        #     print(f"{level_value = }")
+        #     print(f"{self.getConsoleLoggerLevel() = }")
+        #     _curr_name=logging.getLevelName(level_value)
+        #     print(f"{_curr_name = }")
+
         return level_value >= self.consoleHandler.level or forceLog
 
     # -------------------------------
@@ -604,30 +617,35 @@ class lnColoredLogger:
         self._log_multiline("NOTIFY", msg, *args, color=color, **kwargs)
 
     def function( self, msg: str|list, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
-        self._log_multiline( "FUNCTION", msg, *args, color=color, show_caller=True, **kwargs )
+        self._log_multiline( "FUNCTION", msg, *args, color=color, **kwargs )
 
 
 def testLogger(logger: Any) -> None:
     print("\n--- base colors ---")
+    logger.trace("TRACE default")
     logger.debug("DEBUG default")
+    logger.function("FUNCTION default")
     logger.info("INFO default")
+    logger.notify("NOTIFY default")
     logger.warning("WARNING default")
     logger.error("ERROR default")
     logger.critical("CRITICAL default")
-    logger.notify("NOTIFY default")
 
     # saved_level = logger.getConsoleLoggerLevel()
     # logger.setConsoleLoggerLevel("WARNING")
     print("\n--- base colors forzando level to WARNING---")
+    logger.trace("TRACE default")
     logger.debug("DEBUG default")
+    logger.function("FUNCTION default")
     logger.info("INFO default")
+    logger.notify("NOTIFY default")
     logger.warning("WARNING default")
     logger.error("ERROR default")
     logger.critical("CRITICAL default")
     logger.notify("NOTIFY default")
     # logger.setConsoleLoggerLevel(saved_level)
 
-    print("\n--- custom colors ---")
+    print("\n--- modifying default colors ---")
     logger.info("INFO in magenta", color=C.magenta)
     logger.warning("WARNING in cyan", color=C.cyan)
     logger.error("ERROR in yellowH", color=C.yellowH)
@@ -648,14 +666,14 @@ my_logger = None
 
 
 def init_logger(
-    name: str = "undefined_logger_name",
-    console_logger_level: str = "info",
-    file_logger_level: str = "warning",
-    logging_dir: str | None = None,
-    threads: bool = False,
-    test: bool = False,
-    temporary: bool = False,
-) -> lnColoredLogger:
+                name: str = "undefined_logger_name",
+                console_logger_level: str = "info",
+                file_logger_level: str = "warning",
+                logging_dir: str | None = None,
+                threads: bool = False,
+                test: bool = False,
+                temporary: bool = False,
+            ) -> lnColoredLogger:
     """
     Inizializza il logger globale usando i dati di context.
 
@@ -679,11 +697,12 @@ def init_logger(
         logging_dir=logging_dir,
         threads=threads,
     )
-    if not temporary:
+    if not temporary :
         my_logger.warning("✅ Logger inizializzato")
         my_logger.info("*" * 20)
         my_logger.info("* logger_name:   %s", my_logger.name)
-        my_logger.info("* console level: %s", my_logger.getConsoleLoggerLevel())
+        my_logger.info("* console level name: %s", my_logger.getConsoleLoggerLevel())
+        # my_logger.info("* console level value: %s", my_logger.consoleHandler.level)
         my_logger.info("* logging_dir:   %s", my_logger.logging_dir)
         my_logger.info("* file    level: %s", my_logger.getFileLoggerLevel())
         my_logger.info("*" * 20)
@@ -691,7 +710,8 @@ def init_logger(
     # # Test (opzionale, puoi commentare se non serve)
     if test:
         testLogger(my_logger)
-
+    # if not temporary :
+        # breakpoint()
     return my_logger
 
 
@@ -701,12 +721,14 @@ def get_logger() -> lnColoredLogger:
     # prima di init_logger(). Questo risolve il problema dell'ordine di importazione
     # nei moduli. Quando init_logger() verrà chiamato, sostituirà questo logger
     # temporaneo con quello configurato correttamente.
+    #  NON E VERO ho dovuto mettere il get_logger() dentro ogni funzione dei moduli
     # print("⚠️ Logger non inizializzato! Creazione temporanea in attesa di init_logger()...")
     if not my_logger:
-        my_logger = init_logger(name="TEMPORARY_LOGGER", temporary=True)
+        my_logger = init_logger(name="TEMPORARY_LOGGER", console_logger_level="warning",temporary=True)
         my_logger.warning(
             "⚠️ Logger non inizializzato!\nLogger temporaneo {} in attesa di init_logger()...",
             my_logger.name,
             exit=False,
         )
+    # my_logger.warning("my_logger.getConsoleLoggerLevel(): %s", my_logger.getConsoleLoggerLevel())
     return my_logger

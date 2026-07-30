@@ -6,20 +6,35 @@
 #
 
 
-from audioop import mul
-import sys; sys.dont_write_bytecode = True
+import sys
+
+sys.dont_write_bytecode = True
 
 import re
 import time
-from itertools import permutations
+from _collections_abc import Callable
+# from itertools import permutations
+from functools import wraps
+from dataclasses import dataclass
 
 from pyLnLib import get_logger
-logger = get_logger()
+from pyLnLib import clean_doc
+# logger = None
+# breakpoint()
+# logger = get_logger()
+# print(logger.getConsoleLoggerLevel())
 
 
-import time
-from functools import wraps
-from typing import Callable
+@dataclass(slots=True, frozen=True)
+class RegexItems:
+    index: int
+    matched_string: str
+    start: int
+    end: int
+    context: str
+    ignore_case: bool
+    # found_matched_string: list[str]
+
 
 def this_function_executing_time(func: Callable) -> Callable:
     """
@@ -28,6 +43,7 @@ def this_function_executing_time(func: Callable) -> Callable:
     """
     @wraps(func)
     def wrapper(*args, **kwargs):
+        logger = get_logger()
         start = time.perf_counter()
         try:
             result = func(*args, **kwargs)
@@ -39,7 +55,7 @@ def this_function_executing_time(func: Callable) -> Callable:
             # Messaggio con nome funzione e tempo
             logger.notify(
                 f"[Function: {func.__name__}] eseguita in {elapsed:.6f} secondi",
-                stacklevel=3  # Mostra il chiamante corretto
+                stacklevel=1  # Mostra il chiamante corretto
             )
 
     return wrapper
@@ -47,30 +63,46 @@ def this_function_executing_time(func: Callable) -> Callable:
 
 
 
-from dataclasses import dataclass
 
-@dataclass(slots=True, frozen=True)
-class RegexItems:
-    index: int
-    matched_string: str
-    start: int
-    end: int
-    context: str
-
-
-#################################
-# return: {
-#           {
-#                "matched_string": xx,
-#                "start": xx,
-#                "end": yy,
-#                "context": "text"
-#            }
-#          }
-#################################
 # @this_function_executing_time
-def _processItems(p, source_data: str, context_length: int=0) -> list:
+def replace(input_string: str, substring: str, replace_string: str, ignore_case: bool=False) -> str:
+    f_inline =False
+    flags = re.UNICODE
+    if ignore_case:
+        flags |= re.IGNORECASE
+        inline_flag = '(?i)'
+    else:
+        inline_flag = ''
+
+    if f_inline:
+        result = re.sub(inline_flag + re.escape(substring), replace_string, input_string)
+    else:
+        compiled_pattern = re.compile(re.escape(substring), flags)
+        result = compiled_pattern.sub(replace_string, input_string)
+
+    return result
+
+
+
+
+
+#################################
+#
+#################################
+def _processItems(p, source_data: str, normalize_text: bool, context_length: int=0, ignore_case: bool=False) -> list[RegexItems]:
+
+    logger = get_logger()
+    logger.debug(clean_doc(f"""processItems called with:
+        normalize_text={normalize_text}
+        context_length={context_length}
+        ignore_case={ignore_case}"""))
+
     occurrencies = []
+
+    # Normalizza il testo
+    if normalize_text:
+        source_data = source_data.replace('\n', ' ')
+        source_data = ' '.join(source_data.split())
 
     for match in p.finditer(source_data):
         start, end = match.span()
@@ -89,225 +121,202 @@ def _processItems(p, source_data: str, context_length: int=0) -> list:
             matched_string=matched_string,
             start=start,
             end=end,
-            context=context
+            context=context,
+            ignore_case=ignore_case
         )
 
+        # breakpoint()
         occurrencies.append(occurrence)
 
     return occurrencies
 
+############################################################
+# Builds a regex pattern from a list of terms with optional boundary matching
+# Search words in any order
+# :param terms: List of terms to match
+# :param boundary: Whether to match whole word boundaries
+# :return: A regex pattern string
+############################################################
+def _build_lookahead_pattern(terms: list[str], boundary: bool) -> str:
 
+    logger = get_logger()
+    logger.debug(clean_doc(f"""build_lookahead_pattern called with:
+        terms={terms}
+        boundary={boundary}"""))
 
-@this_function_executing_time
-def multi_near_words(source_data: str,
-                            words_list: list,
-                            words_distance: list,
-                            normalize_text: bool=False,
-                            ignore_case: bool=True,
-                            context_length: int=0):
+    wrapper = r"\b{}\b" if boundary else "{}"
 
-    # Validazione input
-    if not isinstance(source_data, str):
-        logger.warning("Input non valido. No source data.")
-        return {}
-
-    if not isinstance(words_list, list) or len(words_list) < 2:
-        logger.warning("Input non valido. Fornire una lista di almeno due parole.")
-        return []
-
-    if not isinstance(words_distance, list) or len(words_distance) != 2:
-        logger.warning("Input non valido. Fornire una lista di due interi [min, max] per la distanza delle words.")
-        return []
-
-    # Normalizza il testo
-    if normalize_text:
-        source_data = ' '.join(source_data.split())
-
-    py_flags = re.UNICODE | re.IGNORECASE if ignore_case else re.UNICODE
-    min_words, max_words = words_distance
-    if min_words == 0: min_words = 1
-    if max_words == 0: max_words = 999999999
-    # Costruisci il pattern come nel tuo codice ma per N parole
-    pattern_parts = [rf'\b{words_list[0]}\b']
-
-    for i in range(1, len(words_list)):
-        # Usa \W+ invece di \s+ per essere più flessibile con la punteggiatura
-        pattern_parts.append(rf'\W+(?:\w+\W+){{{min_words},{max_words}}}{words_list[i]}\b')
-
-    pattern = ''.join(pattern_parts)
-
-    logger.info("Pattern: %s", pattern)
-    # Compila l'espressione regolare
-    p = re.compile(pattern, flags=py_flags)
-
-    return _processItems(p=p, source_data=source_data, context_length=context_length)
-
-
-
-@this_function_executing_time
-def multi_near_words_any_order(source_data: str,
-                              words_list: list,
-                              words_distance: list,
-                              normalize_text: bool=False,
-                              ignore_case: bool=True,
-                              context_length: int=0):
-
-    if normalize_text:
-        source_data = ' '.join(source_data.split())
-
-    min_words, max_words = words_distance
-    if min_words == 0: min_words = 1
-    if max_words == 0: max_words = 999999999
-    # Se abbiamo poche parole, usa le permutazioni (più veloce)
-    if len(words_list) <= 4:
-        py_flags = re.UNICODE | re.IGNORECASE if ignore_case else re.UNICODE
-        middle_pattern = rf'\W+(?:\w+\W+){{{min_words},{max_words}}}'
-
-        all_patterns = []
-        for perm in permutations(words_list):
-            pattern_parts = [rf'\b{perm[0]}\b']
-            for i in range(1, len(perm)):
-                pattern_parts.append(rf'{middle_pattern}{perm[i]}\b')
-            all_patterns.append(''.join(pattern_parts))
-
-        combined_pattern = '|'.join(all_patterns)
-        p = re.compile(combined_pattern, flags=py_flags)
-        logger.info("Pattern: %s", combined_pattern)
-
-        return _processItems(p=p, source_data=source_data, context_length=context_length)
-
-    else:
-        # Per molte parole, usa l'approccio token-based
-        return _multi_near_words_token_based(source_data, words_list, words_distance,
-                                            normalize_text, ignore_case, context_length)
-
-# @this_function_executing_time
-def _multi_near_words_token_based(source_data: str,
-                                 words_list: list,
-                                 words_distance: list,
-                                 normalize_text: bool=False,
-                                 ignore_case: bool=True,
-                                 context_length: int=0):
-
-    if normalize_text:
-        source_data = ' '.join(source_data.split())
-
-    min_words, max_words = words_distance
-    if min_words == 0: min_words = 1
-    if max_words == 0: max_words = 999999999
-
-    results = []
-
-    # Tokenizza il testo
-    word_pattern = re.compile(r'\b\w+\b', re.UNICODE)
-    matches = list(word_pattern.finditer(source_data))
-    tokens = [m.group() for m in matches]
-
-    words_set = set(word.lower() for word in words_list) # ruff C401
-
-    for i in range(len(tokens)):
-        if tokens[i].lower() not in words_set:
-            continue
-
-        for j in range(i + min_words + 1, min(i + max_words + 2, len(tokens))):
-            if tokens[j].lower() not in words_set:
-                continue
-
-            found = set()
-            for k in range(i, j + 1):
-                if tokens[k].lower() in words_set:
-                    found.add(tokens[k].lower())
-
-            if found == words_set:
-                start_pos = matches[i].start()
-                end_pos = matches[j].end()
-
-                matched = ' '.join(tokens[i:j+1])
-
-                if context_length > 0:
-                    start_ctx = max(0, start_pos - context_length)
-                    end_ctx = min(len(source_data), end_pos + context_length)
-                    context = source_data[start_ctx:end_ctx]
-                else:
-                    context = matched
-
-                results.append(RegexItems(
-                    index=len(results),
-                    matched_string=matched,
-                    start=start_pos,
-                    end=end_pos,
-                    context=context
-                ))
-
-    return results
-
-
-def and_search(source_data: str,
-                        words_list: list[str],
-                        words_distance: list,
-                        any_order: bool = False,
-                        ignore_case: bool = True,
-                        normalize_text: bool = False,
-                        context_length: int = 0) -> list[RegexItems]:
-    """
-    Versione ottimizzata che riutilizza le tue funzioni esistenti.
-    """
-    if not source_data or not words_list or len(words_list) < 2:
-        return []
-
-    # if normalize_text:
-        # source_data = ' '.join(source_data.split())
-    # Usa le tue funzioni esistenti
-    if any_order:
-        # Se vuoi qualsiasi ordine
-        return multi_near_words_any_order(
-            source_data=source_data,
-            words_list=words_list,
-            words_distance=words_distance,
-            ignore_case=ignore_case,
-            normalize_text=normalize_text,
-            context_length=context_length)
-    else:
-        # Usa la tua multi_near_words per l'ordine specificato
-        return multi_near_words(
-            source_data=source_data,
-            words_list=words_list,
-            words_distance=words_distance,
-            normalize_text=normalize_text,
-            ignore_case=ignore_case,
-            context_length=context_length
+    return (
+        "".join(
+            rf"(?=.*{wrapper.format(re.escape(term))})"
+            for term in terms
         )
+        + r".*"
+    )
 
-def _and_search_with_permutations(text: str,
-                                 words: list[str],
-                                 max_distance: int | None = None,
-                                 ignore_case: bool = True,
-                                 context_length: int = 0) -> list[RegexItems]:
+
+############################################################
+# Builds a regex pattern from a list of terms with optional boundary matching
+# Search words in sequential order
+# :param terms: List of terms to match
+# :param boundary: Whether to match whole word boundaries
+# :return: A regex pattern string
+############################################################
+def _build_sequence_pattern(terms: list[str], boundary: bool) -> str:
+
+    logger = get_logger()
+    logger.debug(clean_doc(f"""build_sequence_pattern called with:
+        terms={terms}
+        boundary={boundary}"""))
+
+    wrapper = r"\b{}\b" if boundary else "{}"
+
+    return ".*".join(
+        wrapper.format(re.escape(term))
+        for term in terms
+    )
+
+
+
+######################################################
+# Builds a regex pattern for near terms search
+######################################################
+def _build_near_pattern(
+                        terms: list[str],
+                        max_words_between: int,
+                        boundary: bool = True,
+                        any_order: bool = False,
+                    ) -> str:
     """
-    Cerca le parole in qualsiasi ordine usando permutazioni.
+    Builds a regex pattern to search two terms within a maximum number
+    of words.
+
+    :param terms: List containing exactly two words/strings.
+    :param max_words_between: Maximum number of words between the terms.
+    :param boundary: Match whole words if True, otherwise substrings.
+    :param any_order: Search terms in both directions.
+    :return: Regex pattern string.
     """
-    if len(words) > 4:
-        # Per molte parole, usa l'approccio token-based
-        return _and_search_token_based(text, words, max_distance, ignore_case, context_length)
+
+    logger = get_logger()
+    logger.function(clean_doc(f"""build_near_pattern called with:
+        terms={terms}
+        max_words_between={max_words_between}
+        any_order={any_order}
+        boundary={boundary}"""))
+
+    if len(terms) != 2:
+        raise ValueError("NEAR search requires exactly two terms")
+
+    wrapper = r"\b{}\b" if boundary else "{}"
+
+    term1 = wrapper.format(re.escape(terms[0]))
+    term2 = wrapper.format(re.escape(terms[1]))
+
+    separator = rf"(?:\W+\w+){{0,{max_words_between}}}\W+"
+
+    forward = term1 + separator + term2
+
+    if any_order:
+        backward = term2 + separator + term1
+        return rf"(?:{forward}|{backward})"
+
+    return forward
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@this_function_executing_time
+def and_search(source_data: str,
+                words_list: list,
+                normalize_text: bool = False,
+                max_words_between: int | None = None,
+                ignore_case: bool = False,
+                any_order: bool = False,
+                context_length: int = 0,
+                boundary: bool=False) -> list[RegexItems]:
+    """
+    Cerca tutte le parole/string nel testo devono seistere.
+    """
+    logger=get_logger()
+    logger.function(clean_doc(f"""and_search called with:
+        words_list={words_list}
+        normalize_text={normalize_text}
+        max_words_between={max_words_between}
+        ignore_case={ignore_case}
+        any_order={any_order}
+        context_length={context_length}
+        boundary={boundary}"""))
+
+
+    # logger.info("processItems called with:\nnormalize_text=%s\ncontext_length=%s", normalize_text, context_length)
+    if max_words_between is not None:
+        pattern = _build_near_pattern(terms=words_list[:2],
+                                    max_words_between=max_words_between,
+                                    any_order=any_order,
+                                    boundary=boundary)
+    elif any_order:
+        pattern = _build_lookahead_pattern(terms=words_list, boundary=boundary)
+    else:
+        pattern = _build_sequence_pattern(terms=words_list, boundary=boundary)
+
 
     flags = re.UNICODE | re.IGNORECASE if ignore_case else re.UNICODE
-    escaped_words = [re.escape(word) for word in words]
-
-    if max_distance is not None:
-        middle = rf'(?:\W+\w+){{0,{max_distance}}}'
-    else:
-        middle = r'(?:\W+\w+)*'
-
-    # Genera tutte le permutazioni
-    all_patterns = []
-    for perm in permutations(escaped_words):
-        pattern_parts = [rf'\b{perm[0]}\b']
-        for i in range(1, len(perm)):
-            pattern_parts.append(rf'{middle}\b{perm[i]}\b')
-        all_patterns.append(''.join(pattern_parts))
-
-    pattern = '|'.join(all_patterns)
     p = re.compile(pattern, flags=flags)
+    return _processItems(p,
+        source_data=source_data,
+        normalize_text=normalize_text,
+        context_length=context_length,
+        ignore_case=ignore_case)
 
-    # Usa la tua processItems
-    return _processItems(p=p, source_data=text, context_length=context_length)
+
+# @this_function_executing_time
+def or_search(source_data: str,
+                words_list: list,
+                normalize_text: bool = False,
+                ignore_case: bool = False,
+                context_length: int = 0,
+                boundary: bool=False) -> list[RegexItems]:
+    """
+    Cerca tutte le parole/string nel testo devono seistere.
+    """
+    logger = get_logger()
+    logger.function(clean_doc(f"""and_search called with:
+        words_list={words_list}
+        normalize_text={normalize_text}
+        ignore_case={ignore_case}
+        context_length={context_length}
+        boundary={boundary}
+        """))
+
+    # facciamolo solo una volta
+    if normalize_text:
+        source_data = source_data.replace('\n', ' ')
+        normalize_text=False
+        # source_data = ' '.join(source_data.split())
+
+    flags = re.UNICODE | re.IGNORECASE if ignore_case else re.UNICODE
+
+    occurrences = []
+    for term in words_list:
+        logger.info("searching for term: %s", term)
+        pattern = _build_sequence_pattern(terms=[term], boundary=boundary)
+        p = re.compile(pattern, flags=flags)
+        result = _processItems(p,
+                source_data=source_data,
+                normalize_text=normalize_text,
+                context_length=context_length,
+                ignore_case=ignore_case)
+        occurrences.extend(result)
+
+    return occurrences

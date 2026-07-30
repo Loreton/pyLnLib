@@ -1,3 +1,12 @@
+## [0.1.29] - 2026-07-30
+
+## Other
+
+- lavoro su ln_regex - (Release 0.1.28)
+- lavoro su ln_regex - (Release 0.1.28)
+- affinamenti - (Release 0.1.28)
+- aggiunta la unique_filename() per la gestione dei duplicati di file - (Release 0.1.28)
+
 ## [0.1.28] - 2026-07-29
 
 ## Other

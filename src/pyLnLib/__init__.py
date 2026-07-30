@@ -35,8 +35,6 @@ from .beep import BeepPlayer
 from .colors import get_colors
 from .context import ctx, get_project_vars
 from .context_V2 import init_context, get_context
-from .files.file_utils import get_file_list, searchFile, searchFileOnFS, scan_directory, unique_filename
-from .files.ini_file import loadIni, updateIniKey, writeIni
 
 # ============================================================
 # import dal sotto-package files
@@ -44,12 +42,14 @@ from .files.ini_file import loadIni, updateIniKey, writeIni
 from .files.write_file import writeFile
 from .files.yaml_loader_class import get_yaml_engine
 from .files.zip_file_utils import searchFileInZip, zipDir
-from .git.changelog_class import ChangeLogManager
+from .files.file_utils import get_file_list, searchFile, searchFileOnFS, scan_directory, unique_filename
+from .files.ini_file import loadIni, updateIniKey, writeIni
 
 # ============================================================
 # import dal sotto-package  git
 # ============================================================
 from .git.pyproject_class import PyProjectManager
+from .git.changelog_class import ChangeLogManager
 
 # ============================================================
 # import da altri moduli
@@ -71,7 +71,10 @@ from .system.acquire_lock import acquire_lock
 from .system.ln_run import lnRun
 from .system.ln_run_stream_class import lnRunStream_Class as lnRunStream
 from .system.signal_handler import signalHandler
-from .regex.ln_regex import multi_near_words, multi_near_words_any_order
+from .system.clean_doc import clean_doc
+
+
+from .regex.ln_regex import replace, and_search, or_search
 
 # ============================================================
 # ESPORTAZIONE PER `from pyLnLib import *`
@@ -107,8 +110,12 @@ __all__ = [
     "lnRunStream",
 
     # regex
-    "multi_near_words",
-    "multi_near_words_any_order",
+    "and_search",
+    "or_search",
+    "replace",
+    # "multi_near_words",
+    # "multi_near_words_any_order",
+    # "search_anywhere",
     # "multi_near_words_token_based",
 
     # files
@@ -125,6 +132,7 @@ __all__ = [
     "writeIni",
 
     # system
+    "clean_doc",
     "signalHandler",
     "zipDir",
 ]

@@ -54,7 +54,11 @@ class Colors:
     critical: str = magenta
     exception: str = magenta
     notify: str = blueH
-    second_line: str = cyan
+
+    # logger in caso di multiline
+    # logger_first_line: str = whiteH
+    logger_first_line: str = cyanH
+    logger_second_line: str = cyan
 
 
 # # Funzione comoda per ottenere i Colors

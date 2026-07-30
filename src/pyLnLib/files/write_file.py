@@ -22,7 +22,7 @@ from datetime import datetime
 # from ..context  import gVars as ctx
 from ..logger  import get_logger
 # logger: Any = ctx.get_logger()
-logger = get_logger()
+# logger = get_logger()
 
 
 ##############################################################

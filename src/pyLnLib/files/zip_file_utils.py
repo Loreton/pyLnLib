@@ -19,7 +19,7 @@ from ..logger import get_logger
 sys.dont_write_bytecode = True
 
 C=get_colors()
-logger = get_logger()
+# logger = get_logger()
 
 def ____zipNameList(zip_filename):
     """ check it its a zip file """

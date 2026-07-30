@@ -21,12 +21,14 @@ from .acquire_lock import acquire_lock
 from .ln_run import lnRun
 from .ln_run_stream_class import lnRunStream_Class as lnRunStream
 from .signal_handler import signalHandler
+from .clean_doc import clean_doc
 
 all = [
     acquire_lock,
     lnRun,
     lnRunStream,
     signalHandler,
+    clean_doc,
 ]
 
 
