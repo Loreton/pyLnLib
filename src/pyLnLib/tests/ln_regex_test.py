@@ -88,7 +88,13 @@ def check_replace():
 def searchTerm(data: str):
     words_list=["saprei"]
     words_list=["capito"]
-    occurrencies = regex.search_term(data, terms=words_list, ignore_case=True, normalize_text=True, context_length=100)
+    f_boundary = False
+    occurrencies = regex.search_term(data,
+                                terms=words_list,
+                                ignore_case=True,
+                                normalize_text=True,
+                                context_length=100,
+                                boundary=f_boundary)
     logger.info(    "found occurrencies: %s", len(occurrencies))
     printOccurrences(occurrencies, words_list)
 
@@ -135,8 +141,9 @@ def AND_terms_near(data: str):
     words_list=["saprei", "Successo"]
     words_list=["saprei", "dirvix", "successo", "neanche",  "capito",  "riuscivo", "importanza", "consapevolezza"]
     words_list=["saprei", "successo", "neanche",  "capito",  "riuscivo", "importanza", "consapevolezza"]
+    words_list=["saprei", "successo", "neanche",  "capito",  "riuscivo", "importanza"]
 
-    max_words_between = 1
+    max_words_between = 30
 
     f_any_order: bool = False
     f_boundary = False

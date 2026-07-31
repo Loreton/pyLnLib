@@ -288,8 +288,7 @@ def _build_sequence_pattern(terms: list[str], boundary: bool) -> str:
 ######################################################
 # Builds a regex pattern for near terms search
 ######################################################
-def _build_near_pattern(
-                        terms: list[str],
+def _build_near_words(terms: list[str],
                         max_words_between: int,
                         boundary: bool = True,
                         any_order: bool = False,
@@ -332,6 +331,26 @@ def _build_near_pattern(
 
 
 
+def _build_multi_near_words( terms: list,
+                            max_words_between: int,
+                            ):
+
+
+    # Validazione input
+    if max_words_between < 0:
+        logger.error("Input non valido. Fornire un intero non negativo per la distanza delle words.", exit=True)
+
+
+
+    # Costruisci il pattern come nel tuo codice ma per N parole
+    pattern_parts = [rf'\b{terms[0]}\b']
+    for i in range(1, len(terms)):
+        # Usa \W+ invece di \s+ per essere più flessibile con la punteggiatura
+        pattern_parts.append(rf'\W+(?:\w+\W+){{0,{max_words_between}}}{terms[i]}\b')
+
+    pattern = ''.join(pattern_parts)
+
+    return pattern
 
 
 
@@ -368,10 +387,14 @@ def and_search(source_data: str,
 
     # logger.info("processItems called with:\nnormalize_text=%s\ncontext_length=%s", normalize_text, context_length)
     if max_words_between is not None:
-        pattern = _build_near_pattern(terms=words_list,
-                                    max_words_between=max_words_between,
-                                    any_order=any_order,
-                                    boundary=boundary)
+        if len(words_list) > 2:
+            pattern = _build_multi_near_words(terms=words_list,
+                                        max_words_between=max_words_between)
+        else:
+            pattern = _build_near_words(terms=words_list,
+                                        max_words_between=max_words_between,
+                                        any_order=any_order,
+                                        boundary=boundary)
     elif any_order:
         pattern = _build_lookahead_pattern(terms=words_list, boundary=boundary)
     else:

@@ -1,3 +1,9 @@
+## [0.1.31] - 2026-07-31
+
+## Other
+
+- affinamenti pre regex - (Release 0.1.31)
+
 ## [0.1.29] - 2026-07-30
 
 ## Other

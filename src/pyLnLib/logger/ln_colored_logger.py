@@ -147,7 +147,8 @@ class lnColoredLogger:
         self.name_function: bool = True  # come nome modulo melle module_name.func_name
         self.show_caller = False
         self.setNameLength(dynamic=True, length=0)
-        self.dump_handlers()
+        if False:
+            self.dump_handlers()
 
 
     # metodo di pulizia handlers
