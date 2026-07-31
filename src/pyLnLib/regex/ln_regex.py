@@ -16,7 +16,7 @@ import time
 from _collections_abc import Callable
 # from itertools import permutations
 from functools import wraps
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 
 from pyLnLib import get_logger
 from pyLnLib import clean_doc
@@ -41,9 +41,26 @@ class RegexItems:
     context: str
     match_start: int
     match_end: int
+    matched_string_length: int
 
     ignore_case: bool
 
+    def __str__(self) -> str:
+        return (
+            f"RegexItems[{self.index}]\n"
+            f"  matched_string : {self.matched_string!r}\n"
+            f"  start/end      : {self.start}/{self.end}\n"
+            f"  match_start/end: {self.match_start}/{self.match_end}\n"
+            f"  length         : {self.matched_string_length}\n"
+            f"  context_length : {self.context_length}\n"
+            f"  ignore_case    : {self.ignore_case}\n"
+            f"  context        : {self.context!r}"
+        )
+
+
+    def to_dict(self) -> dict[str, object]:
+        """Converte l'oggetto in un dizionario."""
+        return asdict(self)
 
 # def _escape_term(term: str, boundary: bool) -> str:
 #     term = re.escape(term)
@@ -103,19 +120,32 @@ def _processOccurrencies(p, source_data: str, normalize_text: bool, context_leng
         source_data = source_data.replace('\n', ' ')
         source_data = ' '.join(source_data.split())
 
-    for match in p.finditer(source_data):
-        start, end = match.span()
-        matched_string = match.group()
+    if False: # per comodità, non usato
+        _positions1 = [ (m.start(), m.end()) for m in p.finditer(source_data) ]
+        _positions2 = [ m.span() for m in p.finditer(source_data) ]
+        _matches = [ (m.start(), m.end(), m.group()) for m in p.finditer(source_data) ]
+        #ventuale scan seq
+        for match in p.finditer(source_data):
+            start, end = match.span()
+            matched_string = match.group()
+        #  oppure
+        matches = [ (m.start(), m.end(), m.group()) for m in p.finditer(source_data) ]
+        for start, end, matched_string in matches:
+            ...
 
 
+    matches = [ (m.start(), m.end(), m.group()) for m in p.finditer(source_data) ]
+    for start, end, matched_string in matches:
+
+        matched_string_length = len(matched_string)
         # Estrai il contesto
-        if context_length > 0:
+        if context_length > 0 and matched_string_length <= context_length and matched_string_length < len(source_data):
             start_context = max(0, start - context_length)
             end_context = min(len(source_data), end + context_length)
             context = source_data[start_context:end_context]
         else:
             start_context = 0
-            end_context = len(matched_string)
+            end_context = matched_string_length
             context = matched_string
 
         occurrence = RegexItems(
@@ -128,6 +158,7 @@ def _processOccurrencies(p, source_data: str, normalize_text: bool, context_leng
             context_length=context_length,
             match_start=start - start_context,
             match_end=end - start_context,
+            matched_string_length=matched_string_length,
         )
         # if context_length>0:
         #     occurrence.begin_string = start_context
@@ -179,6 +210,9 @@ def search_term( source_data: str, terms: list[str],
         flags |= re.IGNORECASE
 
     p = re.compile(pattern, flags)
+    # occurrencies = re.findall(pattern, source_data, flags=flags)
+    # logger.debug("found occurrencies: %s", len(occurrencies))
+
 
     return _processOccurrencies(
         p,
@@ -279,14 +313,12 @@ def _build_near_pattern(
         boundary={boundary}"""))
 
     if len(terms) != 2:
-        raise ValueError("NEAR search requires exactly two terms")
+        logger.error(f"NEAR search requires exactly two terms: got {terms}",exit=True, stacklevel=1)
+        # raise ValueError("NEAR search requires exactly two terms")
 
     # wrapper = r"\b{}\b" if boundary else "{}"
     escaped = _escape_terms(terms, boundary)
     term1, term2 = escaped
-
-    # term1 = wrapper.format(re.escape(terms[0]))
-    # term2 = wrapper.format(re.escape(terms[1]))
 
     separator = rf"(?:\W+\w+){{0,{max_words_between}}}\W+"
 
@@ -311,7 +343,7 @@ def _build_near_pattern(
 
 
 
-@this_function_executing_time
+# @this_function_executing_time
 def and_search(source_data: str,
                 words_list: list,
                 normalize_text: bool = False,
@@ -336,7 +368,7 @@ def and_search(source_data: str,
 
     # logger.info("processItems called with:\nnormalize_text=%s\ncontext_length=%s", normalize_text, context_length)
     if max_words_between is not None:
-        pattern = _build_near_pattern(terms=words_list[:2],
+        pattern = _build_near_pattern(terms=words_list,
                                     max_words_between=max_words_between,
                                     any_order=any_order,
                                     boundary=boundary)
@@ -383,7 +415,6 @@ def or_search(source_data: str,
     if normalize_text:
         source_data = source_data.replace('\n', ' ')
         normalize_text=False
-        # source_data = ' '.join(source_data.split())
 
     flags = re.UNICODE | re.IGNORECASE if ignore_case else re.UNICODE
 
@@ -391,7 +422,10 @@ def or_search(source_data: str,
     for term in words_list:
         logger.info("searching for term: %s", term)
         pattern = _build_sequence_pattern(terms=[term], boundary=boundary)
+        # matches = re.findall(pattern, source_data, flags=flags)
         p = re.compile(pattern, flags=flags)
+        positions = [ (m.start(), m.end()) for m in p.finditer(source_data) ]
+        logger.info("   found: %s matches", len(positions))
         result = _processOccurrencies(p,
                 source_data=source_data,
                 normalize_text=normalize_text,

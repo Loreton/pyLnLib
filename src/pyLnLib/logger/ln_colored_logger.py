@@ -702,74 +702,6 @@ def testLogger(logger: Any) -> None:
 my_logger = None
 
 
-# def init_logger(
-#                 name: str = "undefined_logger_name",
-#                 console_logger_level: str = "info",
-#                 file_logger_level: str = "warning",
-#                 logging_dir: str | None = None,
-#                 threads: bool = False,
-#                 test: bool = False,
-#                 temporary: bool = False,
-#             ) -> lnColoredLogger:
-#     """
-#     Inizializza il logger globale usando i dati di context.
-
-#     Args:
-#         project_name: Nome del progetto (usa context se None)
-#         console_level: Livello per console
-#         file_level: Livello per file
-#         log_dir: Directory per i log (usa context se None)
-#         force: Forza la reinizializzazione
-
-#     Returns:
-#         Logger configurato
-#     """
-#     global my_logger
-
-#     # Crea il logger
-#     logger = lnColoredLogger(
-#         name=name,
-#         console_logger_level=console_logger_level,
-#         file_logger_level=file_logger_level,
-#         logging_dir=logging_dir,
-#         threads=threads,
-#     )
-#     if not temporary :
-#         logger.warning("✅ Logger inizializzato")
-#         logger.info("*" * 20)
-#         logger.info("* logger_name:   %s", logger.name)
-#         logger.info("* console level name: %s", logger.getConsoleLoggerLevel())
-#         logger.info("* logging_dir:   %s", logger.logging_dir)
-#         logger.info("* file    level: %s", logger.getFileLoggerLevel())
-#         logger.info("*" * 20)
-
-#     # # Test (opzionale, puoi commentare se non serve)
-#     if test:
-#         testLogger(logger)
-
-#     my_logger = logger
-#     return logger
-
-# # this=sys.modules[__name__]
-# def get_logger_() -> lnColoredLogger:
-#     global my_logger
-#     # Lazy initialization: crea un logger temporaneo se get_logger() viene chiamato
-#     # prima di init_logger(). Questo risolve il problema dell'ordine di importazione
-#     # nei moduli. Quando init_logger() verrà chiamato, sostituirà questo logger
-#     # temporaneo con quello configurato correttamente.
-#     if not my_logger:
-#         my_logger = init_logger(name="TEMPORARY_LOGGER", console_logger_level="warning",temporary=True)
-#         my_logger.warning(
-#             "⚠️ Logger non inizializzato!\nLogger temporaneo {} in attesa di init_logger()...",
-#             my_logger.name,
-#             exit=False,
-#         )
-#     my_logger.warning("my_logger.name: %s", my_logger.name, stacklevel=1    )
-#     return my_logger
-
-
-
-
 def get_logger( name: str="TEMPORARY_LOGGER" ) -> lnColoredLogger:
     """
     Inizializza il logger temporaneo per l'inizializzazione dei moduli.
@@ -792,19 +724,3 @@ def get_logger( name: str="TEMPORARY_LOGGER" ) -> lnColoredLogger:
     # - questa riga per indicare i moduli che la caricano prima di initialize()
     my_logger.warning("my_logger.name: %s", my_logger.name, stacklevel=1    )
     return my_logger
-
-    # if not temporary :
-    #     logger.warning("✅ Logger inizializzato")
-    #     logger.info("*" * 20)
-    #     logger.info("* logger_name:   %s", logger.name)
-    #     logger.info("* console level name: %s", logger.getConsoleLoggerLevel())
-    #     logger.info("* logging_dir:   %s", logger.logging_dir)
-    #     logger.info("* file    level: %s", logger.getFileLoggerLevel())
-    #     logger.info("*" * 20)
-
-    # # # Test (opzionale, puoi commentare se non serve)
-    # if test:
-    #     testLogger(logger)
-
-    # my_logger = logger
-    # return logger

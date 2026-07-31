@@ -18,8 +18,8 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args":[
-                // "--find",
-                "--or-search",
+                "--find",
+                // "--and-search",
             ],
            // "env": {
            //     "PYTHONPATH": "${workspaceFolder}/Source:${workspaceFolder}/Source/lnLib_lnk"
