@@ -17,15 +17,14 @@ if __INIT__PY__DEBUG:
 
 
 # from .dummy_logger   import DummyPrintLogger
-from .ln_colored_logger import lnColoredLogger as lnLogger, testLogger, get_logger, init_logger
+from .ln_colored_logger import lnColoredLogger as lnLogger, testLogger, get_logger
 
 # Definisci cosa esportare quando si fa "from pyLnLib.logger import *"
 __all__ = [
     # 'DummyPrintLogger',
+    'get_logger',
     'lnLogger',
     'testLogger',
-    'get_logger',
-    'init_logger',
 ]
 
 if __INIT__PY__DEBUG:

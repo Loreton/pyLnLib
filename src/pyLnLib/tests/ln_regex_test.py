@@ -338,7 +338,7 @@ def printOccurrences(occurrencies: list, words_list: list):
 
 if __name__ == '__main__':
     # logger = init_logger(name="ln_regex_test", console_logger_level="function", test=False)
-    logger.reconfigure(name="ln_regex_test", console_logger_level="function")
+    logger.initialize(name="ln_regex_test", console_logger_level="function")
     args = ParseInput()
     data: str = get_data()
     mydata = ' '.join(data.split()) ### --- normalize source data

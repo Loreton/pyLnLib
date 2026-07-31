@@ -89,7 +89,7 @@ def this_function_executing_time(func: Callable) -> Callable:
 def _processOccurrencies(p, source_data: str, normalize_text: bool, context_length: int=0, ignore_case: bool=False) -> list[RegexItems]:
 
     # logger = get_logger()
-    print(logger.name)
+    # print(logger.name)
     logger.function(clean_doc(f"""processItems called with:
         compiled_pattern={p}
         normalize_text={normalize_text}
@@ -161,9 +161,9 @@ def search_term( source_data: str, terms: list[str],
     :return: List of RegexItems.
     """
     # logger = get_logger()
-    print(logger.name)
+    # print(logger.name)
         # source_data={source_data}
-    logger.function(clean_doc(f"""processItems called with:
+    logger.function(clean_doc(f"""search_term called with:
         terms={terms}
         normalize_text={normalize_text}
         context_length={context_length}
@@ -223,7 +223,7 @@ def replace(input_string: str, substring: str, replace_string: str, ignore_case:
 ############################################################
 def _build_lookahead_pattern(terms: list[str], boundary: bool) -> str:
 
-    logger = get_logger()
+    # logger = get_logger()
     logger.function(clean_doc(f"""build_lookahead_pattern called with:
         terms={terms}
         boundary={boundary}"""))
@@ -242,7 +242,7 @@ def _build_lookahead_pattern(terms: list[str], boundary: bool) -> str:
 ############################################################
 def _build_sequence_pattern(terms: list[str], boundary: bool) -> str:
 
-    logger = get_logger()
+    # logger = get_logger()
     logger.function(clean_doc(f"""build_sequence_pattern called with:
         terms={terms}
         boundary={boundary}"""))
@@ -271,7 +271,7 @@ def _build_near_pattern(
     :return: Regex pattern string.
     """
 
-    logger = get_logger()
+    # logger = get_logger()
     logger.function(clean_doc(f"""build_near_pattern called with:
         terms={terms}
         max_words_between={max_words_between}
@@ -323,7 +323,7 @@ def and_search(source_data: str,
     """
     Cerca tutte le parole/string nel testo devono seistere.
     """
-    logger=get_logger()
+    # logger=get_logger()
     logger.function(clean_doc(f"""and_search called with:
         words_list={words_list}
         normalize_text={normalize_text}
@@ -370,7 +370,7 @@ def or_search(source_data: str,
     """
     Cerca tutte le parole/string nel testo devono seistere.
     """
-    logger = get_logger()
+    # logger = get_logger()
     logger.function(clean_doc(f"""and_search called with:
         words_list={words_list}
         normalize_text={normalize_text}

@@ -26,7 +26,7 @@ if __INIT__PY__DEBUG == "True":
 # ============================================================
 from .logger.ln_colored_logger import (
                                         lnColoredLogger as lnLogger,
-                                        init_logger,
+                                        # init_logger,
                                         get_logger,
                                         testLogger,
                                     )
@@ -83,7 +83,7 @@ __all__ = [
     # logger
     "lnLogger",
     "get_logger",
-    "init_logger",
+    # "init_logger",
     "testLogger",
 
 
