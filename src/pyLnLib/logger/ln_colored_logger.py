@@ -127,6 +127,36 @@ class lnColoredLogger:
         self.lineno_len = 4
         self.setNameLength(dynamic=True, length=0)
 
+
+
+
+    def reconfigure( self, name: str,
+            console_logger_level: str | None = None,
+            file_logger_level: str = "warning",
+            logging_dir: str | Path | None = None,
+            threads: bool = False,
+        ) -> None:
+
+
+
+
+            self.name = name
+            self.threads_str = "%(threadName)-5.5s." if threads else ""
+            self.logging_dir = Path(logging_dir) if logging_dir else None
+
+            if console_logger_level:
+                self.consoleHandler = self.setConsoleLogger()
+                self.consoleHandler.setLevel( getattr(logging, console_logger_level.upper(), logging.INFO) )
+                self.logger.addHandler(self.consoleHandler)
+
+            if self.logging_dir:
+                self.fileHandler = self.setRotatingLogger()
+                self.fileHandler.setLevel( getattr(logging, file_logger_level.upper(), logging.WARNING) )
+                self.logger.addHandler(self.fileHandler)
+
+            self.setNameLength(dynamic=True, length=0)
+
+
     def add_custom_levels(self) -> None:
         # --- Livello custom NOTIFY ---
         def notify(
@@ -690,7 +720,7 @@ def init_logger(
     global my_logger
 
     # Crea il logger
-    my_logger = lnColoredLogger(
+    logger = lnColoredLogger(
         name=name,
         console_logger_level=console_logger_level,
         file_logger_level=file_logger_level,
@@ -698,23 +728,23 @@ def init_logger(
         threads=threads,
     )
     if not temporary :
-        my_logger.warning("✅ Logger inizializzato")
-        my_logger.info("*" * 20)
-        my_logger.info("* logger_name:   %s", my_logger.name)
-        my_logger.info("* console level name: %s", my_logger.getConsoleLoggerLevel())
-        # my_logger.info("* console level value: %s", my_logger.consoleHandler.level)
-        my_logger.info("* logging_dir:   %s", my_logger.logging_dir)
-        my_logger.info("* file    level: %s", my_logger.getFileLoggerLevel())
-        my_logger.info("*" * 20)
+        logger.warning("✅ Logger inizializzato")
+        logger.info("*" * 20)
+        logger.info("* logger_name:   %s", logger.name)
+        logger.info("* console level name: %s", logger.getConsoleLoggerLevel())
+        # logger.info("* console level value: %s", logger.consoleHandler.level)
+        logger.info("* logging_dir:   %s", logger.logging_dir)
+        logger.info("* file    level: %s", logger.getFileLoggerLevel())
+        logger.info("*" * 20)
 
     # # Test (opzionale, puoi commentare se non serve)
     if test:
-        testLogger(my_logger)
-    # if not temporary :
-        # breakpoint()
-    return my_logger
+        testLogger(logger)
 
+    my_logger = logger
+    return logger
 
+# this=sys.modules[__name__]
 def get_logger() -> lnColoredLogger:
     global my_logger
     # Lazy initialization: crea un logger temporaneo se get_logger() viene chiamato
@@ -722,7 +752,8 @@ def get_logger() -> lnColoredLogger:
     # nei moduli. Quando init_logger() verrà chiamato, sostituirà questo logger
     # temporaneo con quello configurato correttamente.
     #  NON E VERO ho dovuto mettere il get_logger() dentro ogni funzione dei moduli
-    # print("⚠️ Logger non inizializzato! Creazione temporanea in attesa di init_logger()...")
+
+    # my_logger = getattr(this, "logger", None)
     if not my_logger:
         my_logger = init_logger(name="TEMPORARY_LOGGER", console_logger_level="warning",temporary=True)
         my_logger.warning(
@@ -730,5 +761,5 @@ def get_logger() -> lnColoredLogger:
             my_logger.name,
             exit=False,
         )
-    # my_logger.warning("my_logger.getConsoleLoggerLevel(): %s", my_logger.getConsoleLoggerLevel())
+    my_logger.warning("my_logger.name: %s", my_logger.name, stacklevel=1)
     return my_logger

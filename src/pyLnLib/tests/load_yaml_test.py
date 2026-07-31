@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-#
-# updated by ...: Loreto Notarantonio
-# Date .........: 10-05-2026 15.36.19
-#
-
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#
 
-import sys; sys.dont_write_bytecode = True
-import os
+
+import sys
+# ; sys.dont_write_bytecode = True
+# import os
 # import logging
 # from logging.handlers import RotatingFileHandler
 # from typing import Optional

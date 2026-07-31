@@ -4,16 +4,16 @@
 # ruff: noqa: SIM210 - Remove unnecessary `True if ... else False` help: Remove unnecessary `True if ... else False` (Ruff SIM210)
 
 
-from codecs import ignore_errors
-from decimal import MAX_EMAX
-from readline import replace_history_item
+# from codecs import ignore_errors
+# from decimal import MAX_EMAX
+# from readline import replace_history_item
 import sys
 
-from src.pyLnLib.logger.dummy_logger import testLogger
+# from src.pyLnLib.logger.dummy_logger import testLogger
 sys.dont_write_bytecode = True
 
-import json
-from pathlib import Path
+# import json
+# from pathlib import Path
 
 
 
@@ -22,11 +22,12 @@ from pathlib import Path
 
 
 
-from pyLnLib.logger import init_logger
+from pyLnLib.logger import get_logger
 # from pyLnLib.regex import multi_near_words
 from pyLnLib import regex
 from pyLnLib.colors import get_colors
 C = get_colors()
+logger = get_logger()
 
 
 # ----------------------------
@@ -104,6 +105,7 @@ def ParseInput() -> argparse.Namespace:
         operators_group.add_argument('--and-anywhere',    action='store_true', default=False, help=f'{C.cyan}search words in all text{C.reset}')
         operators_group.add_argument('--or-search',     action='store_true', default=False, help=f'{C.cyan}or several words{C.reset}')
         operators_group.add_argument('--replace',     action='store_true', default=False, help=f'{C.cyan}replace string{C.reset}')
+        operators_group.add_argument('--find',     action='store_true', default=False, help=f'{C.cyan}find all occurrences{C.reset}')
 
     # wd_required = True if '--near' in sys.argv else False
     # flags.add_argument('--words-dist',  type=int, nargs=2, metavar='', default=[], required=wd_required,
@@ -215,7 +217,7 @@ def ParseInput() -> argparse.Namespace:
 ####################################################
 #
 ####################################################
-def check_AND_search(data: str):
+def AND_terms(data: str):
     words_list=["saprei", "dirvi", "successo", "neanche",  "capito",  "riuscivo", "importanza"]
     words_list=["saprei", "dirvi"]
     words_list=["saprei"]
@@ -246,7 +248,7 @@ def check_AND_search(data: str):
 ####################################################
 #
 ####################################################
-def check_OR_search(data: str):
+def OR_terms(data: str):
     words_list=["saprei", "dirvi"]
     words_list=["saprei", "successo"]
     words_list=["saprei", "dirvi", "successo", "neanche",  "capito",  "riuscivo", "importanza", "mortificata"]
@@ -255,8 +257,8 @@ def check_OR_search(data: str):
     words_list=["saprei", "capito"]
     words_list=["saprei", "dirvi", "successo", "neanche",  "capito",  "riuscivo", "importanza"]
 
-    f_boundary = True
     f_boundary = False
+    f_boundary = True
 
     occurrencies = regex.or_search( source_data=data,
                                     words_list=words_list,
@@ -304,6 +306,13 @@ def check_replace():
     logger.info(result)
 
 
+def searchTerm(data: str):
+    words_list=["saprei"]
+    words_list=["capito"]
+    occurrencies = regex.search_term(data, terms=words_list, ignore_case=True, normalize_text=True, context_length=100)
+    logger.info(    "found occurrencies: %s", len(occurrencies))
+    printOccurrences(occurrencies, words_list)
+
 
 def printOccurrences(occurrencies: list, words_list: list):
     logger.info("found occurrencies: %s", len(occurrencies))
@@ -311,24 +320,39 @@ def printOccurrences(occurrencies: list, words_list: list):
         logger.info("words to find: \n%s", words_list)
         for item in occurrencies:
             content = item.context
+            content = (
+                content[:item.match_start]
+                + C.yellowH
+                + content[item.match_start:item.match_end]
+                + C.reset
+                + content[item.match_end:]
+            )
+            '''
             for word in words_list:
                 content = regex.replace(content, word, f"{C.yellowH}{word}{C.reset}", ignore_case=True)
+            '''
             logger.info("content[:500]: %s ...", content[:500])
     else:
         logger.info("non trovate")
     logger.info("found occurrencies: %s", len(occurrencies))
 
 if __name__ == '__main__':
-    logger = init_logger(console_logger_level="function", test=False)
+    # logger = init_logger(name="ln_regex_test", console_logger_level="function", test=False)
+    logger.reconfigure(name="ln_regex_test", console_logger_level="function")
     args = ParseInput()
     data: str = get_data()
     mydata = ' '.join(data.split()) ### --- normalize source data
 
     if args.replace:
         check_replace()
+
+    elif args.find:
+        searchTerm(data)
+
     elif args.and_search:
-        check_AND_search(data)
+        AND_terms(data)
+
     elif args.or_search:
-        check_OR_search(data)
+        OR_terms(data)
 
     sys.exit("Temporary exit")

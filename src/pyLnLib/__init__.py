@@ -74,7 +74,7 @@ from .system.signal_handler import signalHandler
 from .system.clean_doc import clean_doc
 
 
-from .regex.ln_regex import replace, and_search, or_search
+from .regex.ln_regex import replace, and_search, or_search, search_term
 
 # ============================================================
 # ESPORTAZIONE PER `from pyLnLib import *`
@@ -113,6 +113,7 @@ __all__ = [
     "and_search",
     "or_search",
     "replace",
+    "search_term",
     # "multi_near_words",
     # "multi_near_words_any_order",
     # "search_anywhere",

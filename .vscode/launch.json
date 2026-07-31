@@ -1,0 +1,29 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    // "envfile": "${workspaceFolder}/.env",
+    "env": {
+        // "PYTHONPATH": "${workspaceFolder}/Source:${workspaceFolder}/Source/lnLib_lnk:${workspaceFolder}/Source/projectModules"
+    },
+    "configurations": [
+        {
+            "name": "test_regex",
+            "type": "debugpy",
+            "request": "launch",
+            "stopOnEntry": true,
+            "program": "src/pyLnLib/tests/ln_regex_test.py", // non funziona su zip program
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args":[
+                // "--find",
+                "--or-search",
+            ],
+           // "env": {
+           //     "PYTHONPATH": "${workspaceFolder}/Source:${workspaceFolder}/Source/lnLib_lnk"
+           //  },
+        },
+    ]
+}

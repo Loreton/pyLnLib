@@ -8,6 +8,7 @@
 
 import sys
 
+
 sys.dont_write_bytecode = True
 
 import re
@@ -21,19 +22,40 @@ from pyLnLib import get_logger
 from pyLnLib import clean_doc
 # logger = None
 # breakpoint()
-# logger = get_logger()
+logger = get_logger()
 # print(logger.getConsoleLoggerLevel())
 
+
+# this=sys.modules[__name__]
+# this.logger = logger
 
 @dataclass(slots=True, frozen=True)
 class RegexItems:
     index: int
     matched_string: str
+
     start: int
     end: int
+
+    context_length: int
     context: str
+    match_start: int
+    match_end: int
+
     ignore_case: bool
-    # found_matched_string: list[str]
+
+
+# def _escape_term(term: str, boundary: bool) -> str:
+#     term = re.escape(term)
+#     return rf"\b{term}\b" if boundary else term
+
+def _escape_terms(terms: list[str], boundary: bool) -> list[str]:
+    """
+    Escape a list of terms and optionally wrap them with word boundaries.
+    """
+    wrapper = r"\b{}\b" if boundary else "{}"
+
+    return [ wrapper.format(re.escape(term)) for term in terms ]
 
 
 def this_function_executing_time(func: Callable) -> Callable:
@@ -43,7 +65,7 @@ def this_function_executing_time(func: Callable) -> Callable:
     """
     @wraps(func)
     def wrapper(*args, **kwargs):
-        logger = get_logger()
+        # logger = get_logger()
         start = time.perf_counter()
         try:
             result = func(*args, **kwargs)
@@ -59,6 +81,112 @@ def this_function_executing_time(func: Callable) -> Callable:
             )
 
     return wrapper
+
+
+#################################
+#
+#################################
+def _processOccurrencies(p, source_data: str, normalize_text: bool, context_length: int=0, ignore_case: bool=False) -> list[RegexItems]:
+
+    # logger = get_logger()
+    print(logger.name)
+    logger.function(clean_doc(f"""processItems called with:
+        compiled_pattern={p}
+        normalize_text={normalize_text}
+        context_length={context_length}
+        ignore_case={ignore_case}"""))
+
+    occurrencies = []
+
+    # Normalizza il testo
+    if normalize_text:
+        source_data = source_data.replace('\n', ' ')
+        source_data = ' '.join(source_data.split())
+
+    for match in p.finditer(source_data):
+        start, end = match.span()
+        matched_string = match.group()
+
+
+        # Estrai il contesto
+        if context_length > 0:
+            start_context = max(0, start - context_length)
+            end_context = min(len(source_data), end + context_length)
+            context = source_data[start_context:end_context]
+        else:
+            start_context = 0
+            end_context = len(matched_string)
+            context = matched_string
+
+        occurrence = RegexItems(
+            index=len(occurrencies),
+            matched_string=matched_string,
+            start=start,
+            end=end,
+            context=context,
+            ignore_case=ignore_case,
+            context_length=context_length,
+            match_start=start - start_context,
+            match_end=end - start_context,
+        )
+        # if context_length>0:
+        #     occurrence.begin_string = start_context
+        #     occurrence.len_string = end_context - start_context
+
+        # breakpoint()
+        occurrencies.append(occurrence)
+
+    return occurrencies
+
+#################################
+#
+#################################
+# @this_function_executing_time
+def search_term( source_data: str, terms: list[str],
+                *,
+                boundary: bool = True,
+                normalize_text: bool = False,
+                ignore_case: bool = True,
+                context_length: int = 0,
+            ) -> list[RegexItems]:
+    """
+    Search a single word/string in the source text.
+
+    :param source_data: Source text.
+    :param term: Word or string to search.
+    :param boundary: If True, match whole words only.
+    :param normalize_text: Normalize whitespace before searching.
+    :param ignore_case: Case-insensitive search.
+    :param context_length: Number of surrounding characters to include.
+    :return: List of RegexItems.
+    """
+    # logger = get_logger()
+    print(logger.name)
+        # source_data={source_data}
+    logger.function(clean_doc(f"""processItems called with:
+        terms={terms}
+        normalize_text={normalize_text}
+        context_length={context_length}
+        ignore_case={ignore_case}"""))
+
+    if len(terms) != 1:
+        raise ValueError("search_term() requires exactly one search term")
+
+    pattern = _escape_terms(terms, boundary)[0]
+
+    flags = re.UNICODE
+    if ignore_case:
+        flags |= re.IGNORECASE
+
+    p = re.compile(pattern, flags)
+
+    return _processOccurrencies(
+        p,
+        source_data=source_data,
+        normalize_text=normalize_text,
+        context_length=context_length,
+        ignore_case=ignore_case,
+    )
 
 
 
@@ -86,50 +214,6 @@ def replace(input_string: str, substring: str, replace_string: str, ignore_case:
 
 
 
-#################################
-#
-#################################
-def _processItems(p, source_data: str, normalize_text: bool, context_length: int=0, ignore_case: bool=False) -> list[RegexItems]:
-
-    logger = get_logger()
-    logger.debug(clean_doc(f"""processItems called with:
-        normalize_text={normalize_text}
-        context_length={context_length}
-        ignore_case={ignore_case}"""))
-
-    occurrencies = []
-
-    # Normalizza il testo
-    if normalize_text:
-        source_data = source_data.replace('\n', ' ')
-        source_data = ' '.join(source_data.split())
-
-    for match in p.finditer(source_data):
-        start, end = match.span()
-        matched_string = match.group()
-
-        # Estrai il contesto
-        if context_length > 0:
-            start_context = max(0, start - context_length)
-            end_context = min(len(source_data), end + context_length)
-            context = source_data[start_context:end_context]
-        else:
-            context = matched_string
-
-        occurrence = RegexItems(
-            index=len(occurrencies),
-            matched_string=matched_string,
-            start=start,
-            end=end,
-            context=context,
-            ignore_case=ignore_case
-        )
-
-        # breakpoint()
-        occurrencies.append(occurrence)
-
-    return occurrencies
-
 ############################################################
 # Builds a regex pattern from a list of terms with optional boundary matching
 # Search words in any order
@@ -140,19 +224,13 @@ def _processItems(p, source_data: str, normalize_text: bool, context_length: int
 def _build_lookahead_pattern(terms: list[str], boundary: bool) -> str:
 
     logger = get_logger()
-    logger.debug(clean_doc(f"""build_lookahead_pattern called with:
+    logger.function(clean_doc(f"""build_lookahead_pattern called with:
         terms={terms}
         boundary={boundary}"""))
 
-    wrapper = r"\b{}\b" if boundary else "{}"
 
-    return (
-        "".join(
-            rf"(?=.*{wrapper.format(re.escape(term))})"
-            for term in terms
-        )
-        + r".*"
-    )
+    escaped = _escape_terms(terms, boundary)
+    return "".join( rf"(?=.*{term})" for term in escaped ) + ".*"
 
 
 ############################################################
@@ -165,17 +243,12 @@ def _build_lookahead_pattern(terms: list[str], boundary: bool) -> str:
 def _build_sequence_pattern(terms: list[str], boundary: bool) -> str:
 
     logger = get_logger()
-    logger.debug(clean_doc(f"""build_sequence_pattern called with:
+    logger.function(clean_doc(f"""build_sequence_pattern called with:
         terms={terms}
         boundary={boundary}"""))
 
-    wrapper = r"\b{}\b" if boundary else "{}"
-
-    return ".*".join(
-        wrapper.format(re.escape(term))
-        for term in terms
-    )
-
+    escaped = _escape_terms(terms, boundary)
+    return ".*".join(escaped)
 
 
 ######################################################
@@ -208,10 +281,12 @@ def _build_near_pattern(
     if len(terms) != 2:
         raise ValueError("NEAR search requires exactly two terms")
 
-    wrapper = r"\b{}\b" if boundary else "{}"
+    # wrapper = r"\b{}\b" if boundary else "{}"
+    escaped = _escape_terms(terms, boundary)
+    term1, term2 = escaped
 
-    term1 = wrapper.format(re.escape(terms[0]))
-    term2 = wrapper.format(re.escape(terms[1]))
+    # term1 = wrapper.format(re.escape(terms[0]))
+    # term2 = wrapper.format(re.escape(terms[1]))
 
     separator = rf"(?:\W+\w+){{0,{max_words_between}}}\W+"
 
@@ -273,11 +348,16 @@ def and_search(source_data: str,
 
     flags = re.UNICODE | re.IGNORECASE if ignore_case else re.UNICODE
     p = re.compile(pattern, flags=flags)
-    return _processItems(p,
+    return _processOccurrencies(p,
         source_data=source_data,
         normalize_text=normalize_text,
         context_length=context_length,
         ignore_case=ignore_case)
+
+
+
+
+
 
 
 # @this_function_executing_time
@@ -312,7 +392,7 @@ def or_search(source_data: str,
         logger.info("searching for term: %s", term)
         pattern = _build_sequence_pattern(terms=[term], boundary=boundary)
         p = re.compile(pattern, flags=flags)
-        result = _processItems(p,
+        result = _processOccurrencies(p,
                 source_data=source_data,
                 normalize_text=normalize_text,
                 context_length=context_length,

@@ -21,7 +21,7 @@ from ..logger import get_logger
 from .zip_file_utils import searchFileInZip
 
 C=get_colors()
-# logger=get_logger()
+logger=get_logger()
 
 
 def findFile(root: str, filename: str):
