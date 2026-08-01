@@ -467,6 +467,7 @@ class lnColoredLogger:
                         **kwargs: Any,
                     ) -> None:
         extra = kwargs["extra"]
+
         try:
             trim_line = extra.get("trim_line", False)
             msg_dry_run = extra["msg_dry_run"]
@@ -500,11 +501,14 @@ class lnColoredLogger:
                     if trim_line:
                         line = line.strip()
                     line = f"\t{line}" if line else ""
+
                     extra["msg_color"] = C.logger_second_line
                 else:
                     if len(lines) > 1:
                         extra["msg_color"] = C.logger_first_line
 
+                if level_value in [logging.ERROR, logging.CRITICAL]:
+                    extra["msg_color"] = extra["level_color"]
 
                 if line:  # Logga solo se non vuota
                     if C.reset in line:
@@ -555,7 +559,9 @@ class lnColoredLogger:
         # ----------------------
         # - override colors
         # ----------------------
-        if color:
+
+
+        if color and level_name not in ["ERROR", "EXCEPTION", "CRITICAL"]:
             msg_color = color
             level_color = color
         elif dry_run:
@@ -617,8 +623,8 @@ class lnColoredLogger:
             return
 
         ### ok processiamo la linea
-        if isinstance(msg, list):
             # convert in string with '\n' on each item and the index of each item
+        if isinstance(msg, list):
             msg = f"list items ({len(msg)}):\n" + "\n".join(f"{i+1}. {item}" for i, item in enumerate(msg))
 
         kwargs = self._prepare_for_logging( level_name, msg, *args, color=color, **kwargs )
@@ -648,8 +654,8 @@ class lnColoredLogger:
     def critical( self, msg: str|list, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
         self._log_multiline("CRITICAL", msg, *args, color=color, **kwargs)
 
-    def exception( self, msg: str|list, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
-        self._log_multiline("ERROR", msg, *args, exc_info=True, exit=True, **kwargs)
+    # def exception( self, msg: str|list, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
+    #     self._log_multiline("ERROR", msg, *args, exc_info=True, exit=True, **kwargs) da una riga dirrore:  NoneType: None
 
     def notify( self, msg: str|list, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
         self._log_multiline("NOTIFY", msg, *args, color=color, **kwargs)

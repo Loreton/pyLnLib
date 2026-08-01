@@ -55,10 +55,10 @@ def function_executing_time(func):
 
 def get_data() -> str:
     content: str = """
-        \n \n \n \n \n \n \n \n \n \n \n \n \n 2434 \n \n
+        \n 2434 \n \n
         \n Questo romanzo è un’opera di fantasia. Tutti i nomi, i personaggi, i luoghi \n e gli avvenimenti descritti sono frutto dell’immaginazione dell’autrice o sono usati \n in maniera fittizia. Qualunque analogia con società, \n fatti, luoghi o persone reali, esistenti o esistite, è puramente casuale e non voluta dall’autrice. \n \n Titolo originale:   ’ Til Death \n Copyright © 2014 Bella Jewel \n All rights reserved \n \n Traduzione dalla lingua inglese di Francesca Noto \n Prima edizione ebook: novembre 2019 \n © 2019 Newton Compton editori s.r.l., Roma \n \n ISBN 978-88-227-3856-1 \n \n www.newtoncompton.com \n \n Edizione elettronica realizzata da Manuela Carrara per   Corpotre, Roma \n \n
         \n \n \n Bella Jewel \n Amami fino alla fine \n \n \n \n \n Newton Compton editori \n \n
-    \n    Indice\r\n   \n \n Copertina \n \n \n Logo \n \n \n Colophon \n \n \n Frontespizio \n \n \n Dedica \n \n \n \n \n \n Prologo \n \n \n Capitolo 1 \n \n \n Capitolo 2 \n \n \n Capitolo 3 \n \n \n Capitolo 4 \n \n \n Capitolo 5 \n \n \n Capitolo 6 \n \n \n Capitolo 7 \n \n \n Capitolo 8 \n \n \n Capitolo 9 \n \n \n Capitolo 10 \n \n \n Capitolo 11 \n \n \n Capitolo 12 \n \n \n Capitolo 13 \n \n \n Capitolo 14 \n \n \n Capitolo 15 \n \n \n Capitolo 16 \n \n \n Capitolo 17 \n \n \n Capitolo 18 \n \n \n Capitolo 19 \n \n \n Capitolo 20 \n \n \n Capitolo 21 \n \n \n Capitolo 22 \n \n \n Capitolo 23 \n \n \n Capitolo 24 \n \n \n Capitolo 25 \n \n \n Capitolo 26 \n \n \n Capitolo 27 \n \n \n Capitolo 28 \n \n \n Capitolo 29 \n \n \n Capitolo 30 \n \n \n \n \n \n Ringraziamenti \n \n
+    \n    Indice\r\n   \n \n Copertina \n \n \n Logo \n \n \n Colophon \n \n \n Frontespizio \n \n \n Dedica \n \n \n \n \n \n Prologo \n \n \n Capitolo 1 \n \n \n Capitolo 2 \n \n \n Capitolo 3 \n \n \n Capitolo 4 \n \n \n Capitolo 5 \n \n \n Capitolo 6 \n \n \n Capitolo 7 \n \n \n Capitolo 8 \n \n \n Capitolo 9 \n \n \n Capitolo 10 \n \n \n Capitolo 11 \n \n \n Capitolo 12 \n \n \n Capitolo 13 \n \n \n Capitolo 14 \n \n \n Capitolo 15 \n \n \n Capitolo 16 \n \n \n Capitolo 17 \n \n \n Capitolo 18 \n \n \n Capitolo 19 \n \n \n Capitolo 20 \n \n \n Capitolo 21 \n \n Capitolo 25 \n \n \n Capitolo 26 \n \n  \n \n Capitolo 29 \n \n \n Capitolo 30 \n \n \n \n \n \n Ringraziamenti \n \n
         \n Questo libro è dedicato a tutte le belle il cui cuore è stato distrutto da una bestia. \n \n \n \n \n \n \n Nota \n Vi prego di ricordare che questa è un’opera di fantasia, e io, come autrice, non credo in alcun modo che  possa accadere  nella vita reale. Niente di quello che leggete è ispirato a fatti realmente accaduti. \n \n \n
         Prologo \n Katia \n Lasciate che vi racconti una storia. È una di quelle storie che vi scatenerà dentro un odio tale da bruciarvi l’anima. Potrebbe perfino farvi odiare me. In fondo, io ho sposato  lui . \n Lui sarebbe Marcus. \n L’uomo che è entrato nella mia vita come un uragano e ha sconvolto il mio mondo, rovesciandolo. L’uomo che amo così tanto da sapere che mi segnerà in modo irreversibile. È un uomo che distrugge la vita di chi incontra, ma la rende al tempo stesso bellissima. Il mio Marcus cambierà anche il vostro mondo, se glielo permetterete. \n E glielo permetterete, perché è così che funziona, con lui. \n Lo amo in modo profondo e sbagliato. Lo so perché, per quanto il mio cuore mi gridi che è sbagliato, non riesco a stare lontana da lui. Marcus è duro, cupo, per niente dolce e gentile, ma quando è dentro di me, io lo sento. Sento tutto quello che si rifiuta di farmi vedere. Ed è incredibile. Ed è così che si è insinuato in me e ci è rimasto. \n Quella che è iniziata come la storia di una notte si è presto trasformata in tutta la mia esistenza. Non saprei dirvi come sia successo, e neanche perché, ho solo capito che non riuscivo più a fare a meno di lui. Non aveva importanza quello che faceva. Prima che potessi davvero razionalizzare quella scelta, l’avevo sposato. Una settimana dopo, sono andata a vivere da lui. Tutte le persone intorno a me erano felici. Tranne forse Marcus. Lui era rimasto il solito, impassibile e intenso, così profondo da non farmi entrare. \n Dicono che il corpo riesce ad avvertirti, quando qualcosa diventa pericoloso, che inizia a vibrare per la consapevolezza. E hanno ragione. Io l’ho sentito; ho avvertito il cambiamento, e ho capito, nel momento in cui sono entrata nel mondo di Marcus, che lui mi avrebbe strappato via l’anima e con tutta probabilità l’avrebbe distrutta. Mi sono innamorata di un uomo di cui quasi nessuna donna si innamorerebbe, perché  puzza  di cuori spezzati e sofferenze lontano un miglio. Non è il tipo da cuori e fiori, non ti abbraccia con affetto, non ti chiama con nomignoli dolci, né ti fa sentire  come se fossi  l’unico motivo per cui respira. \n Nell’accettarlo, sono diventata la ragazza di cui parlano tutti,  sapete quale . Quella che ti fa scuotere la testa, domandandoti perché resti al fianco di quell’uomo, e perché sia lì, tanto per cominciare. Come può essere così stupida? Cosa può mai vedere in uno stronzo come quello? Ecco, quella sono io. Anche se all’inizio non me ne sono resa conto. Mi sono innamorata del diavolo. Non lo sapevo,  a quel  tempo, e anche se l’avessi saputo, non posso dire con certezza che avrei fatto scelte diverse. Mi ci è voluto tempo per capire chi fosse davvero Marcus; per capire che il mio amore non era ricambiato. \n Ma era questo, capite? Amore. Profondo e sconvolgente, un amore di cui non riuscivo a liberarmi. \n Mi ha consumato. Ha preso il mio cuore nelle sue mani e continua a possederlo. \n Non riesco in alcun modo a stare lontana da lui. \n La Katia che sono adesso scomparirà in un mondo di sofferenze e bugie. Non esisterà più. Lui mi prenderà e farà a pezzi il mio mondo finché  smetterà di essere  bello  e diventerà  orribile. Così orribile da seppellirmi. So bene che forse non uscirò da questa storia illesa. \n Ma sto andando troppo avanti. Devo cominciare dall’inizio. \n \n \n \n \n
         Capitolo 1 \n Allora \n Marcus \n Le mie dita tamburellano contro la scrivania di legno scuro di pino, mentre osservo l’avvocato dalla calvizie incipiente e dall’aria acida  che legge  il testamento di mio nonno. Un testamento che mi hanno chiamato ad ascoltare. Il vecchio bastardo mi odiava, ma a quanto pare ha deciso comunque di includermi nel suo prezioso testamento, che sta mandando al manicomio la famiglia. Tutti ne vogliono un pezzo. \n «Signor Tandem, grazie per essere venuto, oggi». \n Niente nella mia espressione cambia, mentre l’avvocato parla in tono basso e professionale. Alza gli occhi  per  guardarmi, quando non rispondo, imbronciando le labbra e osservandomi da capo a piedi. \n «Possiamo procedere?», domando, spostandomi sulla sedia. «Ho da fare». \n Lui si schiarisce la gola. «Certamente. Immagino che abbia già capito perché si trova qui, oggi». \n «A dire il vero», rispondo con freddezza, incrociando le braccia sul petto. «Non ne ho idea». \n «Ebbene, come di sicuro sa, suo nonno è di recente venuto a mancare.  Da quello che ho inteso, lei lo ha aiutato a gestire gli affari, negli ultimi dieci anni». \n «L’ho fatto da solo», puntualizzo. «Quel vecchio bastardo non ha fatto altro che starsene con le mani in mano e far lavorare gli altri al suo posto. E ora è morto e l’unica cosa che interessa a tutti quanti è ottenere un pezzo di quello che potrebbe essersi lasciato alle spalle». \n «In ogni caso, ha lasciato precise istruzioni per la sua impresa,  in caso di decesso. Ed è per questo che l’ho fatta chiamare qui». \n «Si sbrighi», scatto, stringendo gli occhi e fissandolo con astio. \n «Molto bene. Suo nonno ha stabilito che la sua impresa passasse a lei.  Lei è l’unico suo discendente diretto, dal decesso di suo padre, perciò l’unico a cui lui abbia voluto lasciare la sua impresa». \n Be’, il vecchio è servito a qualcosa, almeno. Non che non me l’aspettassi, del resto: sono coinvolto nei suoi affari da tanto tempo. I miei fratellastri non sono mai stati niente, per lui, quindi resto soltanto io. \n «D’accordo. Del resto, sto già gestendo i suoi affari, quindi non vedo cosa dovrebbe cambiare». \n «C’è qualcos’altro», risponde l’avvocato, allentandosi la cravatta come se fosse di colpo troppo stretta. «Ha stabilito con molta chiarezza che c’è una condizione da rispettare, perché  lei possa essere a capo della sua impresa. Se vuole diventarlo, deve essere...». \n «Cosa?», sbotto. \n «Sposato, signore». \n Prego? \n Lo guardo fisso, aspettando che scoppi a ridere e mi dica che era solo uno scherzo, ma la sua espressione resta impassibile. \n «Mi sta prendendo per i fondelli», sbuffo. «Deve aver capito male». \n «Nel testamento viene chiaramente espresso che, finché lei non sarà sposato, l’impresa resterà in mano al suo più caro amico, Walter Johnson. Lei manterrà la sua posizione, ma non potrà  ereditare le finanze e la gestione della compagnia». \n Fottuto Walter, quello stronzo calcolatore. Manderà tutto a puttane prima che io possa fare qualsiasi cosa. È già il presidente e mi fa sgobbare come un disperato, e di sicuro si aggrapperà al suo posto come una piattola, se non faccio qualcosa. In fondo, ora sta nuotando nell’oro. Io sono l’unico che tiene davvero alla compagnia.  L’unico, cazzo . È la mia vita e la mia salvezza; lo è stata da quando avevo vent’anni, e il mio attuale stile di vita si basa su questo lavoro. \n In tono basso e roco, mormoro: «È proprio sicuro che dica che debba sposarmi?» \n «Sì, signore, ne sono sicuro. Ha dodici mesi di tempo per farlo, prima che la compagnia   passi  a Walter». \n Cazzo. \n Io adoro le donne. Tutte le donne. Ma non mi piace che mi stiano intorno. Se vogliono una storia seria, non devono guardare me.  Nono sono mai andato a letto con la stessa donna per più di una volta, fatta una sola eccezione, ed è stato esclusivamente per convenienza . L’amore non fa per uomini come me. Non ho né il tempo, né l’interesse per pensarci. L’amore è per i deboli. Le donne sono troppo difficili e io sono troppo stronzo. Non lo nascondo e non fingo altrimenti. Ho visto dov’è che le relazioni crollano, e non voglio finire in situazioni simili. \n «C i sono altre disgrazie che deve comunicarmi?», domando, a denti stretti. \n Gli occhi dell’avvocato hanno un guizzo, poi deglutisce. «Ci sono delle condizioni. Non può sposarsi per divorziare subito dopo. Deve restare sposato per almeno due anni. Se dovesse divorziare prima, la compagnia andrebbe a Walter». \n Ma stiamo scherzando? \n Che malato figlio di puttana. \n Lo sapeva... sapeva  benissimo  che questa era l’unica cosa che poteva mettermi in difficoltà. Era un uomo crudele e deviato da vivo, e a quanto pare ha continuato a esserlo anche da morto. Mi sta mettendo alla prova, mi sta spingendo al limite, come ha sempre fatto. E così, dovrò decidere se mollare, perdendo tutto quello per cui ho lavorato negli ultimi dieci anni, oppure lottare per ottenere ciò che è sempre stato mio. Questa compagnia è la mia vita, e quel maledetto bastardo lo sapeva. \n «C’è altro?», ringhio, digrignando i denti. \n «Un’ultima cosa, signore. Se si dovesse scoprire che lei... ah...», deglutisce, «...ha pagato per avere una moglie, anche questo basterebbe a far andare la compagnia a Walter. La donna in questione deve sposarla di sua spontanea volontà e vivere con lei  dopo il matrimonio». \n Che pezzo di merda . Mi conosceva meglio di quanto pensassi. Sapeva che il mio primo pensiero sarebbe stato quello di cercare una stupida da pagare per sposarmi. Stringo i denti e sento il petto riempirsi di rabbia. Riesco già a immaginare la faccia di Walter se la compagnia venisse consegnata a lui. Mi ha sempre odiato. No, non gli permetterò di vincere. \n Maledetto vecchio. Erano anni che voleva che mi accasassi,  ha sempre odiato  il mio stile di vita da celibe. Spesso mi diceva che anche se non volevo, per gestire una compagnia e avere un nome rispettato nella società avrei dovuto fare buon viso a cattivo gioco e sposarmi. Lui si era sposato a vent’anni con una stronza che è morta un paio d’anni fa. E anche dopo la sua dipartita, lui ha continuato a fingere di aver avuto un matrimonio perfetto. Non mi sorprende che sia arrivato a questo per assicurarsi che mi incastrassi anch’io con una donna. \n «Molto bene», affermo, alzandomi in piedi. «Vedrò di sbrigarmi a risolvere questa faccenda». \n L’avvocato mi rivolge un’occhiata carica di disgusto. «E come pensa di fare?». \n Gli sorrido, sornione. «Semplice. Troverò una moglie». \n \n \n \n \n
@@ -86,48 +86,16 @@ def check_replace():
 
 
 def searchTerm(data: str):
-    words_list=["saprei"]
-    words_list=["capito"]
-    f_boundary = False
     occurrencies = regex.search_term(data,
-                                terms=words_list,
-                                ignore_case=True,
-                                normalize_text=True,
-                                context_length=100,
-                                boundary=f_boundary)
+                                terms=args.terms,
+                                ignore_case=args.ignore_case,
+                                normalize_text=args.normalize_text,
+                                context_length=args.context_length,
+                                boundary=args.boundary)
     logger.info(    "found occurrencies: %s", len(occurrencies))
-    printOccurrences(occurrencies, words_list)
+    printOccurrences(occurrencies, args.terms)
 
 
-
-####################################################
-#
-####################################################
-def AND_terms(data: str):
-    words_list=["saprei"]
-    words_list=["saprei", "dirvi"]
-    words_list=["saprei", "Successo"]
-    words_list=["saprei", "dirvi", "successo", "neanche",  "capito",  "riuscivo", "importanza", "consapevolezza"]
-
-    max_words_between = None
-
-    f_any_order: bool = False
-    f_boundary = False
-    f_boundary = True
-
-    if f_any_order:
-        import random
-        random.shuffle(words_list)
-
-    occurrencies = regex.and_search( source_data=data,
-                                    words_list=words_list,
-                                    max_words_between=max_words_between,
-                                    normalize_text=True,
-                                    ignore_case=True,
-                                    any_order=f_any_order,
-                                    context_length=100,
-                                    boundary=f_boundary)
-    printOccurrences(occurrencies, words_list)
 
 
 
@@ -135,33 +103,16 @@ def AND_terms(data: str):
 ####################################################
 # solo due parole
 ####################################################
-def AND_terms_near(data: str):
-    words_list=["saprei"]
-    words_list=["saprei", "dirvi"]
-    words_list=["saprei", "Successo"]
-    words_list=["saprei", "dirvix", "successo", "neanche",  "capito",  "riuscivo", "importanza", "consapevolezza"]
-    words_list=["saprei", "successo", "neanche",  "capito",  "riuscivo", "importanza", "consapevolezza"]
-    words_list=["saprei", "successo", "neanche",  "capito",  "riuscivo", "importanza"]
-
-    max_words_between = 30
-
-    f_any_order: bool = False
-    f_boundary = False
-    f_boundary = True
-
-    if f_any_order:
-        import random
-        random.shuffle(words_list)
-
+def AND_terms(data: str):
     occurrencies = regex.and_search(source_data=data,
-                                    words_list=words_list,
-                                    max_words_between=max_words_between,
-                                    normalize_text=True,
-                                    ignore_case=True,
-                                    any_order=f_any_order,
-                                    context_length=100,
-                                    boundary=f_boundary)
-    printOccurrences(occurrencies, words_list)
+                                    words_list=args.terms,
+                                    max_words_between=args.max_words_between,
+                                    normalize_text=args.normalize_text,
+                                    ignore_case=args.ignore_case,
+                                    any_order=args.any_order,
+                                    context_length=args.context_length,
+                                    boundary=args.boundary)
+    printOccurrences(occurrencies, args.terms)
 
 
 
@@ -169,31 +120,20 @@ def AND_terms_near(data: str):
 #
 ####################################################
 def OR_terms(data: str):
-    words_list=["saprei", "dirvi"]
-    words_list=["saprei", "successo"]
-    words_list=["saprei", "dirvi", "successo", "neanche",  "capito",  "riuscivo", "importanza", "mortificata"]
-    words_list=["capito"]
-    words_list=["saprei"]
-    words_list=["saprei", "capito"]
-    words_list=["saprei", "dirvi", "successo", "neanche",  "capito",  "riuscivo", "importanza", "consapevolezza"]
-
-    f_boundary = False
-    f_boundary = True
-
     occurrencies = regex.or_search( source_data=data,
-                                    words_list=words_list,
-                                    normalize_text=True,
-                                    ignore_case=True,
-                                    context_length=100,
-                                    boundary=f_boundary)
-    printOccurrences(occurrencies, words_list)
+                                    words_list=args.terms,
+                                    normalize_text=args.normalize_text,
+                                    ignore_case=args.ignore_case,
+                                    context_length=args.context_length,
+                                    boundary=args.boundary)
+    printOccurrences(occurrencies, args.terms)
 
 
 
 
 
 def printOccurrences(occurrencies: list, words_list: list):
-    from pprint import pprint
+    # from pprint import pprint
     logger.info("found occurrencies: %s", len(occurrencies))
     if len(occurrencies) > 0:
         logger.info("words to find: \n%s", words_list)
@@ -263,24 +203,31 @@ def ParseInput() -> argparse.Namespace:
         flags.add_argument('--ignore-case',  action='store_true', default=False, required=False,
                 help=f'{C.cyan}case insensitive {l.default}')
 
+        flags.add_argument('--normalize-text',  action='store_true', default=False, required=False,
+                help=f'{C.cyan}normalize text {l.default}')
+
         flags.add_argument('--context-length',  type=int, default=0, metavar='', required=False,
                 help=f'{C.cyan}text-len of extra Text before and after the searched string {l.default}')
 
         # wd_required = True if '--near' in sys.argv else False
-        flags.add_argument('--words-distance',  type=int, nargs=2, metavar='', default=[1, 5], required=False,
-                help=f'{C.cyan}(MIN MAX) distance between words {l.default_color}(dafault no-limits){C.reset}')
+        flags.add_argument('--max-words-between',  type=int, metavar='', default=0, required=False,
+                help=f'{C.cyan}max distance between words {l.default_color}(default 0 (no-limits)){C.reset}')
+
+        flags.add_argument('--terms',  type=str, nargs='*', metavar='', default=0, required=False,
+                help=f'{C.cyan}terms to search for {l.default_color}(default 0 (no-limits)){C.reset}')
+
+        flags.add_argument('--any-order',     action='store_true', default=False, help=f'{C.cyan}any order of words (otherwise is sequentiaal){C.reset}')
+        flags.add_argument('--show-source-text', action='store_true', default=False, help=f'{C.cyan}print text used as source text {C.reset}')
 
 
     def operatorsFlags(my_parser):
         operation = my_parser.add_argument_group(f'{C.white}Operators Group (mandatory) {C.reset}')
         operators_group = operation.add_mutually_exclusive_group(required=True)
-        operators_group.add_argument('--and-search',    action='store_true', default=False, help=f'{C.cyan}and between words{C.reset}')
-        operators_group.add_argument('--and-near',    action='store_true', default=False, help=f'{C.cyan}and between words in near distance{C.reset}')
-        operators_group.add_argument('--and-any-order',    action='store_true', default=False, help=f'{C.cyan}and between words in any order{C.reset}')
-        operators_group.add_argument('--and-anywhere',    action='store_true', default=False, help=f'{C.cyan}search words in all text{C.reset}')
-        operators_group.add_argument('--or-search',     action='store_true', default=False, help=f'{C.cyan}or several words{C.reset}')
+        # operators_group.add_argument('--terms',   action='store_true', default=False, help=f'{C.cyan}search for a single term{C.reset}')
+        operators_group.add_argument('--and',     action='store_true', dest="and_arg", default=False, help=f'{C.cyan}and between words{C.reset}')
+        operators_group.add_argument('--or',      action='store_true', dest="or_arg", default=False, help=f'{C.cyan}or several words{C.reset}')
         operators_group.add_argument('--replace',     action='store_true', default=False, help=f'{C.cyan}replace string{C.reset}')
-        operators_group.add_argument('--find',     action='store_true', default=False, help=f'{C.cyan}find all occurrences{C.reset}')
+        operators_group.add_argument('--single',     action='store_true', default=False, help=f'{C.cyan}find all occurrences of a single string{C.reset}')
 
     # wd_required = True if '--near' in sys.argv else False
     # flags.add_argument('--words-dist',  type=int, nargs=2, metavar='', default=[], required=wd_required,
@@ -315,7 +262,7 @@ def ParseInput() -> argparse.Namespace:
 
 if __name__ == '__main__':
     # logger = init_logger(name="ln_regex_test", console_logger_level="function", test=False)
-    logger.initialize(name="ln_regex_test", console_logger_level="info")
+    logger.initialize(name="ln_regex_test", console_logger_level="function")
     args = ParseInput()
     data: str = get_data()
     mydata = ' '.join(data.split()) ### --- normalize source data
@@ -323,16 +270,16 @@ if __name__ == '__main__':
     if args.replace:
         check_replace()
 
-    elif args.find:
-        searchTerm(data)
+    elif args.show_source_text:
+        print(data)
 
-    elif args.and_near:
-        AND_terms_near(data)
-
-    elif args.and_search:
+    elif args.and_arg:
         AND_terms(data)
 
-    elif args.or_search:
+    elif args.or_arg:
         OR_terms(data)
+
+    else:
+        searchTerm(data)
 
     sys.exit("Temporary exit")

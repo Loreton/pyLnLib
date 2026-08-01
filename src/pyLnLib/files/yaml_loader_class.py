@@ -19,6 +19,8 @@ from .zip_file_utils import searchFileInZip
 from ..context import gVars as ctx
 from ..logger import get_logger
 
+logger = get_logger()
+
 #################################
 # --- Riferimento globale all'engine ---
 #################################
@@ -106,7 +108,8 @@ class YamlEngine:
     # - Costruttore
     #################################
     def __init__(self, search_paths: list[Path|str] | None = None, recursive: bool = False):
-        self.logger = get_logger()
+        # self.logger = get_logger()
+        self.logger = logger
         self.recursive = recursive
 
         # Prepara i percorsi di ricerca

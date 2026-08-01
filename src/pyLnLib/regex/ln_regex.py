@@ -107,7 +107,7 @@ def _processOccurrencies(p, source_data: str, normalize_text: bool, context_leng
 
     # logger = get_logger()
     # print(logger.name)
-    logger.function(clean_doc(f"""processItems called with:
+    logger.debug(clean_doc(f"""processItems called with:
         compiled_pattern={p}
         normalize_text={normalize_text}
         context_length={context_length}
@@ -201,7 +201,7 @@ def search_term( source_data: str, terms: list[str],
         ignore_case={ignore_case}"""))
 
     if len(terms) != 1:
-        raise ValueError("search_term() requires exactly one search term")
+        logger.error("search_term() requires exactly one search term\nwords received: %s", terms, exit=True)
 
     pattern = _escape_terms(terms, boundary)[0]
 
@@ -334,19 +334,23 @@ def _build_near_words(terms: list[str],
 def _build_multi_near_words( terms: list,
                             max_words_between: int,
                             ):
+    logger.function(clean_doc(f"""_build_multi_near_words:
+            terms={terms}
+            max_words_between={max_words_between}"""))
 
 
     # Validazione input
     if max_words_between < 0:
-        logger.error("Input non valido. Fornire un intero non negativo per la distanza delle words.", exit=True)
+        logger.error("Input non valido. Fornire un intero non negativo per la distanza delle words. %s", max_words_between, exit=True)
 
+    min_words_between =  0
 
 
     # Costruisci il pattern come nel tuo codice ma per N parole
     pattern_parts = [rf'\b{terms[0]}\b']
     for i in range(1, len(terms)):
         # Usa \W+ invece di \s+ per essere più flessibile con la punteggiatura
-        pattern_parts.append(rf'\W+(?:\w+\W+){{0,{max_words_between}}}{terms[i]}\b')
+        pattern_parts.append(rf'\W+(?:\w+\W+){{{min_words_between},{max_words_between}}}{terms[i]}\b')
 
     pattern = ''.join(pattern_parts)
 
@@ -426,7 +430,7 @@ def or_search(source_data: str,
     Cerca tutte le parole/string nel testo devono seistere.
     """
     # logger = get_logger()
-    logger.function(clean_doc(f"""and_search called with:
+    logger.function(clean_doc(f"""or_search called with:
         words_list={words_list}
         normalize_text={normalize_text}
         ignore_case={ignore_case}

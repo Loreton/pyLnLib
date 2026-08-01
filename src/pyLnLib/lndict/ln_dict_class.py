@@ -18,12 +18,12 @@ from datetime   import datetime
 ### --- project modules
 ### --------------------
 from ..logger import get_logger
-
+logger = get_logger()
 
 class lnDict(dict):
     def __init__(self, data=None, separator='.'):
         super().__setattr__('_sep', separator)
-        super().__setattr__('logger', get_logger())
+        super().__setattr__('logger', logger)
         super().__init__()
 
         if data:
