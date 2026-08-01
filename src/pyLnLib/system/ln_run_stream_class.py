@@ -41,7 +41,11 @@ from pathlib import Path
 from types import SimpleNamespace
 
 # pyLnLib modules
-from ..colors import Colors as C
+from ..colors import get_colors
+C = get_colors()
+
+from ..logger import get_logger
+logger = get_logger()
 
 
 class lnRunStream_Class:

@@ -12,11 +12,9 @@ from typing import Any
 ### --------------------
 ### --- project modules
 ### --------------------
-from ..context    import gVars as ctx
-from ..colors    import get_colors
 from ..logger    import get_logger
 from .file_utils import searchFile
-# logger = get_logger()
+logger = get_logger()
 
 ###############################################
 #    I N I   - I N I   - I N I   -

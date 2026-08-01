@@ -11,15 +11,15 @@ sys.dont_write_bytecode = True
 import os
 import yaml
 import zipfile
-from typing import Any
 from pathlib import Path
 
 from .file_utils import searchFileOnFS
 from .zip_file_utils import searchFileInZip
-from ..context import gVars as ctx
+from ..context import ctx
 from ..logger import get_logger
 
 logger = get_logger()
+# ctx = get_context()
 
 #################################
 # --- Riferimento globale all'engine ---
@@ -170,7 +170,7 @@ class YamlEngine:
     #################################
     # - _get_keypath
     #################################
-    def _get_keypath(self, data: dict[str, Any], keypath: str) -> Any:
+    def _get_keypath(self, data: dict[str, any], keypath: str) -> any:
         """Recupera un valore da un dizionario usando un percorso di chiavi."""
         current_data = data
         try:
@@ -189,7 +189,7 @@ class YamlEngine:
     #################################
     # - load
     #################################
-    def load(self, filename_with_pointer: str) -> Any:
+    def load(self, filename_with_pointer: str) -> any:
         """
         Carica un file YAML con supporto per:
         - !include, !include_merge, !list_merge

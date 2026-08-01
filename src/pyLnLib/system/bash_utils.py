@@ -5,7 +5,6 @@
 #
 from __future__ import annotations
 
-from ast import alias
 import shlex
 import subprocess
 from pathlib import Path

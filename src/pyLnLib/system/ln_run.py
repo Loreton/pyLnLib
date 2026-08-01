@@ -17,7 +17,7 @@ from ..colors import get_colors
 from ..logger import get_logger
 
 C = get_colors()
-# logger = get_logger()
+logger = get_logger()
 
 
 # ##################################################

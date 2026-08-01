@@ -5,21 +5,21 @@
 #
 
 
-import sys
+# import sys
 
-sys.dont_write_bytecode = True
-### - project modules
-from ..context import get_colors
-from pyLnLib.logger import get_logger
+# sys.dont_write_bytecode = True
+# ### - project modules
+# from ..context_prev import get_colors
+# from pyLnLib.logger import get_logger
 
-C = get_colors()
-logger = get_logger()
+# C = get_colors()
+# logger = get_logger()
 
 
-# ##################################################
-# # lnRun
-# ##################################################
-def test02():
-    # logger = get_logger()
-    print(C.redH, "ciao sono il secondo modulo", C.reset)
-    logger.info("ciao sono il secondo modulo")
+# # ##################################################
+# # # lnRun
+# # ##################################################
+# def test02():
+#     # logger = get_logger()
+#     print(C.redH, "ciao sono il secondo modulo", C.reset)
+#     logger.info("ciao sono il secondo modulo")

@@ -6,7 +6,6 @@
 #
 
 
-from audioop import mul
 import sys; sys.dont_write_bytecode = True
 
 import re

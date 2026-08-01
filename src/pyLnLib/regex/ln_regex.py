@@ -20,14 +20,8 @@ from dataclasses import dataclass, asdict
 
 from pyLnLib import get_logger
 from pyLnLib import clean_doc
-# logger = None
-# breakpoint()
+
 logger = get_logger()
-# print(logger.getConsoleLoggerLevel())
-
-
-# this=sys.modules[__name__]
-# this.logger = logger
 
 @dataclass(slots=True, frozen=True)
 class RegexItems:

@@ -4,12 +4,11 @@
 # Date .........: 30-04-2026 17.44.50
 #
 
-import sys; sys.dont_write_bytecode=True; this=sys.modules[__name__]
 import re
 import os
 import copy
 
-class LnDictResolver():
+class LnDictResolver:
     TAG_REGEX = re.compile(r"\(\(\s*(\w+)\s*->\s*(.+?)\s*\)\)")
 
     def __init__(self, lndict_instance):

@@ -12,9 +12,10 @@ import os
 import zipfile
 from pathlib import Path
 
-from pyLnLib import lnLogger, gVars as ctx
+from pyLnLib import lnLogger, get_context
 from pyLnLib import searchFile, searchFileOnFS, searchFileInZip
 
+ctx = get_context()
 
 # -------------------------------
 # Test
@@ -74,6 +75,3 @@ if __name__ == "__main__":
                 ctx.logger.error(f"NOT FOUND {filename = }")
 
             print('\n'*2)
-
-
-

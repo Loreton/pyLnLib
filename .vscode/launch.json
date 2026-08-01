@@ -18,8 +18,9 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args":[
-                "--find",
+                // "--find",
                 // "--and-search",
+                "--terms", "saprei", "dirvi", "--and", "--context", "100", "--max", "0"
             ],
            // "env": {
            //     "PYTHONPATH": "${workspaceFolder}/Source:${workspaceFolder}/Source/lnLib_lnk"

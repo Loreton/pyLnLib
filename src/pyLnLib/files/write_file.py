@@ -6,7 +6,8 @@
 #
 
 import sys
-sys.dont_write_bytecode=True; this=sys.modules[__name__]
+sys.dont_write_bytecode=True
+this=sys.modules[__name__]
 
 # from typing import Any
 import os
@@ -19,10 +20,8 @@ from datetime import datetime
 ### --------------------
 ### --- project modules
 ### --------------------
-# from ..context  import gVars as ctx
 from ..logger  import get_logger
-# logger: Any = ctx.get_logger()
-# logger = get_logger()
+logger = get_logger()
 
 
 ##############################################################

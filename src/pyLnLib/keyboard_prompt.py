@@ -6,10 +6,11 @@
 
 import os
 import sys
-from typing import List, Union
+# from typing import List, Union
 
 from .beep import playBeep
-from .context import Colors as C
+from .colors import get_colors
+C = get_colors()
 
 
 # -------------------------------
@@ -117,7 +118,7 @@ def keyboardPrompt( text_msg: str,
 def keyboardPrompt_with_default( text_msg: str,
                                     validKeys: list[str] | None = None,
                                     exitKeys: list[str] | None = None,
-                                    multi_choices: bool = False, ) -> Union[List[str], str]:
+                                    multi_choices: bool = False, ) -> list[str]:
     """
     Versione con default None per evitare problemi di mutability.
     """

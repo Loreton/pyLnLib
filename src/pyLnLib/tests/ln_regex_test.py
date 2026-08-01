@@ -8,7 +8,7 @@
 # from decimal import MAX_EMAX
 # from readline import replace_history_item
 import sys
-
+import time
 # from src.pyLnLib.logger.dummy_logger import testLogger
 sys.dont_write_bytecode = True
 
@@ -23,9 +23,7 @@ sys.dont_write_bytecode = True
 
 
 from pyLnLib.logger import get_logger
-# from pyLnLib.regex import multi_near_words
 from pyLnLib import regex
-from pyLnLib import lnDict
 from pyLnLib.colors import get_colors
 C = get_colors()
 logger = get_logger()
