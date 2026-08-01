@@ -193,7 +193,7 @@ class lnDict(dict):
         except KeyError:
             # Logghiamo l'errore se vuoi, ma dobbiamo SEMPRE sollevare AttributeError
             # per essere conformi al comportamento atteso da Python
-            self.logger.error("lnDict non ha la chiave/attributo '%s'", item, stacklevel=1)
+            # self.logger.error("lnDict non ha la chiave/attributo '%s'", item, stacklevel=1,exit=True)
             raise AttributeError(f"lnDict non ha l'attributo '{item}'") from None
 
 

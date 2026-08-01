@@ -13,53 +13,65 @@ import socket
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+
 # from typing import Any  # , TYPE_CHECKING
 
 from .colors import Colors
+"""
+    messo solo per permettere di fare un ctx.get_logger()
+    potrebbessere rimosso se dovesse dare problemi
+    perché ogni modulo può benissimo fare l'import di: from pyLnLib.logger import get_logger
+"""
+from .logger.ln_colored_logger import get_logger, lnColoredLogger
 
-# if TYPE_CHECKING:
-# from .logger import lnLogger  # per permettere di definitre il type di context_vars
-# from .lndict import lnDict  # per permettere di definitre il type di context_vars
+
 from .lndict import lnDict  # per permettere di definitre il type di context_vars
 
 @dataclass
 class GlobalVars:
     """Solo dati di configurazione - NESSUN LOGGER QUI!"""
-    def __init__(self, name: str | None = None, tmp_dir: str | None = None, version: str | None = None) -> None:
+    # def __init__(self, name: str | None = None, tmp_dir: str | None = None, version: str | None = None) -> None:
+    def __init__(self) -> None:
         # creo una classe dove metto tutte le variabili del mio ambiente.
         # il tutto sarà sotto self.main
-        self.main: lnDict = lnDict()
+        # self.main: lnDict = lnDict()
 
         # Sistema
-        self.main.hostname = socket.gethostname().split()[0]
-        self.main.op_sys = platform.system()
+        self.hostname = socket.gethostname().split()[0]
+        self.op_sys = platform.system()
 
-        # Project
-        self.main.name = name or os.environ.get("LN_PROJECT_NAME", "dummy_project")
-        self.main.root = self._find_project_root()
-        self.main.temp_dir = tmp_dir or f"/tmp/{self.main.name}"
-        # self.main.log_dir = self.get_log_dir()
-        # self.main.config_dir = self.get_config_dir()
+        self.version = "0.0.1"
 
-        self.main.version = version or "0.0.1"
+    def initialize(self, project_name: str,  version: str, *,
+                        project_root: Path | None = None,
+                        project_temp_dir: str | None = None,
+                        project_log_dir: str | None = None,
+                        project_config_dir: str | None = None,
+                        ) -> None:
+        self.project_name = project_name
+        self.version = version
 
 
-    # def set_project_name(self, name: str) -> None:
-    #     self.main.project_name = name
-    #     self.main.temp_dir = f"/tmp/{name}"
-        # print(f"Project name: {self.project_name}")
+        self.project_root = Path(project_root) if project_root else self._find_project_root()
+        self.project_temp_dir = Path(project_temp_dir) if project_temp_dir else self._set_temp_path(req_top_dir="/tmp")
+        self.project_log_dir = Path(project_log_dir) if project_log_dir else self._set_log_dir(req_top_dir=self.project_temp_dir)
+        self.project_config_dir = Path(project_config_dir) if project_config_dir else self._set_config_dir(top_dir=self.project_root)
 
-    def get_context_vars(self, keypath: str | None = None) -> lnDict:
+
+
+    def get_logger(self) -> lnColoredLogger:
+        """Restituisce il logger."""
+        return get_logger()
+
+    def get_context_vars(self, keypath: str) -> lnDict:
         """Restituisce i context_vars (già lnDict)."""
-        # if not self.main.context_vars:
-            # self.main.context_vars = lnDict()
-        if keypath:
-            return self.main[keypath]
-        return self.main
+        _my = lnDict(self.to_dict())
+        if keypath in _my:
+            return _my[keypath]
+        return lnDict()
 
     def _find_project_root(self, max_depth: int = 10) -> Path:
         """Trova la root del progetto."""
-        # import pdb; pdb.set_trace();  # by Loreto
         main_prg = Path(sys.argv[0])
         current = main_prg.resolve().parent
         if main_prg.suffix in [".zip", ".pyz"]:
@@ -74,62 +86,56 @@ class GlobalVars:
 
         if not current or str(current) in ["/"]:
             sys.exit(f"\t[context.py] Project root: {current} not found")
+        # self.project_root = current
         return current
 
-    def get_temp_path(self, subdir: str | None = None) -> Path:
+    def _set_temp_path(self, req_top_dir: str|Path) -> Path:
         """Restituisce il path temporaneo."""
-        temp_path = Path(self.main.temp_dir)
-        if subdir:
-            temp_path = temp_path / subdir
+        top_dir = Path(req_top_dir).resolve()
+
+        if top_dir.exists():
+            temp_path = top_dir / self.project_name
             temp_path.mkdir(parents=True, exist_ok=True)
+        else:
+            sys.exit(f"[{__name__}]: top_dir directory: {req_top_dir} not found")
         return temp_path
 
-    def get_log_dir(self) -> Path:
+    def _set_log_dir(self, req_top_dir: str | Path) -> Path:
         """Restituisce il path per i log."""
-        return self.get_temp_path("logs")
-
-    def get_conf_dir_(self) -> Path:
-        """Restituisce la directory conf oppure exit"""
-        if self.main.root:
-            conf = self.main.root / "conf"
-            if conf.exists():
-                return conf
-            else:
-                sys.exit(f"Conf directory: {conf} not found")
+        top_dir = Path(req_top_dir).resolve()
+        if top_dir.exists():
+            log_dir = top_dir / "logs"
         else:
-            sys.exit(f"Project root: {self.main.root} not found")
+            log_dir = self.project_temp_dir / "logs"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        # self.project_log_dir = log_dir
+        return log_dir
 
-    # def get_conf_dir_solo_per_zed(self) -> Path:
-    def get_config_dir(self) -> Path:
+    def _set_config_dir(self, top_dir: str|Path) -> Path:
         """Restituisce la directory conf oppure exit"""
-        if self.main.root:
-            conf = self.main.root / "conf"
-            if conf.exists():
-                return conf
-            # else:  # vale per zed (non so perché self.project_root è sbagliato)
-                # if os.environ.get("ZED_TERM"):
-                #     print(f"Conf directory: {conf} not found")
-                #     current = self._find_project_root()
-                #     conf = current / "conf"
-                #     if conf.exists():
-                #         return conf
-                #     else:
-                #         sys.exit(f"Conf directory: {conf} not found")
-            else:
-                sys.exit(f"Conf directory: {conf} not found")
+        top_dir = Path(top_dir).resolve()
+        if top_dir.exists():
+            conf = top_dir / "conf"
         else:
-            sys.exit(f"Project root: {self.main.root} not found")
+            conf = Path(self.project_root) / "conf"
+        if conf.exists():
+            return conf
+        else:
+            sys.exit(f"[{__name__}]: Conf directory: {conf} not found")
 
     def to_dict(self) -> dict[str, any]:
         """Converte l'oggetto in un dizionario."""
         result: dict[str, any] = {}
         for key, value in self.__dict__.items():
-            if not key.startswith("_") and key not in ["colors", "project_root"]:
+            # if not key.startswith("_") and key not in ["colors", "project_root"]:
+            if not key.startswith("_") and key not in ["colors"]:
                 if isinstance(value, (Path, Colors)):
                     result[key] = str(value)
                 else:
                     result[key] = value
         return result
+
+
 
 
 # Istanza globale
