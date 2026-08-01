@@ -28,7 +28,7 @@ from .logger.ln_colored_logger import get_logger, lnColoredLogger
 from .lndict import lnDict  # per permettere di definitre il type di context_vars
 
 @dataclass
-class GlobalVars:
+class lnContext:
     """Solo dati di configurazione - NESSUN LOGGER QUI!"""
     # def __init__(self, name: str | None = None, tmp_dir: str | None = None, version: str | None = None) -> None:
     def __init__(self) -> None:
@@ -50,7 +50,7 @@ class GlobalVars:
                         ) -> None:
         self.project_name = project_name
         self.version = version
-
+        self.config: lnDict = lnDict()
 
         self.project_root = Path(project_root) if project_root else self._find_project_root()
         self.project_temp_dir = Path(project_temp_dir) if project_temp_dir else self._set_temp_path(req_top_dir="/tmp")
@@ -139,22 +139,23 @@ class GlobalVars:
 
 
 # Istanza globale
-ctx = GlobalVars()
+ctx = lnContext()
 
 
 # Funzione comoda per ottenere i context_vars
-def init_context(name: str | None = None, tmp_dir: str | None = None, version: str | None = None) -> lnDict:
-    """Funzione comoda per ottenere i context_vars."""
-    global ctx
-    ctx = GlobalVars(name, tmp_dir=(tmp_dir), version=version)
-    return ctx.main
+# def init_context(name: str | None = None, tmp_dir: str | None = None, version: str | None = None) -> lnDict:
+#     """Funzione comoda per ottenere i context_vars."""
+#     global ctx
+#     ctx = GlobalVars(name, tmp_dir=(tmp_dir), version=version)
+#     return ctx.main
 
 
-def get_context_prev(keypath: str | None = None) -> lnDict:
-    """Funzione comoda per ottenere i context_vars."""
-    return ctx.get_context_vars(keypath)
+# def get_context_prev(keypath: str | None = None) -> lnDict:
+#     """Funzione comoda per ottenere i context_vars."""
+#     return ctx.get_context_vars(keypath)
 
 
-def get_context(keypath: str | None = None) -> lnDict:
-    """Funzione comoda per ottenere i context_vars."""
-    return ctx.get_context_vars(keypath)
+# def get_context(keypath: str | None = None) -> lnDict:
+#     """Funzione comoda per ottenere i context_vars."""
+#     # return ctx.get_context_vars(keypath)
+#     return ctx

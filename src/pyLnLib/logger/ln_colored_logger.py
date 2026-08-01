@@ -38,7 +38,6 @@ my_INFO_value: int = 20
 my_NOTIFY_value: int = 21
 my_WARNING_value: int = 30
 my_ERROR_value: int = 40
-my_EXCEPTION_value: int = 45
 my_CRITICAL_value: int = 50
 
 
@@ -77,11 +76,10 @@ class lnColoredLogger:
             "debug": C.debug,
             "function": C.debug,
             "info": C.info,
+            "notify": C.notify,
             "warning": C.warning,
             "error": C.error,
             "critical": C.critical,
-            "exception": C.exception,
-            "notify": C.notify,
         }
         # - config di base
         self.logger: logging.Logger = logging.getLogger(name)
@@ -729,5 +727,5 @@ def get_logger( name: str="TEMPORARY_LOGGER" ) -> lnColoredLogger:
             exit=False,
         )
     # - questa riga per indicare i moduli che la caricano prima di initialize()
-    my_logger.warning("my_logger.name: %s", my_logger.name, stacklevel=1    )
+    my_logger.debug("my_logger.name: %s", my_logger.name, stacklevel=1    )
     return my_logger
