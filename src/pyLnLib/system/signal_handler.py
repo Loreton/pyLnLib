@@ -1,23 +1,28 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 01-05-2026 09.54.12
+# ruff: noqa I001 -Import block is un-sorted or un-formatted help: Organize imports (Ruff I001)
 #
 
 
 #################################
 #    Ctrl-C capture
 ###################################################
-import signal, os, sys
+import sys
+import signal
+import os
+
 def signalHandler(signalLevel, frame):
     ### Ctrl-c
     if int(signalLevel)==2:
         print('\n'*3)
-        choice = input("       Ctrl-c was pressed. [q]quit [any-key] restart \n\n")
-        if choice == 'q':
+        choice = input("       Ctrl-c was pressed. [c]continue [any-key] quit \n\n")
+        if choice != 'c':
             os.kill(int(os.getpid()), signal.SIGTERM)
             os.system("clear")
             sys.exit(1)
 
-if False: ###. disabilitato perché non funziona bene
-    signal.signal(signal.SIGINT, signalHandler)
+
+def start_signal_handler(start: bool=False) ->None:
+    if True:
+        signal.signal(signal.SIGINT, signalHandler)

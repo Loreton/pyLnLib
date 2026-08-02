@@ -20,7 +20,7 @@ if __INIT__PY__DEBUG:
 from .acquire_lock import acquire_lock
 from .ln_run import lnRun
 from .ln_run_stream_class import lnRunStream_Class as lnRunStream
-from .signal_handler import signalHandler
+from .signal_handler import signalHandler, start_signal_handler
 from .clean_doc import clean_doc
 
 all = [
@@ -29,6 +29,7 @@ all = [
     lnRunStream,
     signalHandler,
     clean_doc,
+    start_signal_handler
 ]
 
 

@@ -69,7 +69,7 @@ from .lndict.ln_dict_resolver_class import LnDictResolver
 from .system.acquire_lock import acquire_lock
 from .system.ln_run import lnRun
 from .system.ln_run_stream_class import lnRunStream_Class as lnRunStream
-from .system.signal_handler import signalHandler
+from .system.signal_handler import signalHandler, start_signal_handler
 from .system.clean_doc import clean_doc
 
 
@@ -139,6 +139,7 @@ __all__ = [
     # system
     "clean_doc",
     "signalHandler",
+    "start_signal_handler",
     "zipDir",
 ]
 

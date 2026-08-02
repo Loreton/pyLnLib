@@ -12,6 +12,9 @@ from ebooklib import epub, ITEM_DOCUMENT
 
 
 from pyLnLib.files import unique_filename
+from pyLnLib.logger import get_logger
+
+logger = get_logger()
 
 
 # per memorizzare le section dell'ebook
@@ -38,7 +41,12 @@ class EpubProcessor:
         if not self._filename.is_file():
             raise FileNotFoundError(self._filename)
 
-        self._book = epub.read_epub(str(self._filename))
+
+        try:
+            self._book = epub.read_epub(str(self._filename))
+        except Exception as e:
+            logger.error(f"{self._filename.stem}\nFailed to read EPUB: {e}", exit=True)
+            raise
 
     # ======================================================================
     # Properties
@@ -52,25 +60,33 @@ class EpubProcessor:
     # Metadata
     # ======================================================================
 
-    def get_metadata(self) -> dict:
+    # def get_metadata(self) -> dict:
+    @property
+    def metadata(self) -> dict:
         return self._book.metadata
 
-    def get_title(self) -> str | None:
+    @property
+    def title(self) -> str | None:
         return self._get_dc("title")
 
-    def get_author(self) -> str | None:
+    @property
+    def author(self) -> str | None:
         return self._get_dc("creator")
 
-    def get_language(self) -> str | None:
+    @property
+    def language(self) -> str | None:
         return self._get_dc("language")
 
-    def get_publisher(self) -> str | None:
+    @property
+    def publisher(self) -> str | None:
         return self._get_dc("publisher")
 
-    def get_date(self) -> str | None:
+    @property
+    def date(self) -> str | None:
         return self._get_dc("date")
 
-    def get_identifier(self) -> str | None:
+    @property
+    def identifier(self) -> str | None:
         return self._get_dc("identifier")
 
     # ======================================================================
@@ -204,6 +220,7 @@ class EpubProcessor:
             elif unique:
                 filename = unique_filename(filename) # crea uno con nome diverso
             else:
+                logger.debug("file already exists: %s", filename)
                 return filename # non modifica il file esistente
 
         with filename.open("w", encoding="utf-8") as fp:
@@ -240,6 +257,7 @@ class EpubProcessor:
                 fp.write(section.text)
                 fp.write("\n\n")
 
+        logger.debug("saved filename: %s", filename)
         return filename
 
     # ======================================================================
