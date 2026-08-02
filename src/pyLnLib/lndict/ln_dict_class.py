@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 #
-# updated by ...: Loreto Notarantonio
-# Date .........: 17-07-2026 14.02.18
+#ruff: noqa I001 - Import block is un-sorted or un-formatted help: Organize imports (Ruff I001)
 #
 
-# from optparse import Option
-import sys; sys.dont_write_bytecode=True; this=sys.modules[__name__]
+# from optparse im port Option
+from __future__ import annotations
+# import sys; sys.dont_write_bytecode=True; this=sys.modules[__name__]
 
-import sys; sys.dont_write_bytecode=True
+# import sys; sys.dont_write_bytecode=True
+import copy
 import json
 import yaml
-import copy
 from pathlib import Path
 from datetime   import datetime
 
@@ -537,7 +537,7 @@ class lnDict(dict):
     # #############################################################################
     # # title: se valorizzato viene messo in testa al dict
     # #############################################################################
-    def to_yaml(self, title: str|None=None, indent: int=2, sort_keys=False, **kwargs):
+    def to_yaml(self, title: Path|str|None=None, indent: int=4, sort_keys=False, **kwargs):
         """Converte lo lnDict in una stringa YAML pulita."""
         d={title: self.to_dict()} if title else self.to_dict()
         # return yaml.dump(d, sort_keys=sort_keys, indent=indent, default_flow_style=False, **kwargs)
@@ -549,7 +549,7 @@ class lnDict(dict):
     # # title: se valorizzato viene messo in testa al dict
     # #  utile per avere un'idea di massima del contenuto del dictionary
     # #############################################################################
-    def save_yaml(self, filepath, title: str='', indent: int=0, **kwargs):
+    def save_yaml(self, filepath, title: str='', indent: int=4, **kwargs):
         """Salva lo lnDict in un file .yaml."""
         yaml_data = self.to_yaml(title=title, indent=indent, **kwargs)
         now = datetime.now().strftime("%d-%m-%Y_%H:%M")

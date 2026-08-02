@@ -8,6 +8,7 @@
 # sys.dont_write_bytecode = True
 from datetime import datetime
 from pathlib import Path
+
 # from typing import TYPE_CHECKING
 
 ### - project modules
@@ -15,7 +16,7 @@ from pathlib import Path
 from ..logger import get_logger
 from ..system import lnRun
 
-
+logger = get_logger()
 
 class ChangeLogManager:
     """Gestisce la generazione e aggiornamento di CHANGELOG.md secondo Conventional Commits"""
@@ -52,7 +53,7 @@ class ChangeLogManager:
         }
         self.git_root = git_root
         self.changelog_path = Path(git_root) / "CHANGELOG.md"
-        self.logger = get_logger()
+        self.logger = logger
 
     def _get_last_tag(self) -> str | None:
         """Recupera l'ultimo tag dal repository git"""

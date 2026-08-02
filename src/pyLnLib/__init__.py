@@ -74,6 +74,7 @@ from .system.clean_doc import clean_doc
 
 
 from .regex.ln_regex import replace, and_search, or_search, search_term
+from .epub.epub_manager import EpubProcessor
 
 # ============================================================
 # ESPORTAZIONE PER `from pyLnLib import *`
@@ -86,24 +87,24 @@ __all__ = [
     "testLogger",
 
 
-    "get_context",
+    # "get_context",
     "BeepPlayer",
     "ChangeLogManager",
     "PyProjectManager",
     "acquire_lock",
-    "ctx",
+    # "ctx",
 
     # lndict
     "lnDict",
     "LnDictResolver",
 
     # ln_utils
-    "init_context",
+    # "init_context",
     "flatten_and_filter",
     "flatten_nested_list",
 
     "get_colors",
-    "get_project_vars",
+    # "get_project_vars",
     "keyboardPrompt",
     "lnRun",
     "lnRunStream",
@@ -130,6 +131,10 @@ __all__ = [
     "updateIniKey",
     "writeFile",
     "writeIni",
+
+    # epub
+    "EpubProcessor",
+
 
     # system
     "clean_doc",

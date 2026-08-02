@@ -33,7 +33,7 @@ def lnRun(
     logger_level: str = "warning",  # questo pervitare di scrivere se non richiesto
     shell: bool = False,
 ) -> tuple[int, str, str]:
-    logger = get_logger()
+    # logger = get_logger()
     result: SimpleNamespace = SimpleNamespace(rcode=0, stdout="", stderr="")
 
     command_args = shlex.split(command) if isinstance(command, str) else command

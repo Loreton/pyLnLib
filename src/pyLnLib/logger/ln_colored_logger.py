@@ -727,5 +727,5 @@ def get_logger( name: str="TEMPORARY_LOGGER" ) -> lnColoredLogger:
             exit=False,
         )
     # - questa riga per indicare i moduli che la caricano prima di initialize()
-    my_logger.debug("my_logger.name: %s", my_logger.name, stacklevel=1    )
+    my_logger.warning("my_logger.name: %s", my_logger.name, stacklevel=1    )
     return my_logger

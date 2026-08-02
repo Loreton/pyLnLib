@@ -170,7 +170,7 @@ def searchFileOnFS(filename: str|Path,
     # fpath=ff.parent.__str__()
 
     # --- 1. Ricerca Esterna (Filesystem) tramite search_paths ---
-    search_paths.append(str(ctx.get_config_dir()))
+    search_paths.append(str(ctx.project_config_dir))
     for base_path in search_paths:
         base_path = str(base_path)
         logger.debug("searching: %s/.../%s", base_path, filename, stacklevel=STACKLEVEL)

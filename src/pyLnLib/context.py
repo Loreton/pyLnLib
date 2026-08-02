@@ -51,6 +51,7 @@ class lnContext:
         self.project_name = project_name
         self.version = version
         self.config: lnDict = lnDict()
+        self.input_args: lnDict = lnDict()
 
         self.project_root = Path(project_root) if project_root else self._find_project_root()
         self.project_temp_dir = Path(project_temp_dir) if project_temp_dir else self._set_temp_path(req_top_dir="/tmp")
