@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 #
-# updated by ...: Loreto Notarantonio
-# Date .........: 22-06-2026 21.10.43
-#
+# updated by ...: Loreto Notarantonio#
 
 
 """

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 19-07-2026 11.25.09
+
+
 # ruff: noqa: PLW1510
 # ruff: noqa: UP022
 # ruff: noqa: BLE001  # # Va bene per script di utilità

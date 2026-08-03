@@ -1,3 +1,11 @@
+## [0.1.33] - 2026-08-03
+
+## Other
+
+- update on 2026.08.02 (regarding project: eBooks)
+- update on 2026.08.02 (regarding project: gitCommit)
+- inizio sviluppo - (Release 0.1.33)
+
 ## [0.1.32] - 2026-08-01
 
 ## Other

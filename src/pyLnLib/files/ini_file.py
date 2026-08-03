@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 11-07-2026 12.11.05
+
 #
 
 import sys; sys.dont_write_bytecode = True
 import os
 from pathlib import Path
-from typing import Any
+
 
 ### --------------------
 ### --- project modules

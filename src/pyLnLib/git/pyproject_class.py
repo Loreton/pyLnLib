@@ -1,14 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 07-06-2026 19.53.20
-#
 
-#!/usr/bin/env python3
-#
-# updated by ...: Loreto Notarantonio
-# Date .........: 07-06-2026 19.53.20
-#
 
 # import sys
 # sys.dont_write_bytecode = True

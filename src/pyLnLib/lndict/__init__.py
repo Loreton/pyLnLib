@@ -2,7 +2,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 03-07-2026 18.19.03
+
 #
 # import os
 import os
@@ -26,4 +26,3 @@ __all__ = [
 
 if __INIT__PY__DEBUG:
     print(f"{__name__} - end loading")
-

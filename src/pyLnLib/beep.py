@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 06-07-2026 18.58.19
 #
 from __future__ import annotations
 

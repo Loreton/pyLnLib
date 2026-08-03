@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 11-07-2026 14.25.10
 #
 # ruff: noqa: I001 Import block is un-sorted or un-formatted help: Organize imports (Ruff I001)
 # ruff: noqa: I022
@@ -31,50 +30,49 @@ from .logger.ln_colored_logger import (
                                         testLogger,
                                     )
 
+
+# generics
+from .keyboard_prompt import keyboardPrompt
+from .ln_utils import flatten_and_filter, flatten_nested_list
 from .beep import BeepPlayer
 from .colors import get_colors
-# from .context import init_context, get_context
 
-# ============================================================
-# import dal sotto-package files
-# ============================================================
+
+# files
 from .files.write_file import writeFile
 from .files.yaml_loader_class import get_yaml_engine
 from .files.zip_file_utils import searchFileInZip, zipDir
 from .files.file_utils import get_file_list, searchFile, searchFileOnFS, scan_directory, unique_filename
 from .files.ini_file import loadIni, updateIniKey, writeIni
 
-# ============================================================
-# import dal sotto-package  git
-# ============================================================
+
+# git
 from .git.pyproject_class import PyProjectManager
 from .git.changelog_class import ChangeLogManager
 
-# ============================================================
-# import da altri moduli
-# ============================================================
-from .keyboard_prompt import keyboardPrompt
-from .ln_utils import flatten_and_filter, flatten_nested_list
 
-# ============================================================
-# import dal sotto-package lndict
-# ============================================================
+# lndict
 from .lndict.ln_dict_class import lnDict
 from .lndict.ln_dict_resolver_class import LnDictResolver
 
 
-# ============================================================
-# IMPORT DAL SOTTO-PACKAGE  system
-# ============================================================
+# system
 from .system.acquire_lock import acquire_lock
 from .system.ln_run import lnRun
 from .system.ln_run_stream_class import lnRunStream_Class as lnRunStream
 from .system.signal_handler import signalHandler, start_signal_handler
 from .system.clean_doc import clean_doc
 
-
+# regex
 from .regex.ln_regex import replace, and_search, or_search, search_term
+
+# pub
 from .epub.epub_manager import EpubProcessor
+
+# calibre
+from .calibre import CalibreMetadataReader
+
+
 
 # ============================================================
 # ESPORTAZIONE PER `from pyLnLib import *`
@@ -83,41 +81,33 @@ __all__ = [
     # logger
     "lnLogger",
     "get_logger",
-    # "init_logger",
     "testLogger",
 
 
-    # "get_context",
+    # generics
     "BeepPlayer",
-    "ChangeLogManager",
-    "PyProjectManager",
     "acquire_lock",
-    # "ctx",
+    "get_colors",
+    "keyboardPrompt",
 
     # lndict
     "lnDict",
     "LnDictResolver",
 
     # ln_utils
-    # "init_context",
     "flatten_and_filter",
     "flatten_nested_list",
 
-    "get_colors",
-    # "get_project_vars",
-    "keyboardPrompt",
-    "lnRun",
-    "lnRunStream",
 
     # regex
     "and_search",
     "or_search",
     "replace",
     "search_term",
-    # "multi_near_words",
-    # "multi_near_words_any_order",
-    # "search_anywhere",
-    # "multi_near_words_token_based",
+
+    # git
+    "ChangeLogManager",
+    "PyProjectManager",
 
     # files
     "get_yaml_engine",
@@ -135,9 +125,13 @@ __all__ = [
     # epub
     "EpubProcessor",
 
+    # calibre
+    "CalibreMetadataReader",
 
     # system
     "clean_doc",
+    "lnRun",
+    "lnRunStream",
     "signalHandler",
     "start_signal_handler",
     "zipDir",

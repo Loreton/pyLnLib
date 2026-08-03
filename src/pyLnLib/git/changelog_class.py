@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 # ruff: noqa I001 - Import block is un-sorted or un-formatted help: Organize imports (Ruff I001)
 # updated by ...: Loreto Notarantonio
-# Date .........: 17-07-2026 13.44.49
 #
 
-# import sys
-# sys.dont_write_bytecode = True
 from datetime import datetime
 from pathlib import Path
 

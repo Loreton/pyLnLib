@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 21-06-2026 17.42.30
 #
 
 import sys; sys.dont_write_bytecode = True

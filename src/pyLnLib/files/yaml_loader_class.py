@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # ruff: noqa: I001 - Import block is un-sorted or un-formatted help: Organize imports (Ruff I001)
 # updated by ...: Loreto Notarantonio
-# Date .........: 11-07-2026 18.12.21
+
 #
 from __future__ import annotations
 
 import sys
-sys.dont_write_bytecode = True
+
 
 import os
 import yaml
@@ -19,7 +19,6 @@ from ..context import ctx
 from ..logger import get_logger
 
 logger = get_logger()
-# ctx = get_context()
 
 #################################
 # --- Riferimento globale all'engine ---

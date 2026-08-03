@@ -3,8 +3,6 @@
 # Progamma per testare regex
 #
 # updated by ...: Loreto Notarantonio
-# Version ......: 14-10-2020 09.22.06
-#
 
 
 import sys; sys.dont_write_bytecode = True

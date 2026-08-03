@@ -3,7 +3,7 @@
 # ruff: noqa: I001 Import block is un-sorted or un-formatted help: Organize imports (Ruff I001)
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 11-07-2026 15.37.33
+
 #
 from __future__ import annotations
 

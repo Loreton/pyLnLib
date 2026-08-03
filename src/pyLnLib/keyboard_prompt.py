@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 27-06-2026 14.28.59
 #
 
 import os

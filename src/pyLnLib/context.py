@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 19-07-2026 17.25.59
 #
 # ruff: noqa: I001 - Import block is un-sorted or un-formatted
 #

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # updated by ...: Loreto Notarantonio
-# Version ......: 08-01-2021 18.10.41
+
 #
 import  sys
 import os

@@ -2,7 +2,7 @@
 # ruff: noqa: I001 - Import block is un-sorted or un-formatted help: Organize imports (Ruff I001)
 #
 # updated by ...: Loreto Notarantonio
-# Date .........: 06-07-2026 18.57.26
+
 #
 
 import sys
