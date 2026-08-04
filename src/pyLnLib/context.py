@@ -51,6 +51,7 @@ class lnContext:
         self.version = version
         self.config: lnDict = lnDict()
         self.input_args: lnDict = lnDict()
+        self.args: lnDict = lnDict()
 
         self.project_root = Path(project_root) if project_root else self._find_project_root()
         self.project_temp_dir = Path(project_temp_dir) if project_temp_dir else self._set_temp_path(req_top_dir="/tmp")
@@ -58,10 +59,22 @@ class lnContext:
         self.project_config_dir = Path(project_config_dir) if project_config_dir else self._set_config_dir(top_dir=self.project_root)
 
 
+    #=========================================
+    # Optional
+    #=========================================
+    def initialize_calibre(self, calibre_path: str):
+        from .calibre.calibre_metadata_reader import CalibreMetadataReader
+        try:
+            self.calibre = CalibreMetadataReader(calibre_path)
+        except FileNotFoundError as e:
+            print(f"❌ Errore: {e}")
+            sys.exit(1)
 
-    def get_logger(self) -> lnColoredLogger:
-        """Restituisce il logger."""
-        return get_logger()
+        # return self.calibre
+
+    # def get_logger(self) -> lnColoredLogger:
+    #     """Restituisce il logger."""
+    #     return get_logger()
 
     def get_context_vars(self, keypath: str) -> lnDict:
         """Restituisce i context_vars (già lnDict)."""

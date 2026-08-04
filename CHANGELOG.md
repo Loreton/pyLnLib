@@ -1,3 +1,13 @@
+## [0.1.34] - 2026-08-04
+
+## Other
+
+- update on 2026.08.03 (regarding project: eBooks)
+- inserito calibre.py ma non ancora testato - (Release 0.1.33) (pylnlib_commit=863435d)
+- update on 2026.08.02 (regarding project: eBooks)
+- update on 2026.08.02 (regarding project: gitCommit)
+- inizio sviluppo - (Release 0.1.33)
+
 ## [0.1.33] - 2026-08-03
 
 ## Other
