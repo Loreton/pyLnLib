@@ -36,6 +36,7 @@ from .keyboard_prompt import keyboardPrompt
 from .ln_utils import flatten_and_filter, flatten_nested_list
 from .beep import BeepPlayer
 from .colors import get_colors
+from .context import ctx
 
 
 # files
@@ -85,6 +86,7 @@ __all__ = [
 
 
     # generics
+    "ctx",
     "BeepPlayer",
     "acquire_lock",
     "get_colors",

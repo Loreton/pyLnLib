@@ -60,7 +60,7 @@ class lnContext:
 
 
     #=========================================
-    # Optional
+    # - Optional
     #=========================================
     def initialize_calibre(self, calibre_path: str):
         from .calibre.calibre_metadata_reader import CalibreMetadataReader
@@ -70,11 +70,6 @@ class lnContext:
             print(f"❌ Errore: {e}")
             sys.exit(1)
 
-        # return self.calibre
-
-    # def get_logger(self) -> lnColoredLogger:
-    #     """Restituisce il logger."""
-    #     return get_logger()
 
     def get_context_vars(self, keypath: str) -> lnDict:
         """Restituisce i context_vars (già lnDict)."""
