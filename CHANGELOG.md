@@ -1,3 +1,9 @@
+## [0.1.35] - 2026-08-07
+
+## Other
+
+- update on 2026.08.06 (regarding project: eBooks)
+
 ## [0.1.34] - 2026-08-04
 
 ## Other

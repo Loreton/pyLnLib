@@ -4,9 +4,9 @@
 #
 
 import sys; sys.dont_write_bytecode = True
-from typing import List, Any, Union, Optional, Iterable, TypeVar
-# import subprocess
-# import platform
+from collections.abc import Iterable
+from typing import TypeVar
+
 
 
 # Type variable per generici
@@ -16,20 +16,20 @@ T = TypeVar('T')
 ############################################################
 # [[a,b,c], [c,d,e], [1,2], f] --> [a,b,c,d,e,f,1,2]
 ############################################################
-def flatten_nested_list(lst: Optional[List[Any]] = None) -> List[Any]:
+def flatten_nested_list(lst: list[any]|None = None) -> list[any]:
     """
     Appiattisce una lista che può contenere elementi nidificati.
 
     Args:
-        lst: Lista da appiattire, può contenere liste o tuple nidificate
+        lst: lista da appiattire, può contenere liste o tuple nidificate
 
     Returns:
-        Lista appiattita con tutti gli elementi
+        lista appiattita con tutti gli elementi
     """
     if lst is None:
         lst = []
 
-    output: List[Any] = []
+    output: list[any] = []
 
     for item in lst:
         if isinstance(item, (list, tuple)):
@@ -59,10 +59,7 @@ def flatten_nested_list(lst: Optional[List[Any]] = None) -> List[Any]:
     '''
 
 
-def flatten_and_filter(
-    seq: Iterable[Any],
-    remove_whitespace_strings: bool = False
-) -> List[Any]:
+def flatten_and_filter( seq: Iterable[any], remove_whitespace_strings: bool = False ) -> list[any]:
     """
     Appiattisce una sequenza e filtra i valori vuoti.
 
@@ -71,7 +68,7 @@ def flatten_and_filter(
         remove_whitespace_strings: Se True, rimuove anche le stringhe che contengono solo spazi
 
     Returns:
-        Lista appiattita e filtrata
+        lista appiattita e filtrata
 
     Examples:
         >>> flatten_and_filter([1, [8, 9, 6], [4, 5], 0, ''])
@@ -83,7 +80,7 @@ def flatten_and_filter(
         >>> flatten_and_filter([1, ['  ', 2], None, 3], remove_whitespace_strings=True)
         [1, 2, 3]
     """
-    result: List[Any] = []
+    result: list[any] = []
 
     for item in seq:
         # Non iterare sulle stringhe: trattiamo solo liste/tuple come contenitori
@@ -108,10 +105,7 @@ def flatten_and_filter(
     return result
 
 
-def flatten_and_filter_unique(
-    seq: Iterable[Any],
-    remove_whitespace_strings: bool = False
-) -> List[Any]:
+def flatten_and_filter_unique( seq: Iterable[any], remove_whitespace_strings: bool = False ) -> list[any]:
     """
     Appiattisce, filtra e rimuove i duplicati mantenendo l'ordine.
 
@@ -120,33 +114,30 @@ def flatten_and_filter_unique(
         remove_whitespace_strings: Se True, rimuove anche le stringhe con solo spazi
 
     Returns:
-        Lista appiattita, filtrata e senza duplicati
+        lista appiattita, filtrata e senza duplicati
     """
-    flattened: List[Any] = flatten_and_filter(seq, remove_whitespace_strings)
+    flattened: list[any] = flatten_and_filter(seq, remove_whitespace_strings)
     # Rimuove duplicati mantenendo l'ordine
     return list(dict.fromkeys(flattened))
 
 
-def flatten_nested_list_safe(
-    lst: Any,
-    max_depth: int = 10
-) -> List[Any]:
+def flatten_nested_list_safe( lst: any, max_depth: int = 10 ) -> list[any]:
     """
     Appiattisce una lista con controllo della profondità massima.
 
     Args:
-        lst: Lista da appiattire
+        lst: lista da appiattire
         max_depth: Profondità massima di ricorsione
 
     Returns:
-        Lista appiattita
+        lista appiattita
 
     Raises:
         RecursionError: Se la profondità supera max_depth
     """
-    output: List[Any] = []
+    output: list[any] = []
 
-    def _flatten(item: Any, depth: int) -> None:
+    def _flatten(item: any, depth: int) -> None:
         if depth > max_depth:
             raise RecursionError(f"Profondità massima ({max_depth}) superata")
 
@@ -161,7 +152,7 @@ def flatten_nested_list_safe(
 
 
 # Utility per tipi di ritorno specifici
-def flatten_strings(seq: Iterable[Any]) -> List[str]:
+def flatten_strings(seq: Iterable[any]) -> list[str]:
     """
     Appiattisce e filtra restituendo solo stringhe.
 
@@ -169,16 +160,14 @@ def flatten_strings(seq: Iterable[Any]) -> List[str]:
         seq: Sequenza da appiattire
 
     Returns:
-        Lista di sole stringhe
+        lista di sole stringhe
     """
-    flattened: List[Any] = flatten_and_filter(seq)
+    flattened: list[any] = flatten_and_filter(seq)
     return [str(item) for item in flattened if item is not None]
 
 
 # Funzione per processare file paths
-def flatten_paths(
-    paths: Union[str, List[str], List[List[str]]]
-) -> List[str]:
+def flatten_paths( paths: str|list[str]|list[list[str]]) -> list[str]:
     """
     Appiattisce percorsi di file/directory.
 
@@ -186,12 +175,12 @@ def flatten_paths(
         paths: Stringa singola, lista di stringhe, o lista nidificata
 
     Returns:
-        Lista di percorsi appiattiti
+        lista di percorsi appiattiti
     """
     if isinstance(paths, str):
         return [paths]
 
-    flattened: List[str] = []
+    flattened: list[str] = []
     for item in paths:
         if isinstance(item, str):
             flattened.append(item)
@@ -202,7 +191,7 @@ def flatten_paths(
 
 
 # Versione deprecata con tipo di default migliore
-def flatten_nested_list_deprecated(lst: List[Any] = []) -> List[Any]:
+def flatten_nested_list_deprecated(lst: list[any]) -> list[any]:
     """
     Versione deprecata: usa flatten_nested_list invece.
     """
@@ -218,12 +207,12 @@ def flatten_nested_list_deprecated(lst: List[Any] = []) -> List[Any]:
 # Se la funzione è usata come modulo
 if __name__ == "__main__":
     # Test esempi
-    example1: List[Any] = [1, [8, 9, 6], [4, 5], 0, '']
+    example1: list[any] = [1, [8, 9, 6], [4, 5], 0, '']
     print(f"flatten_nested_list: {flatten_nested_list(example1)}")
 
-    example2: List[Any] = [1, ['  ', 2], None, 3]
+    example2: list[any] = [1, ['  ', 2], None, 3]
     print(f"flatten_and_filter: {flatten_and_filter(example2)}")
     print(f"flatten_and_filter (remove whitespace): {flatten_and_filter(example2, True)}")
 
-    example3: List[Any] = [1, [2, 3], [3, 4], 5]
+    example3: list[any] = [1, [2, 3], [3, 4], 5]
     print(f"flatten_and_filter_unique: {flatten_and_filter_unique(example3)}")

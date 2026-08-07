@@ -32,9 +32,10 @@ from .logger.ln_colored_logger import (
 
 
 # generics
-from .keyboard_prompt import keyboardPrompt
-from .ln_utils import flatten_and_filter, flatten_nested_list
-from .beep import BeepPlayer
+from .varie.keyboard_prompt import keyboardPrompt
+from .varie.ln_utils import flatten_and_filter, flatten_nested_list
+from .varie.beep import BeepPlayer
+
 from .colors import get_colors
 from .context import ctx
 
@@ -72,6 +73,9 @@ from .epub.epub_manager import EpubProcessor
 
 # calibre
 from .calibre.calibre_metadata_reader import CalibreMetadataReader, test_calibre
+
+# varie
+from .varie.menu_from_list import menu_select_from_list
 
 
 
@@ -138,6 +142,9 @@ __all__ = [
     "signalHandler",
     "start_signal_handler",
     "zipDir",
+
+    # varie
+    "menu_select_from_list",
 ]
 
 if __INIT__PY__DEBUG == "True":

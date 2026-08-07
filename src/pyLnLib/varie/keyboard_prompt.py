@@ -8,7 +8,7 @@ import sys
 # from typing import List, Union
 
 from .beep import playBeep
-from .colors import get_colors
+from ..colors import get_colors
 C = get_colors()
 
 
