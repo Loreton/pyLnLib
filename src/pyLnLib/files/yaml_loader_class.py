@@ -169,7 +169,7 @@ class YamlEngine:
     #################################
     # - _get_keypath
     #################################
-    def _get_keypath(self, data: dict[str, any], keypath: str) -> any:
+    def _get_keypath(self, data: dict[str, object], keypath: str) -> object:
         """Recupera un valore da un dizionario usando un percorso di chiavi."""
         current_data = data
         try:
@@ -188,7 +188,7 @@ class YamlEngine:
     #################################
     # - load
     #################################
-    def load(self, filename_with_pointer: str) -> any:
+    def load(self, filename_with_pointer: str) -> object:
         """
         Carica un file YAML con supporto per:
         - !include, !include_merge, !list_merge
