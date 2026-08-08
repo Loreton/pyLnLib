@@ -37,6 +37,7 @@ from .varie.ln_utils import flatten_and_filter, flatten_nested_list
 from .varie.beep import BeepPlayer
 
 from .colors import get_colors
+from .emoji import get_emoji
 from .context import ctx
 
 
@@ -94,6 +95,7 @@ __all__ = [
     "BeepPlayer",
     "acquire_lock",
     "get_colors",
+    "get_emoji",
     "keyboardPrompt",
 
     # lndict

@@ -4,6 +4,18 @@ import sqlite3
 import json
 from pathlib import Path
 from datetime import datetime
+from dataclasses import dataclass
+
+from pyLnLib.logger import get_logger
+from pyLnLib.emoji import get_emoji
+from pyLnLib.lndict import lnDict
+E=get_emoji()
+
+
+@dataclass(frozen=True)  # "frozen" rende i colori non modificabili per errore
+class BookData:
+    id: int
+
 
 class CalibreMetadataReader:
     """
@@ -14,6 +26,7 @@ class CalibreMetadataReader:
     def __init__(self, library_path: str):
         self.library_path = Path(library_path)
         self.db_path = self.library_path / "metadata.db"
+        self.logger=get_logger()
 
         if not self.db_path.exists():
             raise FileNotFoundError(f"Database non trovato: {self.db_path}")
@@ -70,6 +83,9 @@ class CalibreMetadataReader:
                          LIMIT 1)""",
         }
 
+
+
+    # ================================
     def _load_custom_columns(self) -> None:
         """Carica automaticamente i campi personalizzati dal database"""
         try:
@@ -85,10 +101,16 @@ class CalibreMetadataReader:
             # La tabella custom_columns potrebbe non esistere
             pass
 
+
+
+    # ================================
     def get_custom_fields(self) -> list[str]:
         """Restituisce la lista dei campi personalizzati disponibili"""
         return list(self.custom_columns.keys())
 
+
+
+    # ================================
     def get_available_fields(self) -> dict[str, str]:
         """Restituisce tutti i campi disponibili con una breve descrizione"""
         return {
@@ -97,6 +119,9 @@ class CalibreMetadataReader:
                for k in self.custom_columns}
         }
 
+
+
+    # ================================
     def get_books(self, fields: list[str] | None = None) -> list[dict[str, any]]:
         """
         Recupera i libri con i campi specificati.
@@ -118,7 +143,7 @@ class CalibreMetadataReader:
             if field in self.field_queries:
                 select_parts.append(f"{self.field_queries[field]} AS {field}")
             else:
-                print(f"⚠️  Campo standard '{field}' non riconosciuto")
+                self.logger.warning(f"Campo standard '{field}' non riconosciuto")
 
         query = f"""
             SELECT {', '.join(select_parts)}
@@ -134,7 +159,8 @@ class CalibreMetadataReader:
             # Ottieni i dati base
             cursor = conn.execute(query)
             for row in cursor.fetchall():
-                book_dict = dict(row)
+                # book_dict = dict(row)
+                book_dict = lnDict(row)
                 if '_id' in book_dict:
                     book_dict['id'] = book_dict.pop('_id')
                 results.append(book_dict)
@@ -159,18 +185,109 @@ class CalibreMetadataReader:
                             """)
                             lookup = {row[0]: row[1] for row in cursor.fetchall()}
                         except sqlite3.OperationalError as e:
-                            print(f"⚠️  Impossibile leggere la tabella {table_name}: {e}")
+                            self.logger.warning(f"Impossibile leggere la tabella {table_name}: {e}")
                             continue
 
                     # Aggiungi il campo a ogni libro
                     for book in results:
                         book[field] = lookup.get(book.get('id'))
+                        file_exists, file_path = self.get_book_file_path(book)
+                        book["file_exists"] = file_exists
+                        book["file_path"] = file_path
+
                 else:
-                    print(f"⚠️  Campo personalizzato '{field}' non riconosciuto")
-                    print(f"   Campi disponibili: {', '.join(self.get_custom_fields())}")
+                    self.logger.warning(f"Campo personalizzato '{field}' non riconosciuto")
+                    self.logger.warning(f"Campi disponibili: {', '.join(self.get_custom_fields())}")
 
         return results
 
+    # ================================
+    def get_books_dict(self, fields: list[str] | None = None) -> dict[str, any]:
+        """
+        Recupera i libri con i campi specificati.
+
+        Args:
+            fields: Lista di campi da estrarre.
+                   Se None, usa ['id', 'title', 'authors']
+        """
+        if fields is None:
+            fields = ['id', 'title', 'authors']
+
+        # Separa campi standard e personalizzati
+        standard_fields = [f for f in fields if not f.startswith('#')]
+        custom_fields = [f for f in fields if f.startswith('#')]
+
+        # Costruisci query per campi standard
+        select_parts = ["b.id AS _id"]
+        for field in standard_fields:
+            if field in self.field_queries:
+                select_parts.append(f"{self.field_queries[field]} AS {field}")
+            else:
+                self.logger.warning(f"Campo standard '{field}' non riconosciuto")
+
+        query = f"""
+            SELECT {', '.join(select_parts)}
+            FROM books b
+            ORDER BY b.id
+        """
+
+        results: dict[str, any] = lnDict()
+        NO_ID: int=10000
+
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+
+            # Ottieni i dati base
+            cursor = conn.execute(query)
+            for row in cursor.fetchall():
+                # book_dict = dict(row)
+                book_dict = lnDict(row)
+                if '_id' in book_dict:
+                    _id = book_dict.pop('_id')
+                    book_dict['id'] = _id
+                else:
+                    NO_ID +=1
+                    _id=NO_ID
+
+                results[str(_id)]=book_dict
+
+            # Per ogni campo personalizzato, fai una query separata
+            for field in custom_fields:
+                if field in self.custom_columns:
+                    table_name = self.custom_columns[field]
+                    try:
+                        # Prova con 'book' (standard in Calibre)
+                        cursor = conn.execute(f"""
+                            SELECT book, value
+                            FROM {table_name}
+                        """)
+                        lookup = {row[0]: row[1] for row in cursor.fetchall()}
+                    except sqlite3.OperationalError:
+                        try:
+                            # Prova con 'id' (alternativa)
+                            cursor = conn.execute(f"""
+                                SELECT id, value
+                                FROM {table_name}
+                            """)
+                            lookup = {row[0]: row[1] for row in cursor.fetchall()}
+                        except sqlite3.OperationalError as e:
+                            self.logger.warning(f"Impossibile leggere la tabella {table_name}: {e}")
+                            continue
+
+                    # Aggiungi il campo a ogni libro
+                    for id, book in results.items():
+                        book[field] = lookup.get(book.get('id'))
+                        file_exists, file_path = self.get_book_file_path(book)
+                        book["file_exists"] = file_exists
+                        book["file_path"] = file_path
+
+                else:
+                    self.logger.warning(f"Campo personalizzato '{field}' non riconosciuto")
+                    self.logger.warning(f"Campi disponibili: {', '.join(self.get_custom_fields())}")
+
+        return results
+
+    # ================================
     def get_book_by_id(self, book_id: int, fields: list[str] | None = None) -> dict[str, any] | None:
         """Recupera un singolo libro per ID"""
         if fields is None:
@@ -183,13 +300,21 @@ class CalibreMetadataReader:
                 return book
         return None
 
+
+
+
+    # ================================
     def get_all_ids(self) -> list[int]:
         """Recupera tutti gli ID dei libri"""
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute("SELECT id FROM books ORDER BY id")
             return [row[0] for row in cursor.fetchall()]
 
-    def get_book_file_path(self, book_metadata: dict[str, any], debug: bool = False) -> Path | None:
+
+
+
+    # ================================
+    def get_book_file_path(self, book_metadata: dict[str, any], debug: bool = False) -> tuple[bool, Path|str|None]:
         """
         Trova il percorso del file ebook.
 
@@ -197,54 +322,103 @@ class CalibreMetadataReader:
             book_metadata: Dizionario con i metadati del libro (deve contenere 'path' e 'id')
             debug: Se True, stampa informazioni di debug
         """
+        file_exists: bool = False
+        file_path: Path|str|None = None
         if 'path' not in book_metadata:
-            if debug:
-                print(f"   ⚠️  Nessun campo 'path' nel libro {book_metadata.get('id')}")
-            return None
+            # if debug:
+            self.logger.warning(f"Nessun campo 'path' nel libro {book_metadata.get('id')}")
+            return file_exists, file_path
 
         # Il path in Calibre è relativo alla libreria
         rel_path = book_metadata['path']
         book_path = self.library_path / rel_path
+        dir_exists = book_path.exists()
 
-        if debug:
-            print(f"   📂 Path relativo: {rel_path}")
-            print(f"   📂 Path assoluto: {book_path}")
-            print(f"   📂 Esiste? {book_path.exists()}")
+        self.logger.debug(f"{E.folder} Exists?        {dir_exists}")
+        self.logger.debug(f"{E.folder} Path relativo: {rel_path}")
+        self.logger.debug(f"{E.folder} Path assoluto: {book_path}")
 
-        if not book_path.exists():
-            if debug:
-                print(f"   ⚠️  La cartella non esiste!")
-                parent = book_path.parent
-                if parent.exists():
-                    print(f"   📂 Contenuto di {parent}:")
-                    for item in parent.iterdir():
-                        print(f"      - {item.name}")
-            return None
+        if not dir_exists:
+            self.logger.warning("la cartella:\n%s\nnon esiste!", book_path)
+            parent = book_path.parent
+            if parent.exists():
+                self.logger.warning(f"{E.folder} Contenuto di {parent}:")
+                for item in parent.iterdir():
+                    self.logger.warning(f"\t- {item.name}")
+            return file_exists, file_path
 
         # Cerca file con estensioni comuni
         estensioni = ['.epub', '.mobi', '.pdf', '.azw3', '.txt', '.azw', '.prc', '.docx']
-
         for ext in estensioni:
             files = list(book_path.glob(f"*{ext}"))
             if files:
-                if debug:
-                    print(f"   ✅ Trovato: {files[0]}")
-                return files[0]
+                self.logger.success(f"Trovato: {files[0]}")
+                return True, files[0]
 
         # Se non trova con le estensioni, cerca qualsiasi file
-        all_files = list(book_path.iterdir())
-        if debug:
-            print(f"   📂 Tutti i file in {book_path}:")
+        if not file_exists:
+            self.logger.error("NO extensions:\n%s\nfound in path:\n%s}",estensioni, rel_path)
+            all_files = list(book_path.iterdir())
+            self.logger.notify(f"{E.folder} Tutti i file in {book_path}:")
             for f in all_files[:10]:
-                print(f"      - {f.name}")
+                self.logger.notify(f"\t- {f.name}")
 
-        for file in all_files:
-            if file.is_file() and file.suffix.lower() not in ['.jpg', '.jpeg', '.png', '.gif', '.opf', '.xml']:
-                if debug:
-                    print(f"   ✅ Trovato possibile ebook: {file}")
-                return file
+            for file in all_files:
+                if file.is_file() and file.suffix.lower() not in ['.jpg', '.jpeg', '.png', '.gif', '.opf', '.xml']:
+                    if debug:
+                        self.logger.notify(f"Trovato possibile ebook: {file}")
+                    return file_exists, file_path
 
-        return None
+        return file_exists, file_path
+
+
+    def get_duplicated_orphan(self) -> list[dict[str, any]]:
+
+        duplicated_book = []
+        for i, book in enumerate(self.get_books(), 1):
+            file_path = reader.get_book_file_path(book)
+            title=book.get('title', 'NO title')
+            authors=book.get('authors', 'N/D').replace('|', ' ')
+            if file_path is None:
+                no_path.append(f"{authors} - {title}")
+            if title in unique_book:
+                duplicated_book.append(f"{authors} - {title}")
+            else:
+                unique_book.append(title)
+
+        return duplicated_books
+
+
+    def get_orphans(self) -> list[dict[str, any]]:
+        no_path = []
+        for i, book in enumerate(self.get_books(), 1):
+            file_path = reader.get_book_file_path(book)
+            title=book.get('title', 'NO title')
+            authors=book.get('authors', 'N/D').replace('|', ' ')
+            if file_path is None:
+                no_path.append(f"{authors} - {title}")
+            if title in unique_book:
+                duplicated_book.append(f"{authors} - {title}")
+            else:
+                unique_book.append(title)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # ============================================================

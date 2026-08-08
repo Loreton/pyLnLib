@@ -6,12 +6,13 @@ from __future__ import annotations
 
 import inspect
 import logging
+# import emoji
 import os
 import sys
 import traceback
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Any, Callable
+# from typing import any, Callable
 
 # from webbrowser import get
 from ..colors import get_colors
@@ -95,7 +96,7 @@ class lnColoredLogger:
         # self.test: Callable = testLogger
 
 
-        self.initialize(name=name, console_logger_level="info")
+        self.initialize(name=name, console_logger_level="info", f_temporary=True)
 
 
 
@@ -115,6 +116,7 @@ class lnColoredLogger:
             file_logger_level: str = "warning",
             logging_dir: str | Path | None = None,
             threads: bool = False,
+            f_temporary: bool=False,
         ) -> None:
 
         self.name = name
@@ -127,6 +129,8 @@ class lnColoredLogger:
         # rimuoviventuali handler creati durante la fase di __init__
         # altrimenti scrive due volte le log lines
         self._clear_handlers()
+        # breakpoint()
+
 
         if console_logger_level:
             # self.addHandler(console_handler)
@@ -147,6 +151,9 @@ class lnColoredLogger:
         self.setNameLength(dynamic=True, length=0)
         if False:
             self.dump_handlers()
+        if not f_temporary:
+            # breakpoint()
+            self.warning(f"Logger {C.white}{self.name}{C.warning} inizializzato!...")
 
 
     # metodo di pulizia handlers
@@ -166,7 +173,7 @@ class lnColoredLogger:
     def add_custom_levels(self) -> None:
         # --- Livello custom NOTIFY ---
         def notify(
-            self_logger: logging.Logger, msg: str, *args: Any, **kwargs: Any
+            self_logger: logging.Logger, msg: str, *args: any, **kwargs: any
         ) -> None:
             self_logger._log(logging.NOTIFY, msg, args, **kwargs)  # type: ignore
 
@@ -176,7 +183,7 @@ class lnColoredLogger:
 
         # --- Livello custom TRACE ---
         def trace(
-            self_logger: logging.Logger, msg: str, *args: Any, **kwargs: Any
+            self_logger: logging.Logger, msg: str, *args: any, **kwargs: any
         ) -> None:
             self_logger._log(logging.TRACE, msg, args, **kwargs)  # type: ignore
 
@@ -186,7 +193,7 @@ class lnColoredLogger:
 
         # --- Livello custom FUNCTION ---
         def function(
-            self_logger: logging.Logger, msg: str, *args: Any, **kwargs: Any
+            self_logger: logging.Logger, msg: str, *args: any, **kwargs: any
         ) -> None:
             self_logger._log(logging.FUNCTION, msg, args, **kwargs)  # type: ignore
 
@@ -460,9 +467,9 @@ class lnColoredLogger:
                         self,
                         level_value: int,
                         msg: str,
-                        *args: Any,
+                        *args: any,
                         color: str | None = None,
-                        **kwargs: Any,
+                        **kwargs: any,
                     ) -> None:
         extra = kwargs["extra"]
 
@@ -529,9 +536,9 @@ class lnColoredLogger:
     def _prepare_for_logging( self,
                                 level_name: str,
                                 msg: str,
-                                *args: Any,
+                                *args: any,
                                 color: str | None = None,
-                                **kwargs: Any,
+                                **kwargs: any,
                             ) -> dict:
         ### ok processiamo la linea
         stacklevel: int = kwargs.pop("stacklevel", 0)
@@ -609,9 +616,9 @@ class lnColoredLogger:
     def _log_multiline( self,
                         level_name: str,
                         msg: str|list,
-                        *args: Any,
+                        *args: any,
                         color: str | None = None,
-                        **kwargs: Any,
+                        **kwargs: any,
                     ) -> None:
         forceExit: bool = kwargs.pop("exit", False)
         forceLog: bool = kwargs.pop("force_log", False)
@@ -634,35 +641,43 @@ class lnColoredLogger:
     #########################################################################
     # API pubbliche
     #########################################################################
-    def trace( self, msg: str|list, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
+    def trace( self, msg: str|list, *args: any, color: str | None = None, **kwargs: any ) -> None:
         self._log_multiline("TRACE", msg, *args, color=color, **kwargs)
 
-    def debug( self, msg: str|list, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
+    def debug( self, msg: str|list, *args: any, color: str | None = None, **kwargs: any ) -> None:
         self._log_multiline("DEBUG", msg, *args, color=color, **kwargs)
 
-    def info( self, msg: str|list, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
+    def info( self, msg: str|list, *args: any, color: str | None = None, **kwargs: any ) -> None:
         self._log_multiline("INFO", msg, *args, color=color, **kwargs)
 
-    def warning( self, msg: str|list, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
-        self._log_multiline("WARNING", msg, *args, color=color, **kwargs)
+    def warning( self, msg: str|list, *args: any, color: str | None = None, **kwargs: any ) -> None:
+        self._log_multiline("WARNING", f"⚠️ {msg}", *args, color=color, **kwargs)
 
-    def error( self, msg: str|list, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
-        self._log_multiline("ERROR", msg, *args, color=color, **kwargs)
+    def error( self, msg: str|list, *args: any, color: str | None = None, **kwargs: any ) -> None:
+        self._log_multiline("ERROR", f"🔴 {msg}", *args, color=color, **kwargs)
 
-    def critical( self, msg: str|list, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
-        self._log_multiline("CRITICAL", msg, *args, color=color, **kwargs)
+    def critical( self, msg: str|list, *args: any, color: str | None = None, **kwargs: any ) -> None:
+        self._log_multiline("CRITICAL", f"💀 {msg}", *args, color=color, **kwargs)
 
-    # def exception( self, msg: str|list, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
+    # def exception( self, msg: str|list, *args: any, color: str | None = None, **kwargs: any ) -> None:
     #     self._log_multiline("ERROR", msg, *args, exc_info=True, exit=True, **kwargs) da una riga dirrore:  NoneType: None
 
-    def notify( self, msg: str|list, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
+    def notify( self, msg: str|list, *args: any, color: str | None = None, **kwargs: any ) -> None:
         self._log_multiline("NOTIFY", msg, *args, color=color, **kwargs)
+        # self._log_multiline("NOTIFY", f"👉-{msg}", *args, color=color, **kwargs)
 
-    def function( self, msg: str|list, *args: Any, color: str | None = None, **kwargs: Any ) -> None:
+    def function( self, msg: str|list, *args: any, color: str | None = None, **kwargs: any ) -> None:
         self._log_multiline( "FUNCTION", msg, *args, color=color, **kwargs )
 
+    # - EXTR
+    def success( self, msg: str|list, *args: any, color: str | None = None, **kwargs: any ) -> None:
+        self._log_multiline( "INFO", f"✔️ {msg}", *args, color=color, **kwargs )
 
-def testLogger(logger: Any) -> None:
+
+
+
+
+def testLogger(logger: any) -> None:
     print("\n--- base colors ---")
     logger.trace("TRACE default")
     logger.debug("DEBUG default")
@@ -721,11 +736,7 @@ def get_logger( name: str="TEMPORARY_LOGGER" ) -> lnColoredLogger:
     if not my_logger:
         # Crea il logger
         my_logger = lnColoredLogger(name="TEMPORARY_LOGGER")
-        my_logger.warning(
-            "⚠️ Logger non inizializzato!\nLogger temporaneo {} in attesa di init_logger()...",
-            my_logger.name,
-            exit=False,
-        )
+        my_logger.warning( f"Logger {C.white}{my_logger.name}{C.warning} in attesa di init_logger()...", exit=False, )
     # - questa riga per indicare i moduli che la caricano prima di initialize()
     my_logger.debug("my_logger.name: %s", my_logger.name, stacklevel=1    )
     return my_logger
