@@ -8,11 +8,11 @@
 # -*- coding: utf-8 -*-
 
 import sys; sys.dont_write_bytecode = True
-import os
-import logging
+# import os
+# import logging
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
-from typing import Optional
+# from typing import Optional
 
 from pyLnLib import Color, lnLogger, testLogger, DummyPrintLogger
 
@@ -29,6 +29,3 @@ if __name__ == "__main__":
     testLogger(logger=logger)
 
     print("\n"*2)
-
-
-

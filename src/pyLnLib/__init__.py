@@ -73,7 +73,7 @@ from .regex.ln_regex import replace, and_search, or_search, search_term
 from .epub.epub_manager import EpubProcessor
 
 # calibre
-from .calibre.calibre_metadata_reader import CalibreMetadataReader, test_calibre
+from .calibre.calibre_metadata_reader import CalibreMetadataReader, calibre_test
 
 # varie
 from .varie.menu_from_list import menu_select_from_list
@@ -135,7 +135,7 @@ __all__ = [
 
     # calibre
     "CalibreMetadataReader",
-    "test_calibre",
+    "calibre_test",
 
     # system
     "clean_doc",

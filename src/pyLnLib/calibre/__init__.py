@@ -14,11 +14,11 @@ A package for processing EPUB files on calibre metadata db
 """
 
 
-from .calibre_metadata_reader import CalibreMetadataReader, test_calibre
+from .calibre_metadata_reader import CalibreMetadataReader, calibre_test
 
 
 
 __all__ = [
     'CalibreMetadataReader',
-    "test_calibre",
+    "calibre_test",
 ]
