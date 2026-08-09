@@ -5,4 +5,4 @@ from pyLnLib.calibre import calibre_test
 
 
 if __name__ == "__main__":
-    calibre_test()
+    calibre_test(calibre_path="/home/loreto/filu/ln-eBooks/lnLibraries/Ale")
