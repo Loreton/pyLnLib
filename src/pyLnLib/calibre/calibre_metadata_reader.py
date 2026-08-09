@@ -16,14 +16,10 @@ E = get_emoji()
 class CalibreMetadataReader:
     """
     Lettore di metadati Calibre con accesso lazy e rilevamento duplicati.
-    All'avvio carica solo gli indici (ID e autori) e rileva duplicati.
+    I duplicati sono rilevati basandosi su (titolo + autore) combinati.
     """
 
     def __init__(self, library_path: str):
-        """
-        Args:
-            library_path: Percorso della libreria Calibre
-        """
         self.library_path = Path(library_path)
         self.db_path = self.library_path / "metadata.db"
         self.logger = get_logger()
@@ -31,19 +27,14 @@ class CalibreMetadataReader:
         if not self.db_path.exists():
             raise FileNotFoundError(f"Database non trovato: {self.db_path}")
 
-        # Cache e campi personalizzati
         self._cache: dict[int, dict] = {}
         self.custom_columns: dict[str, str] = {}
         self._load_custom_columns()
 
-        # Campi standard
         self.field_queries: dict[str, str] = {}
         self._init_field_queries()
 
-        # ===== INDICI (caricati all'avvio) =====
         self._load_indices()
-
-        # ===== RILEVAMENTO DUPLICATI =====
         self._detect_duplicates()
 
     # ================================
@@ -73,7 +64,6 @@ class CalibreMetadataReader:
 
     # ================================
     def _get_rating_query(self) -> str:
-        """Recupera il rating in modo robusto"""
         try:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.execute(
@@ -153,6 +143,7 @@ class CalibreMetadataReader:
         self.logger.info("Caricamento indici...")
 
         with sqlite3.connect(self.db_path) as conn:
+            # Carica ID e titoli
             cursor = conn.execute("SELECT id, title FROM books ORDER BY id")
             self.ids: list[int] = []
             self.titles: dict[int, str] = {}
@@ -160,6 +151,7 @@ class CalibreMetadataReader:
                 self.ids.append(book_id)
                 self.titles[book_id] = title
 
+            # Carica autori e libri associati
             cursor = conn.execute("""
                 SELECT a.name, bal.book
                 FROM authors a
@@ -173,33 +165,64 @@ class CalibreMetadataReader:
                     self.authors[author] = []
                 self.authors[author].append(book_id)
 
+            # Carica mappa libro -> autori (per il rilevamento duplicati)
+            cursor = conn.execute("""
+                SELECT bal.book, a.name
+                FROM books_authors_link bal
+                JOIN authors a ON bal.author = a.id
+                ORDER BY bal.book
+            """)
+
+            self.book_authors: dict[int, list[str]] = defaultdict(list)
+            for book_id, author in cursor.fetchall():
+                self.book_authors[book_id].append(author)
+
         self.logger.info(f"✅ Caricati {len(self.ids)} libri e {len(self.authors)} autori")
 
     # ================================
     def _detect_duplicates(self) -> None:
         """
-        Rileva libri duplicati (stesso titolo).
-        Popola:
-        - self.duplicates: dict {title: [list of IDs]}
-        - self.duplicate_report: stringa con il report
-        """
-        self.logger.info("Rilevamento duplicati...")
+        Rileva libri duplicati basandosi su (titolo + autori) combinati.
 
-        # Raggruppa per titolo (case-insensitive)
-        title_groups: dict[str, list[int]] = defaultdict(list)
-        for book_id, title in self.titles.items():
-            if title:
-                # Normalizza il titolo: lowercase, rimuovi spazi multipli
-                normalized = ' '.join(title.lower().split())
-                title_groups[normalized].append(book_id)
+        Due libri sono duplicati SOLO se hanno:
+        - Stesso titolo (case-insensitive, normalizzato)
+        - Stessi autori (considerando l'ordine)
+        """
+        self.logger.info("Rilevamento duplicati (titolo + autore)...")
+
+        # Raggruppa per chiave composta: (titolo_normalizzato, autori_normalizzati)
+        groups: dict[tuple[str, str], list[int]] = defaultdict(list)
+
+        for book_id in self.ids:
+            title = self.titles.get(book_id, "")
+            if not title:
+                continue
+
+            # Normalizza il titolo
+            normalized_title = ' '.join(title.lower().split())
+
+            # Ottieni gli autori per questo libro
+            authors = self.book_authors.get(book_id, [])
+            if not authors:
+                # Se non ha autori, usa una chiave speciale
+                normalized_authors = "__no_author__"
+            else:
+                # Normalizza gli autori: ordina e unisci
+                normalized_authors = '|'.join(sorted(a.lower().strip() for a in authors))
+
+            # Crea la chiave composta
+            key = (normalized_title, normalized_authors)
+
+            # Se il titolo è lo stesso ma gli autori sono diversi, finiranno in gruppi diversi
+            groups[key].append(book_id)
 
         # Filtra solo i gruppi con più di un libro
-        self.duplicates: dict[str, list[int]] = {
-            title: ids for title, ids in title_groups.items()
+        self.duplicates: dict[tuple[str, str], list[int]] = {
+            key: ids for key, ids in groups.items()
             if len(ids) > 1
         }
 
-        # Crea un report dettagliato
+        # Crea un report più dettagliato
         self.duplicate_report = self._generate_duplicate_report()
 
         if self.duplicates:
@@ -219,35 +242,45 @@ class CalibreMetadataReader:
 
         lines = [
             "=" * 70,
-            f"📋 REPORT DUPLICATI ({len(self.duplicates)} titoli)",
+            f"📋 REPORT DUPLICATI ({len(self.duplicates)} gruppi)",
             "=" * 70,
             ""
         ]
 
-        for idx, (title, ids) in enumerate(sorted(self.duplicates.items()), 1):
-            lines.append(f"{idx}. 📖 '{title}' ({len(ids)} copie)")
+        for idx, ((title, authors_key), ids) in enumerate(
+            sorted(self.duplicates.items(), key=lambda x: x[0][0]), 1
+        ):
+
+            # Ricostruisci il titolo e gli autori per la visualizzazione
+            display_title = title.title()  # Ricapitalizza
+            display_authors = authors_key.replace('|', ', ') if authors_key != "__no_author__" else "Senza autore"
+
+            lines.append(f"{idx}. 📖 '{display_title}'")
+            lines.append(f"   Autori: {display_authors}")
+            lines.append(f"   Copie: {len(ids)}")
             lines.append(f"   IDs: {ids}")
 
-            # Per ogni ID, cerca di recuperare autore e path
-            for book_id in ids[:5]:  # Mostra solo i primi 5 per non essere troppo verboso
+            # Dettagli per ogni copia
+            for book_id in ids[:5]:  # Mostra solo i primi 5
                 try:
-                    book = self._load_book(book_id, ['id', 'title', 'authors', 'path'])
+                    book = self._load_book(book_id, ['id', 'title', 'authors', 'path', 'publisher', 'isbn'])
                     if book:
-                        authors = book.get('authors', 'N/D')
+                        publisher = book.get('publisher', 'N/D')
+                        isbn = book.get('isbn', 'N/D')
                         path = book.get('path', 'N/D')
-                        lines.append(f"     - ID {book_id}: {authors} - {path}")
-                except Exception:
-                    lines.append(f"     - ID {book_id}: (impossibile caricare)")
+                        lines.append(f"     - ID {book_id}: {publisher} | ISBN: {isbn} | Path: {path}")
+                except Exception as e:
+                    lines.append(f"     - ID {book_id}: (impossibile caricare: {e})")
 
             if len(ids) > 5:
                 lines.append(f"     ... e altri {len(ids) - 5} ID")
             lines.append("")
 
         lines.append("=" * 70)
-        lines.append("💡 Per risolvere:")
-        lines.append("   1. Usa get_duplicate_ids_by_title(title) per ottenere gli ID")
-        lines.append("   2. Usa Calibre per rimuovere/mergare i duplicati")
-        lines.append("   3. Oppure usa get_books_by_ids(ids) per esaminarli")
+        lines.append("💡 Per risolvere i duplicati:")
+        lines.append("   1. Usa get_duplicate_groups() per ottenere tutti i gruppi")
+        lines.append("   2. Usa get_duplicate_ids_by_title(title, author) per un gruppo specifico")
+        lines.append("   3. In Calibre, usa 'Merge' o elimina i duplicati manualmente")
         lines.append("=" * 70)
 
         return "\n".join(lines)
@@ -270,37 +303,75 @@ class CalibreMetadataReader:
     # ================================
     @property
     def count(self) -> int:
-        """Numero totale di libri"""
         return len(self.ids)
 
     @property
     def has_duplicates(self) -> bool:
-        """True se ci sono duplicati"""
         return bool(self.duplicates)
 
     @property
     def duplicate_count(self) -> int:
-        """Numero di titoli duplicati"""
         return len(self.duplicates)
 
     # ================================
-    def get_duplicate_titles(self) -> list[str]:
-        """Restituisce la lista dei titoli duplicati"""
-        return sorted(self.duplicates.keys())
+    # def get_duplicate_groups(self) -> dict[tuple[str, str], list[int]]:
+    #     """
+    #     Restituisce tutti i gruppi di duplicati.
+
+    #     Returns:
+    #         dict: {(titolo_normalizzato, autori_normalizzati): [list_of_ids]}
+    #     """
+    #     return dict(self.duplicates)
 
     # ================================
-    def get_duplicate_ids_by_title(self, title: str) -> list[int]:
-        """
-        Restituisce gli ID dei duplicati per un titolo specifico.
+    # def get_duplicate_titles(self) -> list[str]:
+    #     """Restituisce la lista dei titoli duplicati (visualizzazione)"""
+    #     titles = []
+    #     for (title, _), ids in sorted(self.duplicates.items(), key=lambda x: len(x[1]), reverse=True):
+    #         # Ricostruisci il titolo originale approssimativo
+    #         titles.append(f"{title.title()} ({len(ids)} copie)")
+    #     return titles
 
-        Args:
-            title: Titolo del libro (case-insensitive)
+    # ================================
+    # def get_duplicate_ids_by_title_and_author(self, title: str, author: str | None = None) -> list[int]:
+    #     """
+    #     Trova duplicati per titolo e (opzionalmente) autore.
 
-        Returns:
-            Lista di ID o lista vuota se non trovato
-        """
-        normalized = ' '.join(title.lower().split())
-        return self.duplicates.get(normalized, [])
+    #     Args:
+    #         title: Titolo del libro
+    #         author: Autore (opzionale). Se specificato, cerca solo per quell'autore.
+
+    #     Returns:
+    #         Lista di ID dei duplicati
+    #     """
+    #     normalized_title = ' '.join(title.lower().split())
+
+    #     results: list[int] = []
+    #     for (n_title, n_author), ids in self.duplicates.items():
+    #         if n_title == normalized_title:
+    #             if author is None:
+    #                 # Se non specificato autore, prendi tutti
+    #                 results.extend(ids)
+    #             elif author.lower() in n_author:
+    #                 # Se autore specificato, controlla che sia nell'autore normalizzato
+    #                 results.extend(ids)
+
+    #     return sorted(set(results))
+
+    # ================================
+    # def get_duplicate_ids_by_title(self, title: str) -> list[int]:
+    #     """
+    #     Versione semplificata: cerca duplicati per titolo.
+    #     Restituisce TUTTI gli ID per quel titolo (anche con autori diversi).
+
+    #     Questo metodo è utile per vedere rapidamente tutti i libri con lo stesso titolo.
+    #     """
+    #     normalized_title = ' '.join(title.lower().split())
+    #     results: list[int] = []
+    #     for (n_title, _), ids in self.duplicates.items():
+    #         if n_title == normalized_title:
+    #             results.extend(ids)
+    #     return sorted(set(results))
 
     # ================================
     def get_duplicate_report(self) -> str:
@@ -308,13 +379,12 @@ class CalibreMetadataReader:
         return self.duplicate_report
 
     # ================================
-    def print_duplicate_report(self) -> None:
-        """Stampa il report dei duplicati"""
-        print(self.duplicate_report)
+    # def print_duplicate_report(self) -> None:
+    #     """Stampa il report dei duplicati"""
+    #     print(self.duplicate_report)
 
     # ================================
     def get_books_by_author(self, author: str) -> list[int]:
-        """Restituisce tutti gli ID dei libri di un autore"""
         if author in self.authors:
             return self.authors[author].copy()
 
@@ -328,17 +398,14 @@ class CalibreMetadataReader:
 
     # ================================
     def get_authors(self) -> list[str]:
-        """Restituisce la lista di tutti gli autori"""
         return sorted(self.authors.keys())
 
     # ================================
     def get_author_count(self) -> dict[str, int]:
-        """Restituisce il numero di libri per autore"""
         return {author: len(ids) for author, ids in self.authors.items()}
 
     # ================================
     def get_book(self, book_id: int, fields: list[str] | None = None) -> dict[str, object] | None:
-        """Recupera un libro con cache"""
         if book_id in self._cache:
             return self._cache[book_id]
 
@@ -349,7 +416,6 @@ class CalibreMetadataReader:
 
     # ================================
     def _load_book(self, book_id: int, fields: list[str] | None = None) -> dict[str, object] | None:
-        """Carica un singolo libro dal database"""
         if fields is None:
             fields = ['id', 'title', 'authors', 'publisher', 'isbn', 'pubdate',
                      'series', 'series_index', 'tags', 'path', 'uuid',
@@ -401,6 +467,8 @@ class CalibreMetadataReader:
                     book_dict[field] = None
 
             file_exists, file_path = self.get_book_file_path(book_dict)
+            if not file_exists:
+                self.logger.error("il libro: %s NON esiste nel percorso indicato", book_dict)
             book_dict["file_exists"] = file_exists
             book_dict["file_path"] = file_path
             book_dict["library_path"] = str(self.library_path)
@@ -409,7 +477,6 @@ class CalibreMetadataReader:
 
     # ================================
     def get_books_batch(self, book_ids: list[int], fields: list[str] | None = None) -> dict[int, dict[str, object]]:
-        """Recupera multipli libri in una sola query"""
         if not book_ids:
             return {}
 
@@ -489,23 +556,19 @@ class CalibreMetadataReader:
 
     # ================================
     def get_books_by_ids(self, book_ids: list[int], fields: list[str] | None = None) -> list[dict[str, object]]:
-        """Recupera multipli libri come lista"""
         batch = self.get_books_batch(book_ids, fields)
         return [batch[bid] for bid in book_ids if bid in batch]
 
     # ================================
     def get_all_ids(self) -> list[int]:
-        """Restituisce tutti gli ID"""
         return self.ids.copy()
 
     # ================================
     def get_custom_fields(self) -> list[str]:
-        """Restituisce la lista dei campi personalizzati disponibili"""
         return list(self.custom_columns.keys())
 
     # ================================
     def get_available_fields(self) -> dict[str, str]:
-        """Restituisce tutti i campi disponibili"""
         return {
             **self.field_queries,
             **{k: f"Campo personalizzato ({self.custom_columns[k]})"
@@ -514,7 +577,6 @@ class CalibreMetadataReader:
 
     # ================================
     def get_book_file_path(self, book_metadata: dict[str, object]) -> tuple[bool, Path | None]:
-        """Trova il percorso del file ebook"""
         if 'path' not in book_metadata:
             return False, None
 
@@ -542,18 +604,14 @@ class CalibreMetadataReader:
 
     # ================================
     def clear_cache(self) -> None:
-        """Svuota la cache"""
         self._cache.clear()
         self.logger.info("Cache svuotata")
 
     # ================================
     def reload_indices(self) -> None:
-        """Ricarica gli indici e ricalcola i duplicati"""
         self.clear_cache()
         self._load_indices()
         self._detect_duplicates()
-
-
 
 
 
