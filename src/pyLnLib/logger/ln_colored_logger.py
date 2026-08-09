@@ -146,13 +146,12 @@ class lnColoredLogger:
 
         self.module_name_len: int = 0
         self.lineno_len = 4
-        self.name_function: bool = True  # come nome modulo melle module_name.func_name
+        self.function_name_display: bool = False  # come nome modulo melle module_name.func_name
         self.show_caller = False
         self.setNameLength(dynamic=True, length=0)
         if False:
             self.dump_handlers()
         if not f_temporary:
-            # breakpoint()
             self.warning(f"Logger {C.white}{self.name}{C.warning} inizializzato!...")
 
 
@@ -304,8 +303,7 @@ class lnColoredLogger:
     ###########################################################
     #
     ###########################################################
-    def setNameLength( self, dynamic: bool, length: int, f_name_function: bool = True ) -> None:
-        self.name_function = f_name_function
+    def setNameLength( self, dynamic: bool, length: int) -> None:
         if dynamic or length == 0:
             self.dynamic_name_lentgh = True
             self.module_name_len = 0
@@ -320,6 +318,12 @@ class lnColoredLogger:
                 self.dynamic_name_lentgh,
                 stacklevel=2,
             )
+    ###########################################################
+    #
+    ###########################################################
+    def show_function_name(self, action: bool ) -> None:
+        self.function_name_display = action
+
 
     def _format_name(self, name: str, lineno: int, function: str) -> str:
         """
@@ -331,8 +335,6 @@ class lnColoredLogger:
         if fDEBUG:
             print(f"before: {self.module_name_len = } {len(name) = }")
         if self.dynamic_name_lentgh:
-            # if len(name) >= self.module_name_len:
-                # self.module_name_len = len(name)
             self.module_name_len = max(self.module_name_len, len(name))
         else:
             if len(name) >= self.module_name_len:
@@ -347,6 +349,7 @@ class lnColoredLogger:
         name = f"{name}".ljust(self.module_name_len)
 
         # Formatta il numero di linea con padding a sinistra
+        return f"[{name}:{lineno:-04d}]"
         return f"[{name}:{lineno:-04d} ({function:10.10})]"
         return f"[{name}.{function:10.10}:{lineno:-04d})]"
 
@@ -355,18 +358,14 @@ class lnColoredLogger:
         Formatta nome e numero di linea come [nome:1234]
         con troncamento e padding appropriati
         """
+        # breakpoint()
         fDEBUG = False
         # Tronca il nome se necessario
         if fDEBUG:
-            print(
-                f"before: {self.module_name_len = } {len(name) = } {len(function) = }"
-            )
-
+            print( f"before: {self.module_name_len = } {len(name) = } {len(function) = }" )
         my_name = name.strip() + "." + function.strip()
         my_len = len(my_name)
         if self.dynamic_name_lentgh:
-            # if my_len >= self.module_name_len:
-            #     self.module_name_len = my_len
             self.module_name_len = max(self.module_name_len, my_len)
         else:
             if my_len >= self.module_name_len:
@@ -382,7 +381,6 @@ class lnColoredLogger:
 
         # Formatta il numero di linea con padding a sinistra
         return f"[{name}:{lineno:-04d}]"
-        # return f"[{name}.{function:10.10}:{lineno:-04d})]"
 
     # ######################################################
     # 0  _caller() - la funzione corrente
@@ -447,7 +445,7 @@ class lnColoredLogger:
             print("-" * 40)
 
         # self.name_function: bool=True
-        if self.name_function:
+        if self.function_name_display:
             return (
                 self._format_name_func(module_name, module_lineno, module_func),
                 self._format_name_func(caller_name, caller_lineno, caller_func),
@@ -550,10 +548,8 @@ class lnColoredLogger:
         kwargs["stacklevel"] = stacklevel + 4
 
         # Calcola caller formattato se necessario
-        module_formatted, caller_formatted = self._caller(
-            stacklevel=kwargs["stacklevel"], show_stack=show_stack
-        )
-
+        module_formatted, caller_formatted = self._caller( stacklevel=kwargs["stacklevel"], show_stack=show_stack )
+        # breakpoint()
         if showCaller or self.show_caller:
             ...
         else:

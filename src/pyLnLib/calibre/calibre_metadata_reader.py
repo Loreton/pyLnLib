@@ -561,6 +561,9 @@ class CalibreMetadataReader:
 
 
 
+# ============================================================
+# ESEMPIO DI UTILIZZO
+# ============================================================
 
 '''
 Metodi principali che puoi usare:
@@ -591,12 +594,6 @@ Se in futuro avrai bisogno di altre funzionalità (es. ricerca per tags, filtro 
 Buon coding! 📚💻
 '''
 
-
-
-
-# ============================================================
-# ESEMPIO DI UTILIZZO
-# ============================================================
 
 def calibre_test(calibre_path: str):
     # CALIBRE_PATH = "/home/loreto/filu/ln-eBooks/lnLibraries/Ale"
