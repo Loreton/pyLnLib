@@ -6,7 +6,7 @@ from .keyboard_prompt import keyboardPrompt
 from ..colors import get_colors
 C = get_colors()
 
-def menu_select_from_list(data: list[str]) -> int:
+def menu_select_from_list(data: list[str]) -> tuple[int, str]:
     items = len(data)
     choice: int = 0
 
@@ -17,6 +17,6 @@ def menu_select_from_list(data: list[str]) -> int:
             valid_keys.append(str(index))
 
         l_choice = keyboardPrompt(text_msg="please select library number", validKeys=valid_keys )
-        choice = int(l_choice[0]) -1
+        choice = int(l_choice[0]) - 1
 
-    return choice
+    return choice, data[choice]

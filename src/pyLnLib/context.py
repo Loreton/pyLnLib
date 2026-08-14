@@ -10,8 +10,12 @@ import os
 import platform
 import socket
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+
+# from pyLnLib.epub.epub_manager import EpubProcessor
+
+# from build.lib.pyLnLib.epub import epub_manager
 
 # from typing import Any  # , TYPE_CHECKING
 
@@ -21,12 +25,12 @@ from .colors import Colors
     potrebbessere rimosso se dovesse dare problemi
     perché ogni modulo può benissimo fare l'import di: from pyLnLib.logger import get_logger
 """
-from .logger.ln_colored_logger import get_logger, lnColoredLogger
+# from .logger.ln_colored_logger import get_logger, lnColoredLogger
 
 
 from .lndict import lnDict  # per permettere di definitre il type di context_vars
 
-@dataclass
+@dataclass(frozen=False)
 class lnContext:
     """Solo dati di configurazione - NESSUN LOGGER QUI!"""
     # def __init__(self, name: str | None = None, tmp_dir: str | None = None, version: str | None = None) -> None:
@@ -58,17 +62,29 @@ class lnContext:
         self.project_log_dir = Path(project_log_dir) if project_log_dir else self._set_log_dir(req_top_dir=self.project_temp_dir)
         self.project_config_dir = Path(project_config_dir) if project_config_dir else self._set_config_dir(top_dir=self.project_root)
 
+        # ---- optionals
+        self.logger: object = field(default=None, init=False)
+        self.calibre: object = field(default=None, init=False)
+        self.epub: object = field(default=None, init=False)
 
     #=========================================
     # - Optional
     #=========================================
-    def initialize_calibre(self, calibre_path: str):
-        from .calibre.calibre_metadata_reader import CalibreMetadataReader
-        try:
-            self.calibre = CalibreMetadataReader(calibre_path)
-        except FileNotFoundError as e:
-            print(f"❌ Errore: {e}")
-            sys.exit(1)
+    # def initialize_calibre(self, calibre_path: str):
+    #     from .calibre.calibre_metadata_reader import CalibreMetadataReader
+    #     try:
+    #         self.calibre = CalibreMetadataReader(calibre_path)
+    #     except FileNotFoundError as e:
+    #         print(f"❌ Errore: {e}")
+    #         sys.exit(1)
+
+    # def initialize_epub(self, top_dir: str):
+    #     from .epub,epub_manager import EpubProcessor
+    #     try:
+    #         self.epub = EpubProcessor(top_dir)
+    #     except FileNotFoundError as e:
+    #         print(f"❌ Errore: {e}")
+    #         sys.exit(1)
 
 
     def get_context_vars(self, keypath: str) -> lnDict:

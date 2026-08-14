@@ -1,3 +1,15 @@
+## [0.1.35] - 2026-08-14
+
+## Other
+
+- errore se file.epub not found - (Release 0.1.35) (pylnlib_commit=b7bd107)
+- inserita show_function_name() - (Release 0.1.35) (pylnlib_commit=b0cec69)
+- calibre aggiunto il detect duplicates - (Release 0.1.35) (pylnlib_commit=04811f9)
+- rivisitazione di calibre_metadata_reader.py - (Release 0.1.35) (pylnlib_commit=956349b)
+- working on calibre.... - (Release 0.1.35) (pylnlib_commit=d944486)
+- working on calibre.... - (Release 0.1.35) (pylnlib_commit=d1fe153)
+- working on calibre.... - (Release 0.1.35) (pylnlib_commit=5c0bb2f)
+
 ## [0.1.35] - 2026-08-09
 
 ## Other

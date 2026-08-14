@@ -15,6 +15,7 @@ import os
 def signalHandler(signalLevel, frame):
     ### Ctrl-c
     if int(signalLevel)==2:
+        raise AttributeError(f"'__name__' object has no attribute")
         print('\n'*3)
         choice = input("       Ctrl-c was pressed. [c]continue [any-key] quit \n\n")
         if choice != 'c':
