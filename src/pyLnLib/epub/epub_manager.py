@@ -1,7 +1,11 @@
 #|/usr/bin/env python3
 # ln_ebook_manager.py
 #
-# from curses import meta
+# ruff: noqa: BLE001  Do not catch blind exception: `Exception` (Ruff BLE001)
+# ruff: noqa: I001  Import block is un-sorted or un-formatted help: Organize imports (Ruff I001)
+#
+#
+#
 from __future__ import annotations
 
 from pathlib import Path
@@ -26,9 +30,85 @@ class BookSection:
 
 
 class EpubProcessor:
-    """Simple EPUB reader."""
+    """ Simple EPUB reader.
+    da usare con il context manager:
+        for file in book_files:
+            with EpubProcessor(file) as processor:
+                if processor:  # Usa __bool__
+                    valid_books.append(processor)
+                    print(f"✅ {processor.get_title()} - {processor.get_author()}")
+                else:
+                    print(f"❌ {file.name}: EPUB non valido")
+    ...oppure
+
+    book = get_epub_processor(file)
+    if book is None:
+        continue
+    """
+
+    #
+    def __init___WITH_CONTEXT(self, filename: str | Path):
+        self._filename = Path(filename)
+        self._sections: list[BookSection] | None = None
+        self._book = None
+        self.is_valid = True
+
+        # Verifica che il file esista
+        if not self._filename.is_file():
+            raise FileNotFoundError(f"File non trovato: {self._filename}")
+
+        # Tenta di caricare il libro
+        try:
+            self._book = epub.read_epub(str(self._filename))
+            self.is_valid = True
+            logger.debug(f"EPUB caricato con successo: {self._filename.stem}")
+
+        except Exception as e:
+            logger.error(f"{self._filename.stem}\nFailed to read EPUB: {e}")
+            self._book = None
+            self.is_valid = False
+
+    def __bool___WITH_CONTEXT(self):
+        """Permette di usare 'if processor:' per verificare la validità."""
+        return self.is_valid and self._book is not None
+
+    def __enter___WITH_CONTEXT(self):
+        """Context manager per gestire automaticamente le risorse."""
+        return self
+
+    def __exit___WITH_CONTEXT(self, exc_type, exc_val, exc_tb):
+        """Pulisce le risorse quando si esce dal context manager."""
+        self.close()
+
+    def close_WITH_CONTEXT(self):
+        """Rilascia le risorse."""
+        self._book = None
+        self._sections = None
+
+
 
     def __init__(self, filename: str | Path):
+        self._filename = Path(filename)
+        self._sections: list[BookSection] | None = None
+        self._book = None
+        self.is_valid = True
+
+        if not self._filename.is_file():
+            raise FileNotFoundError(f"File non trovato: {self._filename}")
+
+        try:
+            self._book = epub.read_epub(str(self._filename))
+            self.is_valid = True
+
+        except Exception as e:
+            logger.error(f"{self._filename.stem}\nFailed to read EPUB: {e}")
+            self._book = None
+            self.is_valid = False
+
+    def __bool__(self):
+        return self.is_valid and self._book is not None
+
+    def __init__XXX(self, filename: str | Path):
 
         self._filename = Path(filename)
         """  memorizzare le sezioni.
@@ -41,12 +121,14 @@ class EpubProcessor:
         if not self._filename.is_file():
             raise FileNotFoundError(self._filename)
 
-
+        self.is_valid= True
         try:
             self._book = epub.read_epub(str(self._filename))
         except Exception as e:
             logger.error(f"{self._filename.stem}\nFailed to read EPUB: {e}", exit=True)
-            raise
+            self._book = None
+            self.is_valid= False
+            # raise
 
     # ======================================================================
     # Properties
@@ -138,70 +220,13 @@ class EpubProcessor:
         return self._sections
 
 
-    # def get_sections_(self) -> list[dict]:
-    #     """
-    #     Return the ebook sections.
-
-    #     Each element contains:
-
-    #         {
-    #             "file": "...",
-    #             "title": "...",
-    #             "text": "..."
-    #         }
-    #     """
-    #     if self._sections is not None:
-    #         return self._sections
-
-
-    #     sections = []
-
-    #     for item in self._book.get_items():
-
-    #         if item.get_type() != ITEM_DOCUMENT:
-    #             continue
-
-    #         soup = BeautifulSoup(
-    #             item.get_body_content(),
-    #             "html.parser"
-    #         )
-
-    #         text = soup.get_text(separator=" ", strip=True)
-
-    #         title = None
-
-    #         if soup.title:
-    #             title = soup.title.get_text(strip=True)
-
-    #         if not title:
-    #             h1 = soup.find("h1")
-    #             if h1:
-    #                 title = h1.get_text(strip=True)
-
-    #         sections.append(
-    #             {
-    #                 "file": item.file_name,
-    #                 "title": title,
-    #                 "text": text,
-    #             }
-    #         )
-
-
-    #     self._sections = sections
-    #     return self._sections
-
-
     def get_text(self) -> str:
         return "\n\n".join(
             section.text
             for section in self.get_sections()
             if section.text
         )
-        # return "\n\n".join(
-        #     section["text"]
-        #     for section in self.get_sections()
-        #     if section["text"]
-        # )
+
 
     # ======================================================================
     # Export
@@ -272,3 +297,42 @@ class EpubProcessor:
             return None
 
         return values[0][0]
+
+
+
+#============================================
+# Mi permette di gestire book che hanno errori
+#============================================
+def get_epub_processor(filename: str | Path) -> Optional[EpubProcessor]:
+    """
+    Factory function che crea un processore EPUB.
+    Restituisce None se il libro non è valido.
+    """
+    try:
+        processor = EpubProcessor(filename)
+        return processor if processor.is_valid else None
+    except Exception as e:
+        logger.error(f"Errore nella creazione del processore: {e}")
+        return None
+
+
+
+def manage_epub_processor(book_files: list[str | Path]) -> list[EpubProcessor]:
+    """
+    Generatore che processa file EPUB e yield solo quelli validi.
+
+    Args:
+        book_files: Lista di percorsi di file EPUB
+
+    Yields:
+        EpubProcessor: Processori validi
+    """
+    for file in book_files:
+        file_path = Path(file)
+        processor = EpubProcessor(file_path)
+
+        if processor.is_valid:
+            # logger.info(f"{processor.title} - {processor.author}")
+            yield processor
+        else:
+            logger.error(f"{file_path.name}: EPUB non valido o corrotto")

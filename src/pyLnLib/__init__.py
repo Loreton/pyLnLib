@@ -70,7 +70,7 @@ from .system.clean_doc import clean_doc
 from .regex.ln_regex import replace, and_search, or_search, search_term
 
 # pub
-from .epub.epub_manager import EpubProcessor
+from .epub.epub_manager import EpubProcessor, get_epub_processor, manage_epub_processor
 
 # calibre
 from .calibre.calibre_metadata_reader import CalibreMetadataReader, calibre_test
@@ -132,6 +132,8 @@ __all__ = [
 
     # epub
     "EpubProcessor",
+    "get_epub_processor",
+    "manage_epub_processor",
 
     # calibre
     "CalibreMetadataReader",

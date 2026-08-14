@@ -181,9 +181,7 @@ class lnColoredLogger:
         logging.Logger.notify = notify  # type: ignore
 
         # --- Livello custom TRACE ---
-        def trace(
-            self_logger: logging.Logger, msg: str, *args: any, **kwargs: any
-        ) -> None:
+        def trace( self_logger: logging.Logger, msg: str, *args: any, **kwargs: any ) -> None:
             self_logger._log(logging.TRACE, msg, args, **kwargs)  # type: ignore
 
         logging.TRACE = my_TRACE_value  # type: ignore
@@ -191,9 +189,7 @@ class lnColoredLogger:
         logging.Logger.trace = trace  # type: ignore
 
         # --- Livello custom FUNCTION ---
-        def function(
-            self_logger: logging.Logger, msg: str, *args: any, **kwargs: any
-        ) -> None:
+        def function( self_logger: logging.Logger, msg: str, *args: any, **kwargs: any ) -> None:
             self_logger._log(logging.FUNCTION, msg, args, **kwargs)  # type: ignore
 
         logging.FUNCTION = my_FUNCTION_value  # type: ignore
