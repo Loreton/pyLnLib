@@ -19,6 +19,7 @@ if __INIT__PY__DEBUG:
 
 
 from .epub_manager import EpubProcessor, get_epub_processor, manage_epub_processor
+from .author_registry import AuthorRegistry
 
 
 # Definisci cosa esportare quando si fa "from pyLnLib.logger import *"
@@ -26,6 +27,7 @@ __all__ = [
     "EpubProcessor",
     "get_epub_processor",
     "manage_epub_processor",
+    "AuthorRegistry",
 ]
 
 if __INIT__PY__DEBUG:

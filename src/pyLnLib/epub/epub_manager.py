@@ -7,6 +7,7 @@
 #
 #
 from __future__ import annotations
+from _collections_abc import Generator
 
 from pathlib import Path
 from dataclasses import dataclass
@@ -15,7 +16,7 @@ from bs4 import BeautifulSoup
 from ebooklib import epub, ITEM_DOCUMENT
 
 
-from pyLnLib.files import unique_filename
+# from pyLnLib.files import get_unique_filename
 from pyLnLib.logger import get_logger
 
 logger = get_logger()
@@ -92,6 +93,7 @@ class EpubProcessor:
         self._sections: list[BookSection] | None = None
         self._book = None
         self.is_valid = True
+        self._index = 0
 
         if not self._filename.is_file():
             raise FileNotFoundError(f"File non trovato: {self._filename}")
@@ -107,6 +109,14 @@ class EpubProcessor:
 
     def __bool__(self):
         return self.is_valid and self._book is not None
+
+    # - utilizzato da manage_epub_processor() per permettere di conoscere il numero di libri processati
+    def set_index(self, index: int):
+        self._index = index
+
+    @property
+    def index(self) -> int:
+        return self._index
 
     def __init__XXX(self, filename: str | Path):
 
@@ -303,7 +313,7 @@ class EpubProcessor:
 #============================================
 # Mi permette di gestire book che hanno errori
 #============================================
-def get_epub_processor(filename: str | Path) -> Optional[EpubProcessor]:
+def get_epub_processor(filename: str | Path) -> EpubProcessor | None:
     """
     Factory function che crea un processore EPUB.
     Restituisce None se il libro non è valido.
@@ -317,7 +327,7 @@ def get_epub_processor(filename: str | Path) -> Optional[EpubProcessor]:
 
 
 
-def manage_epub_processor(book_files: list[str | Path]) -> list[EpubProcessor]:
+def manage_epub_processor(book_files: list[str | Path]) -> Generator[EpubProcessor, object, object]:
     """
     Generatore che processa file EPUB e yield solo quelli validi.
 
@@ -327,9 +337,11 @@ def manage_epub_processor(book_files: list[str | Path]) -> list[EpubProcessor]:
     Yields:
         EpubProcessor: Processori validi
     """
-    for file in book_files:
+
+    for index, file in enumerate(book_files, 1):
         file_path = Path(file)
         processor = EpubProcessor(file_path)
+        processor.set_index(index)
 
         if processor.is_valid:
             # logger.info(f"{processor.title} - {processor.author}")

@@ -13,6 +13,8 @@ import os
 # import stat
 import zipfile
 from pathlib import Path
+from hashlib import sha256
+
 from types import SimpleNamespace
 
 from ..context import ctx
@@ -37,7 +39,7 @@ def findFile(root: str, filename: str):
 
 
 
-def unique_filename(filename: Path, suffix_pattern: str = "-{:03d}") -> Path:
+def unique_filenameXXX(filename: Path, suffix_pattern: str = "-{:03d}") -> Path:
     """Return a non-existing filename.
 
     Example:
@@ -72,7 +74,78 @@ def unique_filename(filename: Path, suffix_pattern: str = "-{:03d}") -> Path:
 
 
 
-def scan_directory(root_dir: Path|str, pattern: str, recursive: bool = True) -> list[Path]:
+
+def file_hash(filename: Path, chunk_size: int = 1024 * 1024) -> str:
+    """Return the SHA-256 hash of a file."""
+
+    digest = sha256()
+
+    with filename.open("rb") as file:
+        while chunk := file.read(chunk_size):
+            digest.update(chunk)
+
+    return digest.hexdigest()
+
+
+def get_unique_filename( filename: Path, suffix_pattern: str = "-{:03d}", ) -> Path | None:
+    """Return a unique filename, or None if an identical file exists.
+
+    The original filename is returned if it does not exist.
+
+    If the filename already exists, existing files with the same
+    stem/suffix are checked:
+
+    1. Files with a different size are ignored.
+    2. Files with the same size are compared using SHA-256.
+    3. If an identical file is found, None is returned.
+    4. Otherwise, the first available filename is returned.
+
+    Example:
+        report.txt
+        report-001.txt
+        report-002.txt
+        ...
+    """
+    filename = Path(filename)
+
+    if not filename.exists():
+        return filename
+
+    file_size = filename.stat().st_size
+    file_digest = file_hash(filename)
+
+    stem = filename.stem
+    suffix = filename.suffix
+    parent = filename.parent
+
+    index = 1
+
+    while True:
+        candidate = parent / (
+            stem +
+            suffix_pattern.format(index) +
+            suffix
+        )
+
+        if not candidate.exists():
+            return candidate
+
+        # Fast check: different size means different content
+        if candidate.stat().st_size != file_size:
+            index += 1
+            continue
+
+        # Same size: now perform the definitive comparison
+        if file_hash(candidate) == file_digest:
+            return None
+
+        index += 1
+
+
+
+
+
+def scan_directory(root_dir: Path|str, pattern: str, recursive: bool = True) -> list[Path|str]:
     """
     Scansiona una directory per trovare file EPUB
 
@@ -84,9 +157,10 @@ def scan_directory(root_dir: Path|str, pattern: str, recursive: bool = True) -> 
     Returns:
         list[Path]: Lista di percorsi dei file trovati
     """
+
     root_path = Path(root_dir)
     if not root_path.exists():
-        self.logger.error(f"Directory non trovata: {root_path}")
+        logger.error(f"Directory non trovata: {root_path}")
         return []
 
     if recursive:

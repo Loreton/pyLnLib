@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #
 # updated by ...: Loreto Notarantonio
+# Ruff: noqa SIM114 Combine `if` branches using logical `or` operator help: Combine `if` branches (Ruff SIM114)
 #
 
 import os
@@ -42,8 +43,7 @@ def keyboardPrompt( text_msg: str,
         multi_choices: Se True, permette scelte multiple (spazio separate)
 
     Returns:
-        Se multi_choices è True: Lista di stringhe con le scelte
-        Se multi_choices è False: Stringa con la scelta singola
+        lista di stringhe con le scelte
     """
 
     # # -------------------------------
@@ -68,12 +68,7 @@ def keyboardPrompt( text_msg: str,
     # Costruzione del messaggio
     text_msg += " - [" + "|".join(exitKeys) + "]quit ->: "
     text_msg = caller_info(message=text_msg)
-    # import pdb; pdb.set_trace();  # by Loreto
-    # Gestione ENTER key
-    # if "ENTER" in exitKeys:
-    #     exitKeys.append("")
-    # if "ENTER" in validKeys:
-    #     validKeys.append("")
+
 
     choice: str = ""
 
@@ -92,7 +87,7 @@ def keyboardPrompt( text_msg: str,
 
         # Controllo scelte multiple
         elif multi_choices and check_MC(choice, validKeys):
-            break
+            break  # type: ignore
 
         # Controllo scelta singola
         elif choice in validKeys:
