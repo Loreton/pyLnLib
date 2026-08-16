@@ -38,7 +38,7 @@ from .varie.beep import BeepPlayer
 
 from .colors import get_colors
 from .emoji import get_emoji
-from .context import ctx
+from .context import ctx, pVars
 
 
 # files
@@ -93,6 +93,8 @@ __all__ = [
 
     # generics
     "ctx",
+    "pVars",
+
     "BeepPlayer",
     "acquire_lock",
     "get_colors",

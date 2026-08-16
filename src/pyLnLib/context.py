@@ -42,6 +42,7 @@ class lnContext:
         # Sistema
         self.hostname = socket.gethostname().split()[0]
         self.op_sys = platform.system()
+        self.project_vars: lnDict = lnDict()
 
         self.version = "0.0.1"
 
@@ -51,21 +52,39 @@ class lnContext:
                         project_log_dir: str | None = None,
                         project_config_dir: str | None = None,
                         ) -> None:
-        self.project_name = project_name
-        self.version = version
-        self.config: lnDict = lnDict()
-        self.input_args: lnDict = lnDict()
-        self.args: lnDict = lnDict()
+        # self.project_name = project_name
+        # self.version = version
+        # self.config: lnDict = lnDict()
+        # self.input_args: lnDict = lnDict()
+        # self.args: lnDict = lnDict()
 
-        self.project_root = Path(project_root) if project_root else self._find_project_root()
-        self.project_temp_dir = Path(project_temp_dir) if project_temp_dir else self._set_temp_path(req_top_dir="/tmp")
-        self.project_log_dir = Path(project_log_dir) if project_log_dir else self._set_log_dir(req_top_dir=self.project_temp_dir)
-        self.project_config_dir = Path(project_config_dir) if project_config_dir else self._set_config_dir(top_dir=self.project_root)
+        # self.project_root = Path(project_root) if project_root else self._find_project_root()
+        # self.project_temp_dir = Path(project_temp_dir) if project_temp_dir else self._set_temp_path(req_top_dir="/tmp")
+        # self.project_log_dir = Path(project_log_dir) if project_log_dir else self._set_log_dir(req_top_dir=self.project_temp_dir)
+        # self.project_config_dir = Path(project_config_dir) if project_config_dir else self._set_config_dir(top_dir=self.project_root)
+        _project_root = Path(project_root) if project_root else self._find_project_root()
+        _project_temp_dir = Path(project_temp_dir) if project_temp_dir else self._set_temp_path(req_top_dir="/tmp")
+        _project_log_dir = Path(project_log_dir) if project_log_dir else self._set_log_dir(req_top_dir=_project_temp_dir)
+        _project_config_dir = Path(project_config_dir) if project_config_dir else self._set_config_dir(top_dir=_project_root)
 
         # ---- optionals
-        self.logger: object = field(default=None, init=False)
-        self.calibre: object = field(default=None, init=False)
-        self.epub: object = field(default=None, init=False)
+        # self.logger: object = field(default=None, init=False)
+        # self.calibre: object = field(default=None, init=False)
+        # self.epub: object = field(default=None, init=False)
+
+        # Variabili del progetto
+        self.project_vars.update(
+            {
+                "root_dir": _project_root,
+                "temp_dir": _project_temp_dir,
+                "log_dir": _project_log_dir,
+                "config_dir": _project_config_dir,
+                "project_name": project_name,
+                "version": version,
+                "config": lnDict(),
+                "args": lnDict(), # input args
+            }
+        )
 
     #=========================================
     # - Optional
@@ -164,6 +183,7 @@ class lnContext:
 
 # Istanza globale
 ctx = lnContext()
+pVars = ctx.project_vars
 
 
 # Funzione comoda per ottenere i context_vars

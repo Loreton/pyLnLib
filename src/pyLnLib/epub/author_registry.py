@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+
 import yaml
 
 
@@ -9,7 +10,7 @@ class AuthorRegistry:
     """
     Registro persistente degli autori.
 
-    Esempio di YAML:
+    Il formato YAML è:
 
         authors:
           Smith:
@@ -26,24 +27,21 @@ class AuthorRegistry:
           van Gogh:
             - Vincent
 
-          De La Fontaine:
-            - Jean
+    L'uso normale della classe è semplicemente:
 
-    Il registro permette di riconoscere automaticamente gli autori
-    già conosciuti e di chiedere all'utente come interpretare quelli
-    nuovi.
+        author = registry.format(book.author)
+
+    La classe si occupa autonomamente di:
+        - pulizia del nome
+        - ricerca
+        - riconoscimento dei cognomi composti
+        - richiesta all'utente quando necessario
+        - aggiornamento del registro
+        - salvataggio YAML
     """
 
     def __init__(self, filename: str | Path):
         self.filename = Path(filename)
-
-        # Forma interna:
-        #
-        # {
-        #     "Smith": {"John", "Mark", "David"},
-        #     "Eco": {"Umberto"},
-        #     "García Márquez": {"Gabriel"},
-        # }
         self.authors: dict[str, set[str]] = {}
 
         self.load()
@@ -54,38 +52,26 @@ class AuthorRegistry:
 
     @staticmethod
     def _key(value: str) -> str:
-        """
-        Restituisce la chiave usata per i confronti.
+        """Chiave per confronti case-insensitive."""
 
-        Il confronto è case-insensitive.
-        """
         return value.strip().casefold()
 
     @staticmethod
-    def clean_author(value: str) -> str:
+    def _clean(value: str) -> str:
         """
-        Pulisce il nome dell'autore.
+        Pulisce una stringa autore.
 
-        Vengono mantenuti:
-            - lettere Unicode
-            - numeri
-            - spazi
-
-        La virgola viene considerata come separatore.
-
-        Esempi:
+        Esempio:
 
             'mark, Smith, .-'
-                -> 'mark Smith'
 
-            'García Márquez, Gabriel'
-                -> 'García Márquez Gabriel'
+        diventa:
+
+            'mark Smith'
         """
 
-        # La virgola viene trasformata in spazio.
         value = value.replace(",", " ")
 
-        # Manteniamo caratteri alfanumerici Unicode e spazi.
         value = re.sub(
             r"[^\w\s]",
             " ",
@@ -93,7 +79,6 @@ class AuthorRegistry:
             flags=re.UNICODE,
         )
 
-        # Normalizziamo gli spazi.
         return " ".join(value.split())
 
     # ==================================================================
@@ -114,9 +99,7 @@ class AuthorRegistry:
         ) as fp:
             data = yaml.safe_load(fp) or {}
 
-        authors = data.get("authors", {})
-
-        for surname, names in authors.items():
+        for surname, names in data.get("authors", {}).items():
 
             if names is None:
                 names = []
@@ -136,7 +119,6 @@ class AuthorRegistry:
 
         authors = {}
 
-        # Ordiniamo i cognomi per mantenere il file leggibile.
         for surname in sorted(
             self.authors,
             key=str.casefold,
@@ -154,7 +136,6 @@ class AuthorRegistry:
             "w",
             encoding="utf-8",
         ) as fp:
-
             yaml.safe_dump(
                 data,
                 fp,
@@ -164,20 +145,14 @@ class AuthorRegistry:
             )
 
     # ==================================================================
-    # Ricerca cognome
+    # Ricerca
     # ==================================================================
 
-    def find_surname(
+    def _find_surname(
         self,
         value: str,
     ) -> str | None:
-        """
-        Cerca un cognome nel registro.
-
-        Il confronto non distingue maiuscole/minuscole.
-
-        Restituisce il valore originale presente nel YAML.
-        """
+        """Cerca un cognome nel registro."""
 
         key = self._key(value)
 
@@ -188,54 +163,43 @@ class AuthorRegistry:
 
         return None
 
-    def find_surname_in_words( self, words: list[str], ) -> tuple[str, int, int] | None:
+    def _find_surname_in_words(
+        self,
+        words: list[str],
+    ) -> tuple[str, int, int] | None:
         """
-        Cerca un cognome all'interno di una lista di parole.
+        Cerca un cognome composto all'interno delle parole.
 
-        Vengono provate tutte le sequenze consecutive, partendo
-        dalle più lunghe.
+        Restituisce:
+
+            surname, start, length
 
         Esempio:
 
-            words = [
-                "Gabriel",
-                "García",
-                "Márquez",
-            ]
-
-        Se nel registro esiste:
-
-            García Márquez
+            ['Vincent', 'van', 'Gogh']
 
         restituisce:
 
-            ("García Márquez", 1, 2)
-
-        dove:
-
-            surname = "García Márquez"
-            start   = 1
-            length  = 2
+            ('van Gogh', 1, 2)
         """
 
         if not words:
             return None
 
-        # Prima proviamo le sequenze più lunghe.
-        #
-        # Esempio con 4 parole:
-        #
-        # lunghezza 4
-        # lunghezza 3
-        # lunghezza 2
-        # lunghezza 1
-        #
-        # In questo modo "De La Fontaine" viene preferito
-        # a "Fontaine" se entrambi fossero presenti.
-        for length in range( len(words), 0, -1, ):
-            for start in range( len(words) - length + 1 ):
-                candidate = " ".join( words[start:start + length] )
-                surname = self.find_surname(candidate)
+        # Prima le sequenze più lunghe.
+        for length in range(
+            len(words),
+            0,
+            -1,
+        ):
+            for start in range(
+                len(words) - length + 1
+            ):
+                candidate = " ".join(
+                    words[start:start + length]
+                )
+
+                surname = self._find_surname(candidate)
 
                 if surname is not None:
                     return surname, start, length
@@ -243,59 +207,37 @@ class AuthorRegistry:
         return None
 
     # ==================================================================
-    # Ricerca nome
-    # ==================================================================
-
-    def find_name( self, surname: str, name: str, ) -> bool:
-        """
-        Verifica se la coppia cognome/nome è già conosciuta.
-        """
-
-        real_surname = self.find_surname(surname)
-
-        if real_surname is None:
-            return False
-
-        name_key = self._key(name)
-
-        return any(
-            self._key(item) == name_key
-            for item in self.authors[real_surname]
-        )
-
-    # ==================================================================
     # Inserimento
     # ==================================================================
 
-    def add( self, surname: str, name: str, save: bool = True, ) -> None:
-        """
-        Aggiunge un autore al registro.
-
-        Se il cognome esiste già, viene aggiunto solamente
-        il nuovo nome.
-        """
+    def _add(
+        self,
+        surname: str,
+        name: str,
+    ) -> None:
+        """Aggiunge un'associazione cognome/nome."""
 
         surname = " ".join(surname.split())
         name = " ".join(name.split())
 
-        real_surname = self.find_surname(surname)
+        real_surname = self._find_surname(surname)
 
         if real_surname is None:
-
             self.authors[surname] = {name}
-
         else:
-
             self.authors[real_surname].add(name)
 
-        if save:
-            self.save()
+        self.save()
 
     # ==================================================================
     # Prompt
     # ==================================================================
 
-    def _author_prompt( self, author: str, words: list[str], ) -> list[int]:
+    def _author_prompt(
+        self,
+        author: str,
+        words: list[str],
+    ) -> list[int]:
         """
         Chiede all'utente quali parole compongono il cognome.
 
@@ -309,8 +251,6 @@ class AuthorRegistry:
               4) Fontaine
 
             Inserisci gli indici del cognome [es. 2 3 4]:
-
-        Restituisce gli indici zero-based.
         """
 
         print()
@@ -318,14 +258,21 @@ class AuthorRegistry:
         print()
         print("Quali parole compongono il cognome?")
 
-        for index, word in enumerate( words, start=1, ):
+        for index, word in enumerate(
+            words,
+            start=1,
+        ):
             print(f"  {index}) {word}")
 
         while True:
-            value = input( "Inserisci gli indici " "del cognome [es. 2 3 4]: " ).strip()
+
+            value = input(
+                "Inserisci gli indici "
+                "del cognome [es. 2 3 4]: "
+            ).strip()
 
             if not value:
-                print( "Specificare almeno una parola." )
+                print("Specificare almeno una parola.")
                 continue
 
             try:
@@ -333,7 +280,6 @@ class AuthorRegistry:
                     int(item) - 1
                     for item in value.split()
                 ]
-
             except ValueError:
                 print(
                     "Inserire gli indici separati "
@@ -341,31 +287,21 @@ class AuthorRegistry:
                 )
                 continue
 
-            # ----------------------------------------------------------
-            # Verifica che gli indici siano validi.
-            # ----------------------------------------------------------
+            if not indexes:
+                continue
+
             if any(
                 index < 0 or index >= len(words)
                 for index in indexes
             ):
-                print(
-                    "Uno o più indici non sono validi."
-                )
+                print("Indice non valido.")
                 continue
 
-            # ----------------------------------------------------------
-            # Eliminiamo eventuali duplicati.
-            # ----------------------------------------------------------
             if len(indexes) != len(set(indexes)):
-                print(
-                    "Non è possibile specificare "
-                    "lo stesso indice più volte."
-                )
+                print("Indice duplicato.")
                 continue
 
-            # ----------------------------------------------------------
-            # Il cognome deve essere composto da parole consecutive.
-            # ----------------------------------------------------------
+            # Le parole del cognome devono essere consecutive.
             expected = list(
                 range(
                     indexes[0],
@@ -383,30 +319,21 @@ class AuthorRegistry:
             return indexes
 
     # ==================================================================
-    # Identificazione
+    # Identificazione interna
     # ==================================================================
 
-    def identify( self, value: str, ) -> tuple[str, str] | None:
+    def _identify(
+        self,
+        value: str,
+    ) -> tuple[str, str] | None:
         """
-        Identifica un autore.
+        Identifica internamente un autore.
 
-        Restituisce:
-
-            (cognome, nome)
-
-        oppure None se non è possibile identificarlo.
-
-        La procedura è:
-
-        1. pulisce il valore;
-        2. cerca un cognome già conosciuto;
-        3. supporta cognomi composti;
-        4. se trova il cognome, il resto è il nome;
-        5. se il cognome non è conosciuto, chiede all'utente;
-        6. salva la nuova associazione.
+        Questo metodo NON dovrebbe essere normalmente chiamato
+        dall'esterno. Il punto di ingresso pubblico è format().
         """
 
-        cleaned = self.clean_author(value)
+        cleaned = self._clean(value)
 
         if not cleaned:
             return None
@@ -417,24 +344,14 @@ class AuthorRegistry:
             return None
 
         # --------------------------------------------------------------
-        # Cerchiamo un cognome conosciuto.
+        # Tentativo automatico
         # --------------------------------------------------------------
-        found = self.find_surname_in_words(words)
+
+        found = self._find_surname_in_words(words)
 
         if found is not None:
-            surname, start, length = found
 
-            # ----------------------------------------------------------
-            # Il cognome occupa una sequenza di parole.
-            #
-            # Esempio:
-            #
-            #   ["Jean", "De", "La", "Fontaine"]
-            #             ^^^^^^^^^^^^^^^^^^^
-            #
-            # start  = 1
-            # length = 3
-            # ----------------------------------------------------------
+            surname, start, length = found
 
             name_words = (
                 words[:start]
@@ -443,31 +360,30 @@ class AuthorRegistry:
 
             name = " ".join(name_words)
 
-            # ----------------------------------------------------------
-            # Il cognome è già noto.
-            #
-            # Se il nome non è ancora presente, lo aggiungiamo.
-            # ----------------------------------------------------------
-
-            self.add( surname, name, )
+            # Il cognome è noto.
+            # Se il nome è nuovo viene semplicemente aggiunto.
+            if name:
+                self._add(
+                    surname,
+                    name,
+                )
 
             return surname, name
 
         # --------------------------------------------------------------
-        # Nessun cognome conosciuto.
+        # Non riconosciuto.
+        # Chiediamo all'utente.
         # --------------------------------------------------------------
 
-        indexes = self._author_prompt( cleaned, words )
+        indexes = self._author_prompt(
+            cleaned,
+            words,
+        )
 
-        # --------------------------------------------------------------
-        # Costruiamo il cognome.
-        # --------------------------------------------------------------
-
-        surname = " ".join( words[index] for index in indexes )
-
-        # --------------------------------------------------------------
-        # Tutte le altre parole costituiscono il nome.
-        # --------------------------------------------------------------
+        surname = " ".join(
+            words[index]
+            for index in indexes
+        )
 
         name = " ".join(
             word
@@ -475,25 +391,31 @@ class AuthorRegistry:
             if index not in indexes
         )
 
-        # --------------------------------------------------------------
-        # Registriamo la nuova associazione.
-        # --------------------------------------------------------------
-
-        self.add( surname, name )
+        self._add(
+            surname,
+            name,
+        )
 
         return surname, name
 
     # ==================================================================
-    # Formattazione
+    # API pubblica
     # ==================================================================
-
-    @staticmethod
-    def format( author: tuple[str, str] | None, ) -> str:
+    def format( self, value: str | None, canonical: bool = True ) -> str:
         """
-        Restituisce l'autore nella forma:
+        Normalizza e formatta un autore.
 
-            Cognome, Nome
+        canonical=True:
+            'Surname, Name'
+
+        canonical=False:
+            'Surname Name'
         """
+
+        if not value:
+            return ""
+
+        author = self._identify(value)
 
         if author is None:
             return ""
@@ -503,57 +425,34 @@ class AuthorRegistry:
         if not name:
             return surname
 
-        return f"{surname}, {name}"
+        if canonical:
+            return f"{surname}, {name}"
+
+        return f"{surname} {name}"
+
+
 
     # ==================================================================
     # Utility
     # ==================================================================
 
     def __iter__(self):
-        """
-        Itera sugli autori in ordine alfabetico.
-        """
+        """Itera sugli autori registrati."""
 
         for surname in sorted(
             self.authors,
             key=str.casefold,
         ):
-
             for name in sorted(
                 self.authors[surname],
                 key=str.casefold,
             ):
-
                 yield surname, name
 
     def __len__(self) -> int:
-        """
-        Restituisce il numero totale di combinazioni
-        cognome/nome registrate.
-        """
+        """Numero di combinazioni cognome/nome registrate."""
 
         return sum(
             len(names)
             for names in self.authors.values()
-        )
-
-
-
-if __name__ == "__main__":
-    registry = AuthorRegistry("authors.yaml")
-
-    tests = [
-        "mark, Smith, .-",
-        "Smith, David",
-        "Umberto Eco",
-        "Gabriel García Márquez",
-        "Vincent van Gogh",
-    ]
-
-    for value in tests:
-        author = registry.identify( value)
-
-        print(
-            f"{value!r:30} -> "
-            f"{registry.format(author) if author else None}"
         )
