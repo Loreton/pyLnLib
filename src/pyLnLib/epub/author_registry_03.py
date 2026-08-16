@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import sys
 import re
 from pathlib import Path
 
@@ -44,7 +43,6 @@ class AuthorRegistry:
     def __init__(self, filename: str | Path):
         self.filename = Path(filename)
         self.authors: dict[str, set[str]] = {}
-        self.ignore: set[str] = set()
 
         self.load()
 
@@ -212,7 +210,11 @@ class AuthorRegistry:
     # Inserimento
     # ==================================================================
 
-    def _add( self, surname: str, name: str, ) -> None:
+    def _add(
+        self,
+        surname: str,
+        name: str,
+    ) -> None:
         """Aggiunge un'associazione cognome/nome."""
 
         surname = " ".join(surname.split())
@@ -231,13 +233,24 @@ class AuthorRegistry:
     # Prompt
     # ==================================================================
 
-    def _author_prompt( self, author: str, words: list[str], ) -> list[int] | None:
+    def _author_prompt(
+        self,
+        author: str,
+        words: list[str],
+    ) -> list[int]:
         """
         Chiede all'utente quali parole compongono il cognome.
 
-        Restituisce:
-            - lista di indici zero-based
-            - None se l'autore è sconosciuto/non valido
+        Esempio:
+
+            Autore sconosciuto: Jean De La Fontaine
+
+              1) Jean
+              2) De
+              3) La
+              4) Fontaine
+
+            Inserisci gli indici del cognome [es. 2 3 4]:
         """
 
         print()
@@ -245,35 +258,28 @@ class AuthorRegistry:
         print()
         print("Quali parole compongono il cognome?")
 
-        # print("  0) Ignora / non è un autore")
-        for index, word in enumerate( words, start=1, ):
+        for index, word in enumerate(
+            words,
+            start=1,
+        ):
             print(f"  {index}) {word}")
-
 
         while True:
 
-            value = input( "Inserisci gli indici del cognome [es. 2 3 4] [q|x to exit - 0:ignore]: " ).strip()
+            value = input(
+                "Inserisci gli indici "
+                "del cognome [es. 2 3 4]: "
+            ).strip()
 
             if not value:
                 print("Specificare almeno una parola.")
                 continue
-
-            # --------------------------------------------------------------
-            # 0 = autore sconosciuto / valore non valido
-            # --------------------------------------------------------------
-
-            if value in "qx":
-                sys.exit(1)
-
-            if value == "0":
-                return None
 
             try:
                 indexes = [
                     int(item) - 1
                     for item in value.split()
                 ]
-
             except ValueError:
                 print(
                     "Inserire gli indici separati "
@@ -284,10 +290,6 @@ class AuthorRegistry:
             if not indexes:
                 continue
 
-            # --------------------------------------------------------------
-            # Verifica indici validi
-            # --------------------------------------------------------------
-
             if any(
                 index < 0 or index >= len(words)
                 for index in indexes
@@ -295,20 +297,16 @@ class AuthorRegistry:
                 print("Indice non valido.")
                 continue
 
-            # --------------------------------------------------------------
-            # Nessun duplicato
-            # --------------------------------------------------------------
-
             if len(indexes) != len(set(indexes)):
                 print("Indice duplicato.")
                 continue
 
-            # --------------------------------------------------------------
-            # Le parole devono essere consecutive
-            # --------------------------------------------------------------
-
+            # Le parole del cognome devono essere consecutive.
             expected = list(
-                range( indexes[0], indexes[0] + len(indexes), )
+                range(
+                    indexes[0],
+                    indexes[0] + len(indexes),
+                )
             )
 
             if indexes != expected:
@@ -320,19 +318,22 @@ class AuthorRegistry:
 
             return indexes
 
-
     # ==================================================================
     # Identificazione interna
     # ==================================================================
 
-    def _identify( self, value: str, ) -> tuple[str, str] | None:
+    def _identify(
+        self,
+        value: str,
+    ) -> tuple[str, str] | None:
         """
         Identifica internamente un autore.
+
+        Questo metodo NON dovrebbe essere normalmente chiamato
+        dall'esterno. Il punto di ingresso pubblico è format().
         """
 
         cleaned = self._clean(value)
-        if self._key(cleaned) in { self._key(item) for item in self.ignore }:
-            return None
 
         if not cleaned:
             return None
@@ -352,33 +353,48 @@ class AuthorRegistry:
 
             surname, start, length = found
 
-            name_words = ( words[:start] + words[start + length:] )
+            name_words = (
+                words[:start]
+                + words[start + length:]
+            )
 
             name = " ".join(name_words)
 
+            # Il cognome è noto.
+            # Se il nome è nuovo viene semplicemente aggiunto.
             if name:
-                self._add( surname, name, )
+                self._add(
+                    surname,
+                    name,
+                )
 
             return surname, name
 
         # --------------------------------------------------------------
-        # Non riconosciuto: chiediamo all'utente.
+        # Non riconosciuto.
+        # Chiediamo all'utente.
         # --------------------------------------------------------------
 
-        indexes = self._author_prompt( cleaned, words, )
+        indexes = self._author_prompt(
+            cleaned,
+            words,
+        )
 
-        # --------------------------------------------------------------
-        # L'utente ha risposto 0.
-        # --------------------------------------------------------------
-        if indexes is None:
-            self._add("ignore", value) # devo mettere valore originale
-            return None
+        surname = " ".join(
+            words[index]
+            for index in indexes
+        )
 
-        surname = " ".join( words[index] for index in indexes )
+        name = " ".join(
+            word
+            for index, word in enumerate(words)
+            if index not in indexes
+        )
 
-        name = " ".join( word for index, word in enumerate(words) if index not in indexes )
-
-        self._add( surname, name, )
+        self._add(
+            surname,
+            name,
+        )
 
         return surname, name
 

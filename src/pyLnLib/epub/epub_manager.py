@@ -47,47 +47,6 @@ class EpubProcessor:
         continue
     """
 
-    #
-    def __init___WITH_CONTEXT(self, filename: str | Path):
-        self._filename = Path(filename)
-        self._sections: list[BookSection] | None = None
-        self._book = None
-        self.is_valid = True
-
-        # Verifica che il file esista
-        if not self._filename.is_file():
-            raise FileNotFoundError(f"File non trovato: {self._filename}")
-
-        # Tenta di caricare il libro
-        try:
-            self._book = epub.read_epub(str(self._filename))
-            self.is_valid = True
-            logger.debug(f"EPUB caricato con successo: {self._filename.stem}")
-
-        except Exception as e:
-            logger.error(f"{self._filename.stem}\nFailed to read EPUB: {e}")
-            self._book = None
-            self.is_valid = False
-
-    def __bool___WITH_CONTEXT(self):
-        """Permette di usare 'if processor:' per verificare la validità."""
-        return self.is_valid and self._book is not None
-
-    def __enter___WITH_CONTEXT(self):
-        """Context manager per gestire automaticamente le risorse."""
-        return self
-
-    def __exit___WITH_CONTEXT(self, exc_type, exc_val, exc_tb):
-        """Pulisce le risorse quando si esce dal context manager."""
-        self.close()
-
-    def close_WITH_CONTEXT(self):
-        """Rilascia le risorse."""
-        self._book = None
-        self._sections = None
-
-
-
     def __init__(self, filename: str | Path):
         self._filename = Path(filename)
         self._sections: list[BookSection] | None = None
@@ -118,27 +77,6 @@ class EpubProcessor:
     def index(self) -> int:
         return self._index
 
-    def __init__XXX(self, filename: str | Path):
-
-        self._filename = Path(filename)
-        """  memorizzare le sezioni.
-        Altrimenti, ogni chiamata a get_sections() riparsa tutto l'EPUB.
-        Se poi chiami get_text() e export_text(), il parsing viene eseguito tre volte.
-        """
-        # self._sections = None
-        self._sections: list[BookSection] | None = None
-
-        if not self._filename.is_file():
-            raise FileNotFoundError(self._filename)
-
-        self.is_valid= True
-        try:
-            self._book = epub.read_epub(str(self._filename))
-        except Exception as e:
-            logger.error(f"{self._filename.stem}\nFailed to read EPUB: {e}", exit=True)
-            self._book = None
-            self.is_valid= False
-            # raise
 
     # ======================================================================
     # Properties
@@ -161,9 +99,23 @@ class EpubProcessor:
     def title(self) -> str | None:
         return self._get_dc("title")
 
+    # @property
+    # def author(self) -> str | None:
+    #     return self._get_dc("creator")
     @property
     def author(self) -> str | None:
-        return self._get_dc("creator")
+        values = self._book.get_metadata("DC", "creator")
+
+        logger.debug(
+            "DC:creator for %s: %r",
+            self._filename.name,
+            values,
+        )
+
+        if not values:
+            return None
+
+        return values[0][0]
 
     @property
     def language(self) -> str | None:
