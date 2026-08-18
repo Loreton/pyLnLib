@@ -62,10 +62,10 @@ class lnContext:
         # self.project_temp_dir = Path(project_temp_dir) if project_temp_dir else self._set_temp_path(req_top_dir="/tmp")
         # self.project_log_dir = Path(project_log_dir) if project_log_dir else self._set_log_dir(req_top_dir=self.project_temp_dir)
         # self.project_config_dir = Path(project_config_dir) if project_config_dir else self._set_config_dir(top_dir=self.project_root)
-        _project_root = Path(project_root) if project_root else self._find_project_root()
-        _project_temp_dir = Path(project_temp_dir) if project_temp_dir else self._set_temp_path(req_top_dir="/tmp")
-        _project_log_dir = Path(project_log_dir) if project_log_dir else self._set_log_dir(req_top_dir=_project_temp_dir)
-        _project_config_dir = Path(project_config_dir) if project_config_dir else self._set_config_dir(top_dir=_project_root)
+        self.project_root = Path(project_root) if project_root else self._find_project_root()
+        self.project_temp_dir = Path(project_temp_dir) if project_temp_dir else self._set_temp_path(req_top_dir="/tmp")
+        self.project_log_dir = Path(project_log_dir) if project_log_dir else self._set_log_dir(req_top_dir=self.project_temp_dir)
+        self.project_config_dir = Path(project_config_dir) if project_config_dir else self._set_config_dir(top_dir=self.project_root)
 
         # ---- optionals
         # self.logger: object = field(default=None, init=False)
@@ -75,10 +75,10 @@ class lnContext:
         # Variabili del progetto
         self.project_vars.update(
             {
-                "root_dir": _project_root,
-                "temp_dir": _project_temp_dir,
-                "log_dir": _project_log_dir,
-                "config_dir": _project_config_dir,
+                "root_dir": self.project_root,
+                "temp_dir": self.project_temp_dir,
+                "log_dir": self.project_log_dir,
+                "config_dir": self.project_config_dir,
                 "project_name": project_name,
                 "version": version,
                 "config": lnDict(),

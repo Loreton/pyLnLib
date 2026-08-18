@@ -283,7 +283,6 @@ class CalibreMetadataReader:
         lines.append("   3. In Calibre, usa 'Merge' o elimina i duplicati manualmente")
         lines.append("=" * 70)
 
-        return lines
         return "\n".join(lines)
 
     # ================================
@@ -300,9 +299,6 @@ class CalibreMetadataReader:
                     self.custom_columns[f"#{name}"] = f"custom_column_{col_id}"
         except sqlite3.OperationalError:
             pass
-
-
-
 
     # ================================
     @property
@@ -400,20 +396,9 @@ class CalibreMetadataReader:
 
         return sorted(set(results))
 
-
-    # ================================
-    def _get_book_authors(self, book_id: int) -> list[str]:
-        """Restituisce gli autori del libro come lista."""
-        return self.book_authors.get(book_id, []).copy()
-
-
     # ================================
     def get_authors(self) -> list[str]:
         return sorted(self.authors.keys())
-
-    # ================================
-    def get_authors_ln(self) -> dict[str, list[int]]:
-        return self.authors
 
     # ================================
     def get_author_count(self) -> dict[str, int]:
@@ -439,7 +424,6 @@ class CalibreMetadataReader:
 
         standard_fields = [f for f in fields if not f.startswith('#')]
         custom_fields = [f for f in fields if f.startswith('#')]
-
 
         select_parts = ["b.id AS _id"]
         for field in standard_fields:
@@ -488,7 +472,7 @@ class CalibreMetadataReader:
             book_dict["file_exists"] = file_exists
             book_dict["file_path"] = file_path
             book_dict["library_path"] = str(self.library_path)
-            book_dict["authors"] = self._get_book_authors(book_id)
+
             return book_dict
 
     # ================================
@@ -564,8 +548,6 @@ class CalibreMetadataReader:
                 book_dict["file_exists"] = file_exists
                 book_dict["file_path"] = file_path
                 book_dict["library_path"] = str(self.library_path)
-                book_dict["authors"] = self._get_book_authors(book_id)
-
 
                 result[book_id] = book_dict
                 self._cache[book_id] = book_dict
@@ -711,9 +693,8 @@ def calibre_test(calibre_path: str):
                 print(f"   File path: {book.get('file_path')}")
 
     # ===== 4. Leggi multipli libri =====
-    nlibri = min(5, len(reader.ids))
-    print(f"\n📚 Lettura batch di {nlibri} libri:")
-    first_ids = reader.ids[:nlibri]
+    print("\n📚 Lettura batch dei primi 5 libri:")
+    first_ids = reader.ids[:5]
     books = reader.get_books_by_ids(first_ids)
 
     for book in books:
@@ -722,7 +703,6 @@ def calibre_test(calibre_path: str):
     # ===== 5. Statistiche autori =====
     print("\n📊 Top 5 autori per numero di libri:")
     author_counts = reader.get_author_count()
-
     top_authors = sorted(author_counts.items(), key=lambda x: x[1], reverse=True)[:5]
     for author, count in top_authors:
         print(f"   - {author}: {count} libri")
@@ -735,30 +715,27 @@ def calibre_test(calibre_path: str):
     # ===== 2. Report duplicati =====
     if reader.has_duplicates:
         print("\n📋 DUPLICATI TROVATI:")
-        duplicated_books = reader.get_duplicate_report()
-        for book in duplicated_books:
-            print(book)
-        # breakpoint()
+        reader.print_duplicate_report()
 
         # Mostra i primi 3 titoli duplicati
-        # print("\n🔍 Primi 3 titoli duplicati:")
-        # for i, title in enumerate(reader.get_duplicate_titles()[:3], 1):
-        #     ids = reader.get_duplicate_ids_by_title(title)
-        #     print(f"   {i}. '{title}' -> IDs: {ids}")
+        print("\n🔍 Primi 3 titoli duplicati:")
+        for i, title in enumerate(reader.get_duplicate_titles()[:3], 1):
+            ids = reader.get_duplicate_ids_by_title(title)
+            print(f"   {i}. '{title}' -> IDs: {ids}")
 
         # Esempio: analizza un duplicato specifico
-        # if reader.get_duplicate_titles():
-        #     first_title = reader.get_duplicate_titles()[0]
-        #     ids = reader.get_duplicate_ids_by_title(first_title)
+        if reader.get_duplicate_titles():
+            first_title = reader.get_duplicate_titles()[0]
+            ids = reader.get_duplicate_ids_by_title(first_title)
 
-        #     print(f"\n📖 Analisi duplicato: '{first_title}'")
-        #     books = reader.get_books_by_ids(ids)
-        #     for book in books:
-        #         print(f"   ID {book['id']}:")
-        #         print(f"     Titolo: {book.get('title')}")
-        #         print(f"     Autori: {book.get('authors')}")
-        #         print(f"     Path: {book.get('path')}")
-        #         print(f"     File esiste: {book.get('file_exists')}")
+            print(f"\n📖 Analisi duplicato: '{first_title}'")
+            books = reader.get_books_by_ids(ids)
+            for book in books:
+                print(f"   ID {book['id']}:")
+                print(f"     Titolo: {book.get('title')}")
+                print(f"     Autori: {book.get('authors')}")
+                print(f"     Path: {book.get('path')}")
+                print(f"     File esiste: {book.get('file_exists')}")
 
 
 

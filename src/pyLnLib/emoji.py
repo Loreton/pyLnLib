@@ -23,6 +23,9 @@ class Emoji:
     skull: str = "💀"
     folder: str = "📁"
 
+    arrow_right: str = "➡️"
+    arrow_left: str = "⬅️"
+
     # rem = red_exclamation_mark
     # dem = double_exclamation_mark
     # rqm = red_question_mark

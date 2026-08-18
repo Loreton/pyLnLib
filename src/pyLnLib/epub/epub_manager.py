@@ -101,17 +101,11 @@ class EpubProcessor:
 
     # @property
     # def author(self) -> str | None:
-    #     return self._get_dc("creator")
     @property
     def author(self) -> str | None:
+        # return self._get_dc("creator") -- precedentemente
         values = self._book.get_metadata("DC", "creator")
-
-        logger.debug(
-            "DC:creator for %s: %r",
-            self._filename.name,
-            values,
-        )
-
+        logger.debug( "DC:creator for %s: %r", self._filename.name, values, )
         if not values:
             return None
 

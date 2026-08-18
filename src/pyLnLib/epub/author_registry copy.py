@@ -129,56 +129,90 @@ class AuthorRegistry:
         if not self.filename.exists():
             return
 
-        with self.filename.open( "r", encoding="utf-8", ) as fp:
+        with self.filename.open(
+            "r",
+            encoding="utf-8",
+        ) as fp:
             data = yaml.safe_load(fp) or {}
 
         # --------------------------------------------------------------
         # Autori
         # --------------------------------------------------------------
 
-        for surname, names in data.get( "authors", {}, ).items():
+        for surname, names in data.get(
+            "authors",
+            {},
+        ).items():
 
             if names is None:
                 names = []
 
-            self.authors[str(surname)] = { str(name) for name in names }
+            self.authors[str(surname)] = {
+                str(name)
+                for name in names
+            }
 
         # --------------------------------------------------------------
         # Valori da ignorare
         # --------------------------------------------------------------
-        for value in data.get( "ignore", [], ) or []:
+
+        for value in data.get(
+            "ignore",
+            [],
+        ) or []:
+
             self.ignore.add(str(value))
 
-
-    # --------------------------------------------------------------
-    # - Save registry yaml
-    # --------------------------------------------------------------
     def save(self) -> None:
         """Salva il registro nel file YAML."""
 
-        self.filename.parent.mkdir( parents=True, exist_ok=True, )
+        self.filename.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
 
         authors = {}
 
-        for surname in sorted( self.authors, key=str.casefold, ):
-            authors[surname] = sorted( self.authors[surname], key=str.casefold, )
+        for surname in sorted(
+            self.authors,
+            key=str.casefold,
+        ):
+            authors[surname] = sorted(
+                self.authors[surname],
+                key=str.casefold,
+            )
 
-        ignore = sorted( self.ignore, key=str.casefold, )
+        ignore = sorted(
+            self.ignore,
+            key=str.casefold,
+        )
 
         data = {
             "authors": authors,
             "ignore": ignore,
         }
 
-        with self.filename.open( "w", encoding="utf-8", ) as fp:
-            yaml.safe_dump( data, fp, allow_unicode=True, sort_keys=False, default_flow_style=False, )
+        with self.filename.open(
+            "w",
+            encoding="utf-8",
+        ) as fp:
 
-
+            yaml.safe_dump(
+                data,
+                fp,
+                allow_unicode=True,
+                sort_keys=False,
+                default_flow_style=False,
+            )
 
     # ==================================================================
     # Ricerca cognome
     # ==================================================================
-    def _find_surname( self, req_name: str, ) -> str | None:
+
+    def _find_surname(
+        self,
+        value: str,
+    ) -> str | None:
         """
         Cerca un cognome nel registro.
 
@@ -187,33 +221,20 @@ class AuthorRegistry:
         Restituisce il valore originale presente nel YAML.
         """
 
-        # key = self._key(value)
-        # controllo solo il valore normale oppure lower_case, 
-        # se serviranno altre cose le faremo più avanti, per ora basta così.
-        if req_name not in self.authors:
-            if req_name.lower() not in self.authors:
-                return None
+        key = self._key(value)
 
-        return req_name
+        for surname in self.authors:
 
-    
-        # surname: str | None = self.authors.get(value, None) # pyright: ignore[reportAssignmentType]
-        # if not surname:
-        #     surname = self.authors.get(value.lower(), None) # pyright: ignore[reportAssignmentType]
+            if self._key(surname) == key:
+                return surname
 
-        # return surname
-
-        # for surname in self.authors:
-        #     if self._key(surname) == key:
-        #         return surname
-
-        # return None
+        return None
 
     # ==================================================================
     # Ricerca combinazioni
     # ==================================================================
 
-    def _find_surname_candidates( self, words: list[str], ) -> tuple[str, list[str]] | tuple[None, list[str]]:
+    def _find_surname_candidates( self, words: list[str], ) -> list[tuple[str, tuple[int, ...]]]:
         """
         Cerca tutti i cognomi conosciuti possibili.
 
@@ -244,39 +265,17 @@ class AuthorRegistry:
         candidates: list[ tuple[str, tuple[int, ...]] ] = []
         max_words = min( self.MAX_SURNAME_WORDS, len(words), )
 
-        words = words[:max_words]
-        # --------------------------------------------------------------
-        # Tentativo automatico
-        # --------------------------------------------------------------
-        for permutazione in self._list_permutations(words, reverse=True):
-            # print(permutazione)
-            candidate = " ".join(permutazione)
-            # print(candidate)
-            surname = self._find_surname(candidate)
-            if surname:
-                rest = words.copy()
-                for word in permutazione:
-                    rest.remove(word)
-                # ritorna subito il primo cognome trovato
-                # ed il resto su cui andrà stabilito l'odine dei nomi
-                return (surname, rest)
-        else:
-            return (None, words)
-
-
-
-
         # --------------------------------------------------------------
         # Proviamo prima i cognomi più lunghi.
         # --------------------------------------------------------------
-        # for length in range( max_words, 0, -1, ):
-        #     for indexes in combinations( range(len(words)), length, ):
-        #         candidate = " ".join( words[index] for index in indexes )
-        #         surname = self._find_surname( candidate )
-        #         if surname is not None:
-        #             candidates.append( ( surname, indexes, ) )
+        for length in range( max_words, 0, -1, ):
+            for indexes in combinations( range(len(words)), length, ):
+                candidate = " ".join( words[index] for index in indexes )
+                surname = self._find_surname( candidate )
+                if surname is not None:
+                    candidates.append( ( surname, indexes, ) )
 
-        # return candidates
+        return candidates
 
     # ==================================================================
     # Inserimento
@@ -289,17 +288,12 @@ class AuthorRegistry:
 
         real_surname = self._find_surname( surname )
 
-        f_save: bool = False
         if real_surname is None:
             self.authors[surname] = {name}
-            f_save=True
         else:
-            if name not in self.authors[real_surname]:
-                self.authors[real_surname].add(name)
-                f_save=True
+            self.authors[real_surname].add(name)
 
-        if f_save:
-            self.save()
+        self.save()
 
 
 
@@ -449,12 +443,9 @@ class AuthorRegistry:
 
     # ==================================================================
     # Identificazione
-    #    author = "Cognome| Nome"  --> proviene da calibre
-    #    author = "Cognome, Nome"  --> comunque chiaro
-    #    author = "Cognome Nome"  --> da identificare
-    #    author = "Nome Cognnome"  --> da identificare
     # ==================================================================
-    def _identify( self, author: str, ) -> tuple[str, str] | None:
+
+    def _identify( self, value: str, ) -> tuple[str, str] | None:
         """
         Identifica un autore.
 
@@ -464,81 +455,48 @@ class AuthorRegistry:
         se il valore viene ignorato.
         """
 
+        cleaned = self._clean(value)
 
-        # --------------------------------------------------------------
-        # - Verifichiamo se l'autore ha un formato riconoscibile
-        # - Se così allora lo aggiungiamo al registro e lo restituiamo
-        # --------------------------------------------------------------
-        valid_separators='|,'
-        for sep in valid_separators:
-            if sep in author:
-                cognome, nome = author.split(sep, 1)
-                cognome=cognome.strip()
-                nome=nome.strip()
-                cleaned = self._clean(cognome) + (" " + self._clean(nome) if nome else "")
-                if not cleaned:
-                    return None
-                self._add(surname=cognome, name=nome)
-                return (cognome, nome)
-                # break # solo per non far dare lsegnalazione all'else:
-
-        else:
-            cleaned = self._clean(author)
-            if not cleaned:
-                return None
-
-
+        if not cleaned:
+            return None
 
         # --------------------------------------------------------------
         # Controlliamo se questo valore era già stato ignorato.
         # --------------------------------------------------------------
+
         if any( self._key(item) == self._key(cleaned) for item in self.ignore ):
             return None
 
-
-        # --------------------------------------------------------------
-        # Tentativo automatico
-        # --------------------------------------------------------------
         words = cleaned.split()
-        candidates = self._find_surname_candidates(words)
-        '''
-        for permutazione in self._list_permutations(words, reverse=True):
-            print(permutazione)
-            candidates = self._find_surname_candidates( permutazione )
-            if candidates:
-                return self._resolve_candidates( cleaned, words, candidates )
-        '''
 
-
-
-        # if len(words) < 2:
-        #     return None
-        # elif len(words) > 2:
-        #     # Ricerca automatica.
-        #     candidates = self._find_surname_candidates( words )
-        # else:
-        # Ricerca manuale.
-        # candidates = None
+        if len(words) < 2:
+            return None
+        elif len(words) > 2:
+            # Ricerca automatica.
+            candidates = self._find_surname_candidates( words )
+        else:
+            # Ricerca manuale.
+            candidates = None
 
 
         # --------------------------------------------------------------
         # Nessun candidato.
         # --------------------------------------------------------------
-        # if not candidates:
-        indexes = self._author_prompt( cleaned, words, )
+        if not candidates:
+            indexes = self._author_prompt( cleaned, words, )
 
-        # 0 = ignora
-        if indexes is None:
-            self._add_ignore(cleaned)
-            return None
+            # 0 = ignora
+            if indexes is None:
+                self._add_ignore(cleaned)
+                return None
 
-        surname = " ".join( words[index] for index in indexes )
+            surname = " ".join( words[index] for index in indexes )
 
-        name = " ".join( word for index, word in enumerate(words) if index not in indexes )
+            name = " ".join( word for index, word in enumerate(words) if index not in indexes )
 
-        self._add( surname, name, )
+            self._add( surname, name, )
 
-        return surname, name
+            return surname, name
 
         # --------------------------------------------------------------
         # I candidati sono già ordinati per numero di parole,
@@ -671,26 +629,6 @@ class AuthorRegistry:
     # ==================================================================
     # Utility
     # ==================================================================
-
-
-
-    # SOLO PERMUTAZIONI (tutti gli ordini, SENZA ripetizioni)
-    # Numero totale: per 4 parole: 4!/(4-1)! + 4!/(4-2)! + 4!/(4-3)! + 4! = 4 + 12 + 24 + 24 = 64 permutazioni
-    def _list_permutations(self, lista_parole, reverse=False):
-        from itertools import permutations
-        """Genera tutte le permutazioni di tutte le lunghezze senza ripetizioni."""
-        if reverse:
-            """Genera tutte le permutazioni di tutte le lunghezze, partendo da quelle più lunghe."""
-            for r in range(len(lista_parole), 0, -1):  # Da n a 1
-                for perm in permutations(lista_parole, r):
-                    yield perm
-        else:
-            for r in range(1, len(lista_parole) + 1):
-                for perm in permutations(lista_parole, r):
-                    yield perm
-
-
-
 
     def __iter__(self):
         """Itera sugli autori registrati."""
