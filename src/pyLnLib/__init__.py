@@ -31,14 +31,15 @@ from .logger.ln_colored_logger import (
                                     )
 
 
-# generics
-from .varie.keyboard_prompt import keyboardPrompt
-from .varie.ln_utils import flatten_and_filter, flatten_nested_list
-from .varie.beep import BeepPlayer
 
 from .colors import get_colors
 from .emoji import get_emoji
 from .context import ctx, pVars
+# varie
+from .varie.menu_from_list import menu_select_from_list
+from .varie.keyboard_prompt import keyboardPrompt
+from .varie.ln_utils import flatten_and_filter, flatten_nested_list
+from .varie.beep import BeepPlayer
 
 
 # files
@@ -60,11 +61,11 @@ from .lndict.ln_dict_resolver_class import LnDictResolver
 
 
 # system
+from .system.clean_doc import clean_doc
 from .system.acquire_lock import acquire_lock
 from .system.ln_run import lnRun
 from .system.ln_run_stream_class import lnRunStream_Class as lnRunStream
 from .system.signal_handler import signalHandler, start_signal_handler
-from .system.clean_doc import clean_doc
 
 # regex
 from .regex.ln_regex import replace, and_search, or_search, search_term
@@ -76,8 +77,6 @@ from .epub.author_registry import AuthorRegistry
 # calibre
 from .calibre.calibre_metadata_reader import CalibreMetadataReader, calibre_test
 
-# varie
-from .varie.menu_from_list import menu_select_from_list
 
 
 
@@ -99,15 +98,11 @@ __all__ = [
     "acquire_lock",
     "get_colors",
     "get_emoji",
-    "keyboardPrompt",
 
     # lndict
     "lnDict",
     "LnDictResolver",
 
-    # ln_utils
-    "flatten_and_filter",
-    "flatten_nested_list",
 
 
     # regex
@@ -144,7 +139,6 @@ __all__ = [
     "calibre_test",
 
     # system
-    "clean_doc",
     "lnRun",
     "lnRunStream",
     "signalHandler",
@@ -153,6 +147,13 @@ __all__ = [
 
     # varie
     "menu_select_from_list",
+    "clean_doc",
+    "keyboardPrompt",
+
+    # varie - ln_utils
+    "flatten_and_filter",
+    "flatten_nested_list",
+
 ]
 
 if __INIT__PY__DEBUG == "True":

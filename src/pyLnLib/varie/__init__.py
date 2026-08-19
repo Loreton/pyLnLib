@@ -15,13 +15,11 @@ from .menu_from_list        import menu_select_from_list
 from .beep        import BeepPlayer
 from .keyboard_prompt import keyboardPrompt
 from .ln_utils import flatten_and_filter, flatten_nested_list
-from ..epub.epub_manager import EpubProcessor
 
 
 # Definisci cosa esportare quando si fa "from pyLnLib.logger import *"
 __all__ = [
     "BeepPlayer",
-    "EpubProcessor",
     "flatten_and_filter",
     "flatten_nested_list",
     "keyboardPrompt",

@@ -18,8 +18,8 @@ from _collections_abc import Callable
 from functools import wraps
 from dataclasses import dataclass, asdict
 
-from pyLnLib import get_logger
-from pyLnLib import clean_doc
+from pyLnLib.logger import get_logger
+from pyLnLib.system import clean_doc
 
 logger = get_logger()
 

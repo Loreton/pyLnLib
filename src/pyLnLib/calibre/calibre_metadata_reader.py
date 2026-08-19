@@ -420,7 +420,7 @@ class CalibreMetadataReader:
         return {author: len(ids) for author, ids in self.authors.items()}
 
     # ================================
-    def get_book(self, book_id: int, fields: list[str] | None = None) -> dict[str, object] | None:
+    def get_book(self, book_id: int, fields: list[str] | None = None) -> lnDict[str, object]:
         if book_id in self._cache:
             return self._cache[book_id]
 

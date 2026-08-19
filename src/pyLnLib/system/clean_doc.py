@@ -4,7 +4,7 @@
 #
 import inspect
 
-def clean_doc(text: any, *args) -> str:
+def clean_doc(text: object, *args) -> str:
     # Se il msg contiene placeholder come %s, sostituiscili
     if args:
         formatted_msg = text % args
