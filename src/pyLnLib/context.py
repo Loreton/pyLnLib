@@ -6,11 +6,11 @@
 #
 from __future__ import annotations
 
-import os
+import inspect
 import platform
 import socket
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 # from pyLnLib.epub.epub_manager import EpubProcessor
@@ -105,6 +105,11 @@ class lnContext:
     #         print(f"❌ Errore: {e}")
     #         sys.exit(1)
 
+
+
+    def get_function_name(self) -> str:
+        """Restituisce i context_vars (già lnDict)."""
+        return inspect.currentframe().f_back.f_code.co_name
 
     def get_context_vars(self, keypath: str) -> lnDict:
         """Restituisce i context_vars (già lnDict)."""

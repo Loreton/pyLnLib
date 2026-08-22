@@ -7,6 +7,8 @@
 #
 #
 from __future__ import annotations
+
+import sys
 from _collections_abc import Generator
 
 from pathlib import Path
@@ -18,6 +20,7 @@ from ebooklib import epub, ITEM_DOCUMENT
 
 # from pyLnLib.files import get_unique_filename
 from pyLnLib.logger import get_logger
+from pyLnLib.files import get_unique_filename
 
 logger = get_logger()
 
@@ -186,60 +189,68 @@ class EpubProcessor:
 
     # ======================================================================
     # Export
-    #   replace: se il file esiste, sovrascrive
-    #   unique: se il file esiste, crea uno con nome diverso
+    #   replace: sovrascrive se il file esiste
+    #   unique:  crea uno con nome diverso e il file esiste
     # ======================================================================
 
-    def export_text(self, filename: Path|str, unique: bool = False, replace: bool = False) -> Path:
-        filename = Path(filename)
-        if not filename.parent.exists():
-            filename.parent.mkdir(parents=True, exist_ok=True)
+    def to_text(self, txt_filename: Path|str, replace: bool = False) -> bool:
+        logger.debug("Exporting epub book:\n%s\nto txt file:\n%s", self._filename, txt_filename)
 
-        if filename.exists():
+        if isinstance(txt_filename, str):
+            txt_filename = Path(txt_filename)
+
+        if not txt_filename.parent.exists():
+            txt_filename.parent.mkdir(parents=True, exist_ok=True)
+
+        if txt_filename.exists():
             if replace: # sovrascrive il file esistente
-                filename.unlink()
-            elif unique:
-                filename = unique_filename(filename) # crea uno con nome diverso
+                txt_filename.unlink()
             else:
-                logger.debug("file already exists: %s", filename)
-                return filename # non modifica il file esistente
+                logger.debug("\tfile already exists!")
+                return False # non modifica il file esistente
 
-        with filename.open("w", encoding="utf-8") as fp:
+        try:
+            with txt_filename.open("w", encoding="utf-8") as fp:
+                fp.write("=" * 60 + "\n")
+                fp.write("METADATI\n")
+                fp.write("=" * 60 + "\n")
 
-            fp.write("=" * 60 + "\n")
-            fp.write("METADATI\n")
-            fp.write("=" * 60 + "\n")
-
-            fp.write(f"Titolo          : {self.get_title()}\n")
-            fp.write(f"Autore          : {self.get_author()}\n")
-            fp.write(f"Lingua          : {self.get_language()}\n")
-            fp.write(f"Editore         : {self.get_publisher()}\n")
-            fp.write(f"Data            : {self.get_date()}\n")
-            fp.write(f"Identificativo  : {self.get_identifier()}\n")
-            fp.write(f"File originale  : {self.filename.name}\n")
-
-            fp.write("\n")
-            fp.write("=" * 60 + "\n")
-            fp.write("CONTENUTO\n")
-            fp.write("=" * 60 + "\n\n")
-
-            for n, section in enumerate(self.get_sections(), start=1):
-
-                fp.write("=" * 40 + "\n")
-                fp.write(f"SEZIONE {n}\n")
-                fp.write("=" * 40 + "\n")
-
-                fp.write(f"File   : {section.file}\n")
-
-                if section.title:
-                    fp.write(f"Titolo : {section.title}\n")
+                fp.write(f"Titolo          : {self.title}\n")
+                fp.write(f"Autore          : {self.author}\n")
+                fp.write(f"Lingua          : {self.language}\n")
+                fp.write(f"Editore         : {self.publisher}\n")
+                fp.write(f"Data            : {self.date}\n")
+                fp.write(f"Identificativo  : {self.identifier}\n")
+                fp.write(f"File originale  : {self.filename.name}\n")
 
                 fp.write("\n")
-                fp.write(section.text)
-                fp.write("\n\n")
+                fp.write("=" * 60 + "\n")
+                fp.write("CONTENUTO\n")
+                fp.write("=" * 60 + "\n\n")
 
-        logger.debug("saved filename: %s", filename)
-        return filename
+                for n, section in enumerate(self.get_sections(), start=1):
+
+                    fp.write("=" * 40 + "\n")
+                    fp.write(f"SEZIONE {n}\n")
+                    fp.write("=" * 40 + "\n")
+
+                    fp.write(f"File   : {section.file}\n")
+
+                    if section.title:
+                        fp.write(f"Titolo : {section.title}\n")
+
+                    fp.write("\n")
+                    fp.write(section.text)
+                    fp.write("\n\n")
+
+        except Exception as e:
+            logger.error("Errore durante l'esportazione del libro in formato testo: %s", txt_filename)
+            logger.error("Dettagli dell'errore: %s", e)
+            txt_filename.unlink(missing_ok=True)
+            return False
+
+        logger.debug("\tsaved filename: %s", txt_filename)
+        return True
 
     # ======================================================================
     # Private

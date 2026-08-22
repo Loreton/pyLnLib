@@ -20,7 +20,7 @@ if __INIT__PY__DEBUG:
 
 from .epub_manager import EpubProcessor, get_epub_processor, manage_epub_processor
 from .author_registry import AuthorRegistry
-
+from .calibre_metadata_reader import CalibreMetadataReader, calibre_test
 
 # Definisci cosa esportare quando si fa "from pyLnLib.logger import *"
 __all__ = [
@@ -28,6 +28,8 @@ __all__ = [
     "get_epub_processor",
     "manage_epub_processor",
     "AuthorRegistry",
+    'CalibreMetadataReader',
+    "calibre_test",
 ]
 
 if __INIT__PY__DEBUG:

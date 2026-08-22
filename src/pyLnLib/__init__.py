@@ -45,8 +45,8 @@ from .varie.beep import BeepPlayer
 # files
 from .files.write_file import writeFile
 from .files.yaml_loader_class import get_yaml_engine
-from .files.zip_file_utils import searchFileInZip, zipDir
-from .files.file_utils import get_file_list, searchFile, searchFileOnFS, scan_directory, get_unique_filename
+from .files import searchFileInZip, zipDir
+from .files import get_file_list, searchFile, searchFileOnFS, scan_directory, get_unique_filename
 from .files.ini_file import loadIni, updateIniKey, writeIni
 
 
@@ -73,9 +73,8 @@ from .regex.ln_regex import replace, and_search, or_search, search_term
 # pub
 from .epub.epub_manager import EpubProcessor, get_epub_processor, manage_epub_processor
 from .epub.author_registry import AuthorRegistry
+from .epub.calibre_metadata_reader import CalibreMetadataReader, calibre_test
 
-# calibre
-from .calibre.calibre_metadata_reader import CalibreMetadataReader, calibre_test
 
 
 
