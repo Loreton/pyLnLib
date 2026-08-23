@@ -252,6 +252,7 @@ class AuthorRegistry:
     def _add( self, surname: str, name: str, ) -> None:
         """Aggiunge un'associazione cognome/nome."""
 
+
         surname = " ".join(surname.split())
         name = " ".join(name.split())
 
@@ -272,7 +273,7 @@ class AuthorRegistry:
 
 
     # ==================================================================
-    def _add_ignore( self, value: str, ) -> None:
+    def _add_ignore( self, value: str) -> None:
         """Aggiunge un valore alla lista degli elementi da ignorare."""
         print(f"Ignorato: {value}")
         self.ignore.add(value)
@@ -286,7 +287,7 @@ class AuthorRegistry:
     #    author = "Cognome Nome"  --> da identificare
     #    author = "Nome Cognnome"  --> da identificare
     # ==================================================================
-    def _identify( self, author: str, ) -> tuple[str, str] | None:
+    def _identify( self, author: str, registry_update: bool) -> tuple[str, str] | None:
         """
         Identifica un autore.
 
@@ -300,7 +301,7 @@ class AuthorRegistry:
         # - Verifichiamo se l'autore ha un formato riconoscibile
         # - Se così allora lo aggiungiamo al registro e lo restituiamo
         # --------------------------------------------------------------
-        valid_separators='|,'
+        valid_separators=["|", ","]
         for sep in valid_separators:
             if sep in author:
                 cognome, nome = author.split(sep, 1)
@@ -309,7 +310,8 @@ class AuthorRegistry:
                 cleaned = self._clean(cognome) + (" " + self._clean(nome) if nome else "")
                 if not cleaned:
                     return None
-                self._add(surname=cognome, name=nome)
+                if registry_update:
+                    self._add(surname=cognome, name=nome)
                 return (cognome, nome)
                 # break # solo per non far dare lsegnalazione all'else:
 
@@ -342,7 +344,7 @@ class AuthorRegistry:
         # --------------------------------------------------------------
         # - Nessun candidato.
         # --------------------------------------------------------------
-        if surname is None:
+        if surname is None and registry_update:
             self._add_ignore(cleaned)
             return None
 
@@ -355,7 +357,10 @@ class AuthorRegistry:
     # Risoluzione candidati
     # ==================================================================
 
-    def _resolve_candidates( self, author: str, words: list[str], candidates: list[ tuple[str, tuple[int, ...]] ], ) -> tuple[str, str] | None:
+    def _resolve_candidates( self, author: str,
+                                   words: list[str],
+                                   candidates: list[ tuple[str, tuple[int, ...]] ],
+                                   registry_update: bool) -> tuple[str, str] | None:
         """
         Chiede all'utente di scegliere tra più cognomi
         possibili già presenti nel registro.
@@ -383,7 +388,7 @@ class AuthorRegistry:
             if value in ["xq"]:
                 sys.exit("Uscita richiesta dall'utente.")
 
-            if value == "0":
+            if value == "0" and registry_update:
                 self._add_ignore(author)
                 return None
 
@@ -414,11 +419,11 @@ class AuthorRegistry:
 
 
 
+
     # ==================================================================
     # API pubblica
     # ==================================================================
-
-    def format_prev( self, value: str | None, canonical: bool = True, ) -> str:
+    def format( self, authors: list[str]|str, canonical: bool = True, registry_update: bool = False) -> list[str]:
         """
         Normalizza e formatta un autore.
 
@@ -433,76 +438,38 @@ class AuthorRegistry:
         Se l'autore non viene riconosciuto e l'utente
         seleziona 0, restituisce una stringa vuota.
         """
-
-        if not value:
-            return ""
-
-        author = self._identify(value)
-
-        if author is None:
-            return ""
-
-        surname, name = author
-
-        if not name:
-            return surname
-
-        if canonical:
-            return f"{surname}, {name}"
-
-        return f"{surname} {name}"
-
-
-    # ==================================================================
-    # API pubblica
-    # ==================================================================
-    def format( self, authors: list[str]|str, canonical: bool = True, ) -> list[str]:
-        """
-        Normalizza e formatta un autore.
-
-        canonical=True:
-
-            'Surname, Name'
-
-        canonical=False:
-
-            'Surname Name'
-
-        Se l'autore non viene riconosciuto e l'utente
-        seleziona 0, restituisce una stringa vuota.
-        """
-
         if not authors:
             return []
 
         if isinstance(authors, str):
-            authors = [authors]
+            authors = [authors.strip()]
 
         result_author=[]
-        for author in authors:
+        separators = ["&", " and ", ";", ","]
+        for sep in separators:
+            if sep in authors[0]:
+                authors = [author.strip() for author in authors[0].split(sep)]
+                break
+
+        for author in authors: # oppure strip("&")????
             if not author:
                 continue
 
+            author = author.strip()
             if any( self._key(item) == self._key(author) for item in self.ignore ):
+                self.logger.warning(f"Autore ignorato: {author}")
                 continue
 
-            author = self._identify(author)
+            author = self._identify(author, registry_update=registry_update)
 
             if author is None:
                 continue
 
             surname, name = author
 
-            # if not name
-                # return surname
             result_author.append(f"{surname}, {name}" if canonical else f"{surname} {name}")
 
-        # return ", ".join(result_author) if result_author else ""
         return result_author
-        # if canonical:
-        #     return f"{surname}, {name}"
-
-        # return f"{surname} {name}"
 
     # ==================================================================
     # Utility

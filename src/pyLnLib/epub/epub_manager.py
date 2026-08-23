@@ -51,21 +51,21 @@ class EpubProcessor:
     """
 
     def __init__(self, filename: str | Path):
-        self._filename = Path(filename)
+        self._file_path = Path(filename)
         self._sections: list[BookSection] | None = None
         self._book = None
         self.is_valid = True
         self._index = 0
 
-        if not self._filename.is_file():
-            raise FileNotFoundError(f"File non trovato: {self._filename}")
+        if not self._file_path.is_file():
+            raise FileNotFoundError(f"File non trovato: {self._file_path}")
 
         try:
-            self._book = epub.read_epub(str(self._filename))
+            self._book = epub.read_epub(str(self._file_path))
             self.is_valid = True
 
         except Exception as e:
-            logger.error(f"{self._filename.stem}\nFailed to read EPUB: {e}")
+            logger.error(f"{self._file_path.stem}\nFailed to read EPUB: {e}")
             self._book = None
             self.is_valid = False
 
@@ -85,9 +85,12 @@ class EpubProcessor:
     # Properties
     # ======================================================================
 
+    # @property
+    # def filename(self) -> Path:
+    #     return self._file_path
     @property
-    def filename(self) -> Path:
-        return self._filename
+    def file_path(self) -> Path:
+        return self._file_path
 
     # ======================================================================
     # Metadata
@@ -108,7 +111,7 @@ class EpubProcessor:
     def author(self) -> str | None:
         # return self._get_dc("creator") -- precedentemente
         values = self._book.get_metadata("DC", "creator")
-        logger.debug( "DC:creator for %s: %r", self._filename.name, values, )
+        logger.debug( "DC:creator for %s: %r", self._file_path.name, values, )
         if not values:
             return None
 
@@ -194,7 +197,7 @@ class EpubProcessor:
     # ======================================================================
 
     def to_text(self, txt_filename: Path|str, replace: bool = False, force_log: bool=False) -> bool:
-        logger.debug("Exporting epub book:\n%s\nto txt file:\n%s", self._filename, txt_filename, force_log=force_log)
+        logger.debug("Exporting epub book:\n%s\nto txt file:\n%s", self._file_path, txt_filename, force_log=force_log)
 
         if isinstance(txt_filename, str):
             txt_filename = Path(txt_filename)
@@ -223,7 +226,7 @@ class EpubProcessor:
                 fp.write(f"Editore         : {self.publisher}\n")
                 fp.write(f"Data            : {self.date}\n")
                 fp.write(f"Identificativo  : {self.identifier}\n")
-                fp.write(f"File originale  : {self.filename.name}\n")
+                fp.write(f"File originale  : {self.file_path.name}\n")
 
                 fp.write("\n")
                 fp.write("=" * 60 + "\n")
