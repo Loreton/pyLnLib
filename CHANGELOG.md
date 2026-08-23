@@ -1,3 +1,10 @@
+## [0.1.41] - 2026-08-23
+
+## Other
+
+- update on 2026.08.22 (regarding project: eBooks)
+- affinamenti - (Release 0.1.40) (pylnlib_commit=757057e)
+
 ## [0.1.36] - 2026-08-14
 
 ## Other

@@ -193,20 +193,22 @@ class EpubProcessor:
     #   unique:  crea uno con nome diverso e il file esiste
     # ======================================================================
 
-    def to_text(self, txt_filename: Path|str, replace: bool = False) -> bool:
-        logger.debug("Exporting epub book:\n%s\nto txt file:\n%s", self._filename, txt_filename)
+    def to_text(self, txt_filename: Path|str, replace: bool = False, force_log: bool=False) -> bool:
+        logger.debug("Exporting epub book:\n%s\nto txt file:\n%s", self._filename, txt_filename, force_log=force_log)
 
         if isinstance(txt_filename, str):
             txt_filename = Path(txt_filename)
 
         if not txt_filename.parent.exists():
+            logger.debug("Creating target parent directory",force_log=force_log)
             txt_filename.parent.mkdir(parents=True, exist_ok=True)
 
         if txt_filename.exists():
             if replace: # sovrascrive il file esistente
+                logger.debug("\tremoving existing file due to replace option!", force_log=force_log)
                 txt_filename.unlink()
             else:
-                logger.debug("\tfile already exists!")
+                logger.debug("\tfile already exists!", force_log=force_log)
                 return False # non modifica il file esistente
 
         try:
@@ -228,8 +230,8 @@ class EpubProcessor:
                 fp.write("CONTENUTO\n")
                 fp.write("=" * 60 + "\n\n")
 
-                for n, section in enumerate(self.get_sections(), start=1):
 
+                for n, section in enumerate(self.get_sections(), start=1):
                     fp.write("=" * 40 + "\n")
                     fp.write(f"SEZIONE {n}\n")
                     fp.write("=" * 40 + "\n")
@@ -249,7 +251,7 @@ class EpubProcessor:
             txt_filename.unlink(missing_ok=True)
             return False
 
-        logger.debug("\tsaved filename: %s", txt_filename)
+        logger.debug("\tsaved filename: %s", txt_filename, force_log=force_log)
         return True
 
     # ======================================================================

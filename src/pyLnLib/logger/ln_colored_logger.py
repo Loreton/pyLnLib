@@ -12,7 +12,6 @@ import sys
 import traceback
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-# from typing import any, Callable
 
 # from webbrowser import get
 from ..colors import get_colors
@@ -172,7 +171,7 @@ class lnColoredLogger:
     def add_custom_levels(self) -> None:
         # --- Livello custom NOTIFY ---
         def notify(
-            self_logger: logging.Logger, msg: str, *args: any, **kwargs: any
+            self_logger: logging.Logger, msg: str, *args: object, **kwargs: object
         ) -> None:
             self_logger._log(logging.NOTIFY, msg, args, **kwargs)  # type: ignore
 
@@ -181,7 +180,7 @@ class lnColoredLogger:
         logging.Logger.notify = notify  # type: ignore
 
         # --- Livello custom TRACE ---
-        def trace( self_logger: logging.Logger, msg: str, *args: any, **kwargs: any ) -> None:
+        def trace( self_logger: logging.Logger, msg: str, *args: object, **kwargs: object ) -> None:
             self_logger._log(logging.TRACE, msg, args, **kwargs)  # type: ignore
 
         logging.TRACE = my_TRACE_value  # type: ignore
@@ -189,7 +188,7 @@ class lnColoredLogger:
         logging.Logger.trace = trace  # type: ignore
 
         # --- Livello custom FUNCTION ---
-        def function( self_logger: logging.Logger, msg: str, *args: any, **kwargs: any ) -> None:
+        def function( self_logger: logging.Logger, msg: str, *args: object, **kwargs: object ) -> None:
             self_logger._log(logging.FUNCTION, msg, args, **kwargs)  # type: ignore
 
         logging.FUNCTION = my_FUNCTION_value  # type: ignore
@@ -222,9 +221,6 @@ class lnColoredLogger:
     # Rotating Logger
     # -------------------------------
     def setRotatingLogger(self) -> logging.Handler:
-        # if self.logging_dir is None:
-        #     self.logging_dir = f"/tmp/{self.name.lower()}/log"
-
         logging_file = f"{self.logging_dir}/{self.name.lower()}.log"
         if not self.logging_dir or not os.path.exists(self.logging_dir):
             os.makedirs(str(self.logging_dir), exist_ok=True)
@@ -236,12 +232,17 @@ class lnColoredLogger:
         fh.setFormatter(formatter)
         return fh
 
-    def setConsoleLoggerLevel(self, level: str) -> None:
+    def setConsoleLoggerLevel(self, level: str|int) -> None:
         if self.consoleHandler is not None:
-            self.consoleHandler.setLevel(level.upper())
-            self.debug("console log level has been set to: %s", level.upper())
+            if isinstance(level, str):
+                self.consoleHandler.setLevel(level.upper)
+            else:
+                self.consoleHandler.setLevel(level)
+            # self.trace("console log level has been set to: %s", level.upper())
+            # level = getattr(logging, level.upper(), logging.INFO)
 
-    def getConsoleLoggerLevel(self) -> str:
+
+    def getConsoleLoggerLevelName(self) -> str:
         """
         Restituisce il livello di logging corrente per la console.
 
@@ -288,9 +289,6 @@ class lnColoredLogger:
         )
         return self.module_name_len + self.lineno_len + 1
 
-    # def setLinenoLength(self, len: int) -> None:
-    #     self.lineno_len = len
-    #     # self.notify("lineno length set to: %s", self.lineno_len)
 
     def setShowCaller(self, show_caller: bool) -> None:
         self.show_caller = show_caller
@@ -461,9 +459,9 @@ class lnColoredLogger:
                         self,
                         level_value: int,
                         msg: str,
-                        *args: any,
+                        *args: object,
                         color: str | None = None,
-                        **kwargs: any,
+                        **kwargs: object,
                     ) -> None:
         extra = kwargs["extra"]
 
@@ -530,9 +528,9 @@ class lnColoredLogger:
     def _prepare_for_logging( self,
                                 level_name: str,
                                 msg: str,
-                                *args: any,
+                                *args: object,
                                 color: str | None = None,
-                                **kwargs: any,
+                                **kwargs: object,
                             ) -> dict:
         ### ok processiamo la linea
         stacklevel: int = kwargs.pop("stacklevel", 0)
@@ -545,7 +543,7 @@ class lnColoredLogger:
 
         # Calcola caller formattato se necessario
         module_formatted, caller_formatted = self._caller( stacklevel=kwargs["stacklevel"], show_stack=show_stack )
-        # breakpoint()
+
         if showCaller or self.show_caller:
             ...
         else:
@@ -592,14 +590,6 @@ class lnColoredLogger:
     def _is_valid_level(self, level_value: int, forceLog: bool) -> bool:
         if not self.consoleHandler:
             return False
-
-        # if level_value < self.consoleHandler.level:
-        #     print(f"level_value: {level_value} < consoleHandler.level: {self.consoleHandler.level}")
-        #     print(f"{level_value = }")
-        #     print(f"{self.getConsoleLoggerLevel() = }")
-        #     _curr_name=logging.getLevelName(level_value)
-        #     print(f"{_curr_name = }")
-
         return level_value >= self.consoleHandler.level or forceLog
 
     # -------------------------------
@@ -608,68 +598,97 @@ class lnColoredLogger:
     def _log_multiline( self,
                         level_name: str,
                         msg: str|list,
-                        *args: any,
+                        *args: object,
                         color: str | None = None,
-                        **kwargs: any,
+                        **kwargs: object,
                     ) -> None:
+
+        f_level_changed = False
         forceExit: bool = kwargs.pop("exit", False)
         forceLog: bool = kwargs.pop("force_log", False)
 
-        level_value = getattr(logging, level_name, logging.INFO)
-        if not self._is_valid_level(level_value, forceLog):
+
+        # ----------------------------------------------------------------------
+        # - qui cerchiamo di gestire il forceLog utile per i messaggi
+        # - che provengono da funzioni di libreria e che normalmente non vengono loggati
+        # - saved_curr_level_value:
+        #       valore del livello di default per la console
+        # - req_level_value:
+        #       valore del livello richiesto per il messaggio corrente
+        # - f_level_changed: flag per indicare se il livello di default è
+        #       stato cambiato in modo da sapere se ripristinalro
+        # ----------------------------------------------------------------------
+        saved_show_caller = self.show_caller
+        saved_curr_level_value = self.consoleHandler.level
+        req_level_value = getattr(logging, level_name, logging.INFO)
+
+        if forceLog and req_level_value < saved_curr_level_value:
+            self.setConsoleLoggerLevel(req_level_value)
+            f_level_changed = True
+            self.show_caller = True
+
+
+        if not self._is_valid_level(req_level_value, forceLog):
+            if f_level_changed:
+                self.setConsoleLoggerLevel(saved_curr_level_value)
+                self.show_caller=saved_show_caller
             return
 
         ### ok processiamo la linea
-            # convert in string with '\n' on each item and the index of each item
         if isinstance(msg, list):
+            # convert in string with '\n' on each item and the index of each item
             msg = f"list items ({len(msg)}):\n" + "\n".join(f"{i+1}. {item}" for i, item in enumerate(msg))
 
         kwargs = self._prepare_for_logging( level_name, msg, *args, color=color, **kwargs )
-        self._write_log_line(level_value, msg, *args, color=color, **kwargs)
+        self._write_log_line(req_level_value, msg, *args, color=color, **kwargs)
 
         if forceExit:
             sys.exit(1)
 
+        if f_level_changed:
+            self.setConsoleLoggerLevel(saved_curr_level_value)
+            self.show_caller=saved_show_caller
+
     #########################################################################
     # API pubbliche
     #########################################################################
-    def trace( self, msg: str|list, *args: any, color: str | None = None, **kwargs: any ) -> None:
+    def trace( self, msg: str|list, *args: object, color: str | None = None, **kwargs: object ) -> None:
         self._log_multiline("TRACE", msg, *args, color=color, **kwargs)
 
-    def debug( self, msg: str|list, *args: any, color: str | None = None, **kwargs: any ) -> None:
+    def debug( self, msg: str|list, *args: object, color: str | None = None, **kwargs: object ) -> None:
         self._log_multiline("DEBUG", msg, *args, color=color, **kwargs)
 
-    def info( self, msg: str|list, *args: any, color: str | None = None, **kwargs: any ) -> None:
+    def info( self, msg: str|list, *args: object, color: str | None = None, **kwargs: object ) -> None:
         self._log_multiline("INFO", msg, *args, color=color, **kwargs)
 
-    def warning( self, msg: str|list, *args: any, color: str | None = None, **kwargs: any ) -> None:
+    def warning( self, msg: str|list, *args: object, color: str | None = None, **kwargs: object ) -> None:
         self._log_multiline("WARNING", f"⚠️ {msg}", *args, color=color, **kwargs)
 
-    def error( self, msg: str|list, *args: any, color: str | None = None, **kwargs: any ) -> None:
+    def error( self, msg: str|list, *args: object, color: str | None = None, **kwargs: object ) -> None:
         self._log_multiline("ERROR", f"🔴 {msg}", *args, color=color, **kwargs)
 
-    def critical( self, msg: str|list, *args: any, color: str | None = None, **kwargs: any ) -> None:
+    def critical( self, msg: str|list, *args: object, color: str | None = None, **kwargs: object ) -> None:
         self._log_multiline("CRITICAL", f"💀 {msg}", *args, color=color, **kwargs)
 
-    # def exception( self, msg: str|list, *args: any, color: str | None = None, **kwargs: any ) -> None:
+    # def exception( self, msg: str|list, *args: object, color: str | None = None, **kwargs: object ) -> None:
     #     self._log_multiline("ERROR", msg, *args, exc_info=True, exit=True, **kwargs) da una riga dirrore:  NoneType: None
 
-    def notify( self, msg: str|list, *args: any, color: str | None = None, **kwargs: any ) -> None:
+    def notify( self, msg: str|list, *args: object, color: str | None = None, **kwargs: object ) -> None:
         self._log_multiline("NOTIFY", msg, *args, color=color, **kwargs)
         # self._log_multiline("NOTIFY", f"👉-{msg}", *args, color=color, **kwargs)
 
-    def function( self, msg: str|list, *args: any, color: str | None = None, **kwargs: any ) -> None:
+    def function( self, msg: str|list, *args: object, color: str | None = None, **kwargs: object ) -> None:
         self._log_multiline( "FUNCTION", msg, *args, color=color, **kwargs )
 
     # - EXTR
-    def success( self, msg: str|list, *args: any, color: str | None = None, **kwargs: any ) -> None:
+    def success( self, msg: str|list, *args: object, color: str | None = None, **kwargs: object ) -> None:
         self._log_multiline( "INFO", f"✔️ {msg}", *args, color=color, **kwargs )
 
 
 
 
 
-def testLogger(logger: any) -> None:
+def testLogger(logger: object) -> None:
     print("\n--- base colors ---")
     logger.trace("TRACE default")
     logger.debug("DEBUG default")
