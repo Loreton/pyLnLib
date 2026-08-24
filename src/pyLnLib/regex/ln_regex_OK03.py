@@ -15,38 +15,37 @@ import re
 import time
 from _collections_abc import Callable
 # from itertools import permutations
+from functools import wraps
 from dataclasses import dataclass, asdict
-from typing import TypedDict
 
 from pyLnLib.logger import get_logger
 from pyLnLib.system import clean_doc
-from pyLnLib.lndict import lnDict
 
 logger = get_logger()
 
-@dataclass(slots=True, frozen=False)
+@dataclass(slots=True, frozen=True)
 class RegexItems:
-    source_data: str    # source data where to search
-    index: int           # index dell'occurrency
+    source_data: str
+    index: int
+    matched_string: str
 
+    start: int
+    end: int
+
+    context_length: int
+    context: str
+    match_start: int
+    match_end: int
     matched_string_length: int
-    matched_string: str # required mathing string
-
-    start: int           # start of occurrency
-    end: int             # end of occurrency
-
-    context_length: int   # numero di chars prima dopo il matched_string che si desidera riportare
-    context: str           # default=matched_string (conterrà il contesto di `context_length` caratteri)
 
     ignore_case: bool
-    valid: bool # se False vuol dire cheè  stato incorporato nel precedente
 
     def __str__(self) -> str:
         return (
             f"RegexItems[{self.index}]\n"
             f"  matched_string : {self.matched_string!r}\n"
             f"  start/end      : {self.start}/{self.end}\n"
-            # f"  match_start/end: {self.match_start}/{self.match_end}\n"
+            f"  match_start/end: {self.match_start}/{self.match_end}\n"
             f"  length         : {self.matched_string_length}\n"
             f"  context_length : {self.context_length}\n"
             f"  ignore_case    : {self.ignore_case}\n"
@@ -58,21 +57,6 @@ class RegexItems:
     def to_dict(self) -> dict[str, object]:
         """Converte l'oggetto in un dizionario."""
         return asdict(self)
-
-
-class RegexItemsDict(TypedDict, total=False):
-    # source_data: str
-    index: int
-    matched_string_length: int
-    matched_string: str
-    start: int
-    end: int
-    context_length: int
-    context: str
-    ignore_case: bool
-    valid: bool
-
-
 
 # def _escape_term(term: str, boundary: bool) -> str:
 #     term = re.escape(term)
@@ -112,38 +96,10 @@ def this_function_executing_time(func: Callable) -> Callable:
     return wrapper
 
 
-def processContext(occurrencies: list[RegexItems], source_data: str) -> list[RegexItems]:
-    n_occurrencies = len(occurrencies)
-    # print(f"{n_occurrencies = }")
-    if n_occurrencies == 0:
-        return occurrencies
-    context_len= occurrencies[0].context_length
-    data = source_data
-
-    for index in range(n_occurrencies):
-        # print(f"{index  = }")
-        curr = occurrencies[index]
-        if not curr.valid:
-            continue
-        if index+1 < n_occurrencies:
-            next=occurrencies[index+1]
-            if curr.start-context_len <= next.start <= curr.end+context_len: # se start_nextè  all'interno del primo range
-                context = data[curr.start-context_len:next.end+context_len]
-                next.valid = False
-            else:
-                context = data[curr.start-context_len:curr.end+context_len]
-
-            curr.context = context
-
-    return occurrencies
-
 #################################
 #
 #################################
-def _processOccurrencies(p, source_data: str,
-                            normalize_text: bool,
-                            context_length: int=0,
-                            ignore_case: bool=False) -> list[RegexItems]:
+def _processOccurrencies(p, source_data: str, normalize_text: bool, context_length: int=0, ignore_case: bool=False) -> list[RegexItems]:
 
     # logger = get_logger()
     # print(logger.name)
@@ -160,28 +116,53 @@ def _processOccurrencies(p, source_data: str,
         source_data = source_data.replace('\n', ' ')
         source_data = ' '.join(source_data.split())
 
+    if False: # per comodità, non usato
+        _positions1 = [ (m.start(), m.end()) for m in p.finditer(source_data) ]
+        _positions2 = [ m.span() for m in p.finditer(source_data) ]
+        _matches = [ (m.start(), m.end(), m.group()) for m in p.finditer(source_data) ]
+        #ventuale scan seq
+        for match in p.finditer(source_data):
+            start, end = match.span()
+            matched_string = match.group()
+        #  oppure
+        matches = [ (m.start(), m.end(), m.group()) for m in p.finditer(source_data) ]
+        for start, end, matched_string in matches:
+            ...
 
 
     matches = [ (m.start(), m.end(), m.group()) for m in p.finditer(source_data) ]
     for start, end, matched_string in matches:
 
         matched_string_length = len(matched_string)
+        # Estrai il contesto
+        if context_length > 0 and matched_string_length <= context_length and matched_string_length < len(source_data):
+            start_context = max(0, start - context_length)
+            end_context = min(len(source_data), end + context_length)
+            context = source_data[start_context:end_context]
+        else:
+            start_context = 0
+            end_context = matched_string_length
+            context = matched_string
 
-        context = matched_string # come default
-        occurrence: RegexItemsDict = {
-            # "source_data": source_data,
-            "index": len(occurrencies),
-            "matched_string": matched_string,
-            "start": start,
-            "end": end,
-            "valid": True,
-            "context": context,
-            "ignore_case": ignore_case,
-            "context_length": context_length,
-            "matched_string_length": matched_string_length,
-        }
+        occurrence = RegexItems(
+            source_data=source_data,
+            index=len(occurrencies),
+            matched_string=matched_string,
+            start=start,
+            end=end,
+            context=context,
+            ignore_case=ignore_case,
+            context_length=context_length,
+            match_start=start - start_context,
+            match_end=end - start_context,
+            matched_string_length=matched_string_length,
+        )
+        # if context_length>0:
+        #     occurrence.begin_string = start_context
+        #     occurrence.len_string = end_context - start_context
 
-        occurrencies.append(lnDict(occurrence))
+        # breakpoint()
+        occurrencies.append(occurrence)
 
     return occurrencies
 
@@ -234,9 +215,9 @@ def search_term( source_data: str, terms: list[str],
         p,
         source_data=source_data,
         normalize_text=normalize_text,
+        context_length=context_length,
         ignore_case=ignore_case,
     )
-        # context_length=context_length,
 
 
 

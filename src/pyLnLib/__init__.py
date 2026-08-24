@@ -68,7 +68,7 @@ from .system.ln_run_stream_class import lnRunStream_Class as lnRunStream
 from .system.signal_handler import signalHandler, start_signal_handler
 
 # regex
-from .regex.ln_regex import replace, and_search, or_search, search_term
+from .regex.ln_regex import replace, and_search, or_search, search_term, processContext
 
 # pub
 from .epub.epub_manager import EpubProcessor, get_epub_processor, manage_epub_processor
@@ -109,6 +109,8 @@ __all__ = [
     "or_search",
     "replace",
     "search_term",
+    "processContext",
+
 
     # git
     "ChangeLogManager",

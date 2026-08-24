@@ -13,18 +13,16 @@ if __INIT__PY__DEBUG:
     print(f"{__name__} - start loading")
 
 
-from .ln_regex import replace, and_search, or_search, search_term
+from .ln_regex import replace, and_search, or_search, search_term, processContext
 
 # Definisci cosa esportare quando si fa "from pyLnLib.regex import *"
 __all__ = [
     'and_search',
     'or_search',
+    'processContext',
     'replace',
     'search_term',
-    # 'multi_near_words',
-    # 'multi_near_words_any_order',
-    # 'search_anywhere',
-    # 'multi_near_words_token_based',
+
 ]
 
 if __INIT__PY__DEBUG:
