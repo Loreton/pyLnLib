@@ -29,15 +29,6 @@ class lnDict(dict):
         if data:
             self.update(data)
 
-    # @property
-    # def logger(self):
-    #     """Logger lazy-loaded per evitare import circolari."""
-    #     if not hasattr(self, '_logger'):
-    #         # from ..logger import get_logger
-    #         self._logger = get_logger()
-    #     return self._logger
-
-
     @property
     def separator(self):
         return self._sep
@@ -480,6 +471,32 @@ class lnDict(dict):
                         curr = curr[key]
 
         return lnDict(root)
+
+
+    # ===================================================
+    @staticmethod
+    def sort_dict(d: dict, key: str, reverse: bool = False) -> lnDict:
+        f_fast=True
+        if f_fast:
+            from operator import itemgetter
+            ordered_dict = dict(sorted(d.items(), key=itemgetter(key), reverse=reverse)) # più veloce
+        else:
+            ordered_dict = dict(sorted(d.items(), key=lambda item: item[0].get(key), reverse=reverse))
+        return lnDict(ordered_dict)
+
+
+    # ===================================================
+    @staticmethod
+    def sort_list_of_dict(l: list[dict], key: str, reverse: bool = False) -> list[dict]:
+        f_fast=True
+        if f_fast:
+            from operator import itemgetter
+            ordered_list = sorted(l, key=itemgetter(key)) # più veloce
+            if _multi:
+                _persone_ordinate_multi = sorted(l, key=itemgetter("key1", "key2"), reverse=reverse)
+        else:
+            ordered_list = sorted(l, key=lambda x: x[key], reverse=reverse)
+        return ordered_list
 
 
     ###################################################################################

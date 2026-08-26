@@ -3,6 +3,7 @@
 # Progamma per testare regex
 #
 # ruff: noqa: C401 - Unnecessary generator (rewrite as a set comprehension) help: Rewrite as a set comprehension (Ruff C401)
+# ruff: noqa: 113 - Use `enumerate()` for index variable `index` in `for` loop (Ruff SIM113)
 #
 
 
@@ -24,55 +25,32 @@ from pyLnLib.lndict import lnDict
 
 logger = get_logger()
 
-@dataclass(slots=True, frozen=False)
-class RegexItems:
-    source_data: str    # source data where to search
-    index: int           # index dell'occurrency
-
-    matched_string_length: int
-    matched_string: str # required mathing string
-
-    start: int           # start of occurrency
-    end: int             # end of occurrency
-
-    context_length: int   # numero di chars prima dopo il matched_string che si desidera riportare
-    context: str           # default=matched_string (conterrà il contesto di `context_length` caratteri)
-
-    ignore_case: bool
-    valid: bool # se False vuol dire cheè  stato incorporato nel precedente
-
-    def __str__(self) -> str:
-        return (
-            f"RegexItems[{self.index}]\n"
-            f"  matched_string : {self.matched_string!r}\n"
-            f"  start/end      : {self.start}/{self.end}\n"
-            # f"  match_start/end: {self.match_start}/{self.match_end}\n"
-            f"  length         : {self.matched_string_length}\n"
-            f"  context_length : {self.context_length}\n"
-            f"  ignore_case    : {self.ignore_case}\n"
-            f"  context        : {self.context!r}"
-            f"  source_data    : {self.source_data!r}"
-        )
-
-
-    def to_dict(self) -> dict[str, object]:
-        """Converte l'oggetto in un dizionario."""
-        return asdict(self)
 
 
 class RegexItemsDict(TypedDict, total=False):
-    # source_data: str
-    index: int
-    matched_string_length: int
+    # - source_data sarà riempito solo per il primo item dell'occurrencies
+    # - perché l'originale potrebbessere stato normalizzato
+    source_data: str
+    index: list[int] # contiene gli indici delle occurrencies. Se più di uno vuol dire che include altri context poi disabilitati
+    ignore_case: bool
+
     matched_string: str
+    matched_string_length: int
+
     start: int
     end: int
-    context_length: int
-    context: str
-    ignore_case: bool
+
+    context_string: str
+    context_start: int
+    context_end: int
+    context_length: int # intesa come parte prima/dopo di start/end
+
     valid: bool
 
 
+    # def to_dict(self) -> dict[str, object]:
+    #     """Converte l'oggetto in un dizionario."""
+    #     return asdict(self)
 
 # def _escape_term(term: str, boundary: bool) -> str:
 #     term = re.escape(term)
@@ -112,30 +90,70 @@ def this_function_executing_time(func: Callable) -> Callable:
     return wrapper
 
 
-def processContext(occurrencies: list[RegexItems], source_data: str) -> list[RegexItems]:
-    n_occurrencies = len(occurrencies)
-    # print(f"{n_occurrencies = }")
-    if n_occurrencies == 0:
-        return occurrencies
-    context_len= occurrencies[0].context_length
-    data = source_data
+def processContext(occurrencies_list: list[RegexItemsDict]) -> list[RegexItemsDict]:
+    n_occurrencies = len(occurrencies_list)
+    if n_occurrencies <= 1:
+        return occurrencies_list
 
-    for index in range(n_occurrencies):
+    # context_len = occurrencies[0].context_length
+    # source_data = occurrencies[0].source_data
+    '''
+        _range=list(range(n_occurrencies))
+        _range=list(range(1, -1, -1))  # start=1, stop=-1 (escluso), step=-1
+        _range=list(reversed(range(2)))  # [1, 0] range(2) è iterabile, reversed lo gestisce direttamente
+        # devo fare un reversed range che si fermi al secondo (1) item
+        _range=list(range(n_occurrencies, 0, -1))  # start=1, stop=0 (escluso), step=-1
+        # devo fare un ascendente range che parti dal secondo (1) item
+        _range=list(range(1, n_occurrencies, 1))  # start=1, stop=max (escluso), step=1
+    '''
+
+    _range=list(range(1, n_occurrencies, 1))  # start=1, stop=max (escluso), step=1  [1,2,3,...,n]
+    for index in _range:
         # print(f"{index  = }")
-        curr = occurrencies[index]
-        if not curr.valid:
-            continue
-        if index+1 < n_occurrencies:
-            next=occurrencies[index+1]
-            if curr.start-context_len <= next.start <= curr.end+context_len: # se start_nextè  all'interno del primo range
-                context = data[curr.start-context_len:next.end+context_len]
-                next.valid = False
-            else:
-                context = data[curr.start-context_len:curr.end+context_len]
+        curr = occurrencies_list[index]
+        prev = occurrencies_list[index-1]
 
-            curr.context = context
+        # ----------------------------------------------------
+        # Se ci troviamo nelle condizioni che seguono allora
+        # sil allargheranno i context_start context_end di curr per ospitare
+        # gli spazi di prev e flagghiamo prev come invalido
+        # prev !-----------------!
+        # curr      !---------!            # (non credo che possa capitare...))
+        # curr      !-----------------!
+        # ----------------------------------------------------
+        if prev.context_start <= curr.context_start <= prev.context_end: # se current rientra nel precedente context
+            prev.valid = False
+            curr.index.extend(prev.index)  # estendiamo l'indice di curr con quello di prev
+            curr.context_start = prev.context_start  # allarghiamo il contesto attuale
+            curr.context_end = max(curr.context_end, prev.context_end)
 
-    return occurrencies
+    return occurrencies_list
+
+# def processContext_01(occurrencies: list[RegexItems], source_data: str) -> list[RegexItems]:
+#     n_occurrencies = len(occurrencies)
+#     # print(f"{n_occurrencies = }")
+#     if n_occurrencies <= 1:
+#         return occurrencies
+
+#     context_len= occurrencies[0].context_length
+#     data = source_data
+
+#     for index in range(n_occurrencies):
+#         # print(f"{index  = }")
+#         curr = occurrencies[index]
+#         if not curr.valid:
+#             continue
+#         if index+1 < n_occurrencies:
+#             next=occurrencies[index+1]
+#             if curr.start-context_len <= next.start <= curr.end+context_len: # se start_nextè  all'interno del primo range
+#                 context = data[curr.start-context_len:next.end+context_len]
+#                 next.valid = False
+#             else:
+#                 context = data[curr.start-context_len:curr.end+context_len]
+
+#             curr.context = context
+
+#     return occurrencies
 
 #################################
 #
@@ -153,7 +171,7 @@ def _processOccurrencies(p, source_data: str,
         context_length={context_length}
         ignore_case={ignore_case}"""))
 
-    occurrencies = []
+    occurrencies: list[lnDict] = []
 
     # Normalizza il testo
     if normalize_text:
@@ -163,25 +181,30 @@ def _processOccurrencies(p, source_data: str,
 
 
     matches = [ (m.start(), m.end(), m.group()) for m in p.finditer(source_data) ]
+    index: int=0
     for start, end, matched_string in matches:
 
         matched_string_length = len(matched_string)
 
-        context = matched_string # come default
+        # context = matched_string # come default
         occurrence: RegexItemsDict = {
-            # "source_data": source_data,
-            "index": len(occurrencies),
+            "index": [index],
             "matched_string": matched_string,
             "start": start,
             "end": end,
             "valid": True,
-            "context": context,
             "ignore_case": ignore_case,
+            # "context_string": source_data[start-context_length:end+context_length],
             "context_length": context_length,
+            "context_start": start - context_length,
+            "context_end": end + context_length,
             "matched_string_length": matched_string_length,
         }
+        # if index==0:
+        #     occurrence["source_data"] = source_data
 
         occurrencies.append(lnDict(occurrence))
+        index += 1 # for index variable `index` in `for` loop (Ruff SIM113)
 
     return occurrencies
 
@@ -461,7 +484,7 @@ def or_search(source_data: str,
 
     flags = re.UNICODE | re.IGNORECASE if ignore_case else re.UNICODE
 
-    occurrences = []
+    occurrencies_list = []
     for term in words_list:
         logger.info("searching for term: %s", term)
         pattern = _build_sequence_pattern(terms=[term], boundary=boundary)
@@ -474,6 +497,18 @@ def or_search(source_data: str,
                 normalize_text=normalize_text,
                 context_length=context_length,
                 ignore_case=ignore_case)
-        occurrences.extend(result)
+        occurrencies_list.extend(result)
 
-    return occurrences
+
+    if len(occurrencies_list) > 0:
+        # -facciamo il sort per context_start
+        # occurrencies = sorted(occurrencies_list, key=lambda x: x["context_start"], reverse=False)
+        from operator import itemgetter
+        occurrencies = sorted(occurrencies_list, key=itemgetter("context_start"), reverse=False) # più veloce
+
+        # - ins eriamo nella prima occurrency il source_data
+        occurrencies[0]["source_data"] = source_data  # - il text sorgente lo trovo nella prima occurrency.
+    else:
+        occurrencies = []
+
+    return occurrencies

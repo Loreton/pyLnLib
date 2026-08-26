@@ -457,7 +457,7 @@ class AuthorRegistry:
 
             author = author.strip()
             if any( self._key(item) == self._key(author) for item in self.ignore ):
-                self.logger.warning(f"Autore ignorato: {author}")
+                self.logger.warning(f"{author} - Autore ignorato")
                 continue
 
             author = self._identify(author, registry_update=registry_update)
