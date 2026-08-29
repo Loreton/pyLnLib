@@ -1,23 +1,15 @@
 #!/usr/bin/env python3
-# ln_ebook_manager.py
-#
-# ruff: noqa: BLE001x  Do not catch blind exception: `Exception` (Ruff BLE001)
-# ruff: noqa: I001x  Import block is un-sorted or un-formatted help: Organize imports (Ruff I001)
-# ruff: noqa: SIM102 Use a single `if` statement instead of nested `if` statements help: Combine `if` statements using `and` (Ruff SIM102)
-#
-
-from __future__ import annotations
 """
 epub_manager.py - Gestione EPUB con zipfile + lxml
 """
-import zipfile, tempfile, shutil
+
+import zipfile
+import tempfile
+import shutil
 from pathlib import Path
 from dataclasses import dataclass, field
 from lxml import etree
 from bs4 import BeautifulSoup
-
-
-from pyLnLib.logger import get_logger
 
 # Namespace EPUB
 NAMESPACES = {
@@ -27,6 +19,7 @@ NAMESPACES = {
     'xml': 'http://www.w3.org/XML/1998/namespace'
 }
 
+
 @dataclass
 class BookSection:
     """Rappresenta una sezione/capitolo del libro."""
@@ -34,6 +27,7 @@ class BookSection:
     title: str | None
     text: str
     order: int
+
 
 @dataclass
 class EpubMetadata:
@@ -50,27 +44,20 @@ class EpubMetadata:
     # Campi custom
     custom: dict[str, str] = field(default_factory=dict)
 
+
 class EpubManager:
-    """
-    Gestore EPUB che usa zipfile + lxml per operazioni sui metadati.
-    """
+    """Gestore EPUB che usa zipfile + lxml per operazioni sui metadati."""
 
     def __init__(self, filename: str | Path):
-        self.logger = get_logger()
         self._source_path = Path(filename)
-        self._temp_dir: str|None = None
-        self._opf_path: Path|None = None
-        self._metadata: EpubMetadata = EpubMetadata()  # Inizializzato!
+        self._temp_dir: str | None = None
+        self._opf_path: Path | None = None
+        self._metadata: EpubMetadata = EpubMetadata()
         self._sections: list[BookSection] = []
-        self._is_loaded = False # indica che il fileè  caricato quindi valido
+        self._is_loaded = False
 
         if not self._source_path.exists():
             raise FileNotFoundError(f"File non trovato: {self._source_path}")
-
-        # -----------------------------------------------
-        # verrà eseguito automaticamente self.__enter__()
-        # -----------------------------------------------
-
 
     # ======================================================================
     # Caricamento e parsing
@@ -87,41 +74,34 @@ class EpubManager:
 
             self._opf_path = self._find_opf(temp_path)
             if not self._opf_path:
-                self.logger.error("File OPF non trovato:\n%s", self._source_path)
-                # raise Exception("File OPF non trovato")
+                raise Exception("File OPF non trovato")
 
-            # Sovrascrive l'oggetto vuoto con i metadati reali
-            self._metadata = self._parse_metadata(self._opf_path)  # type: ignore
-            self._sections = self._parse_sections(temp_path, self._opf_path)  # type: ignore
+            self._metadata = self._parse_metadata(self._opf_path)
+            self._sections = self._parse_sections(temp_path, self._opf_path)
             self._is_loaded = True
             return True
 
         except Exception as e:
-            self.logger.error("Errore nel caricamento dell'EPUB: %s", e, show_stack=False)
+            raise Exception(f"Errore nel caricamento dell'EPUB: {e}")
 
-        return False
-
-
-    def _find_opf(self, base_path: Path) -> Path|None:
+    def _find_opf(self, base_path: Path) -> Path | None:
         """Trova il file OPF nel container.xml o per estensione."""
         container = base_path / 'META-INF' / 'container.xml'
         if container.exists():
             try:
                 tree = etree.parse(str(container))
                 root = tree.getroot()
-                # Cerca full-path
                 for elem in root.iter():
                     if 'full-path' in elem.attrib:
                         return base_path / elem.attrib['full-path']
-            except Exception as e:
-                self.logger.error("Errore nel parsing di container.xml: %s", e)
+            except:
+                pass
 
         # Cerca file .opf
         for file in base_path.rglob('*.opf'):
             return file
 
         return None
-
 
     def _parse_metadata(self, opf_path: Path) -> EpubMetadata:
         """Parsa i metadati dal file OPF."""
@@ -135,12 +115,9 @@ class EpubManager:
         if metadata_elem is None:
             return metadata
 
-        # ============================================================
         # 1. Leggi metadati DC (Dublin Core)
-        # ============================================================
         dc_ns = NAMESPACES['dc']
 
-        # Mappatura tag DC -> attributo
         dc_mapping = {
             'title': 'title',
             'creator': 'creator',
@@ -162,11 +139,16 @@ class EpubManager:
         if subjects:
             metadata.subject = [s.text.strip() for s in subjects if s.text]
 
-        # ============================================================
-        # 2. Leggi metadati custom (IN TUTTI I FORMATI POSSIBILI)
-        # ============================================================
+        # 2. Leggi metadati custom
+        # Cerca tag <meta property="custom:key">
+        for meta in metadata_elem.findall('.//opf:meta', namespaces=NAMESPACES):
+            prop = meta.get('property', '')
+            if prop and prop.startswith('custom:'):
+                key = prop.split(':', 1)[1] if ':' in prop else prop
+                if meta.text:
+                    metadata.custom[key] = meta.text.strip()
 
-        # 2a. Cerca tag con namespace che contiene 'custom'
+        # Cerca tag con namespace custom
         for elem in metadata_elem:
             if '}' in elem.tag:
                 namespace = elem.tag.split('}')[0].strip('{')
@@ -175,46 +157,12 @@ class EpubManager:
                     if elem.text:
                         metadata.custom[tag_name] = elem.text.strip()
 
-        # 2b. Cerca tag <meta property="custom:key">
-        # 2c. Cerca tag <meta name="custom:key">
-        # 2d. Cerca qualsiasi tag con attributo che inizia con 'custom:'
-        for elem in metadata_elem.iter():
-            # Controlla tutti gli attributi
-            for attr_value in elem.attrib.values():
-                if attr_value and isinstance(attr_value, str):
-                    if attr_value.startswith('custom:'):
-                        key = attr_value.split(':', 1)[1] if ':' in attr_value else attr_value
-                        if elem.text:
-                            metadata.custom[key] = elem.text.strip()
-                        break  # Esci dopo aver trovato un attributo custom
-
-        # 2e. Cerca specificamente tag <meta> con property o name
-        for elem in metadata_elem.findall('.//opf:meta', namespaces=NAMESPACES):
-            prop = elem.get('property', '')
-            name = elem.get('name', '')
-
-            for attr_value in [prop, name]:
-                if attr_value and attr_value.startswith('custom:'):
-                    key = attr_value.split(':', 1)[1] if ':' in attr_value else attr_value
-                    if elem.text:
-                        metadata.custom[key] = elem.text.strip()
-                    break
-
-        # ============================================================
-        # 3. DEBUG: stampa i custom trovati
-        # ============================================================
-        if metadata.custom:
-            # logger.debug(f"Custom metadata trovati: {metadata.custom}")
-            print(f"Custom metadata trovati: {metadata.custom}")
-
         return metadata
-
 
     def _parse_sections(self, base_path: Path, opf_path: Path) -> list[BookSection]:
         """Parsa le sezioni del libro."""
         sections = []
 
-        # Leggi il manifest dal OPF per trovare i documenti
         tree = etree.parse(str(opf_path))
         root = tree.getroot()
 
@@ -280,9 +228,8 @@ class EpubManager:
                         text=text,
                         order=html_item.get('order', 999)
                     ))
-                except Exception as e:
-                    # Ignora errori di lettura
-                    self.logger.error("Errore nella lettura del file %s: %s", html_item['href'], e)
+                except Exception:
+                    pass
 
         return sections
 
@@ -291,23 +238,18 @@ class EpubManager:
     # ======================================================================
 
     @property
-    def source_path(self) -> str:
-        """Titolo del libro."""
-        return str(self._source_path)
-
-    @property
-    def title(self) -> str|None:
+    def title(self) -> str | None:
         """Titolo del libro."""
         return self._metadata.title
 
     @property
-    def author(self) -> str|None:
+    def author(self) -> str | None:
         """Autore del libro."""
         return self._metadata.creator
 
     @property
     def metadata(self) -> EpubMetadata:
-        """Tutti i metadati (garantito non None)."""
+        """Tutti i metadati."""
         return self._metadata
 
     @property
@@ -315,20 +257,19 @@ class EpubManager:
         """Sezioni del libro."""
         return self._sections
 
-    # def get_custom_metadata(self, key: str) -> str|Nonw:
-    #     """Recupera un metadata custom."""
-    #     if self._metadata:
-    #         return self._metadata.custom.get(key)
-    #     return None
+    def get_custom_metadata(self, key: str) -> str | None:
+        """Recupera un metadata custom."""
+        return self._metadata.custom.get(key)
 
     # ======================================================================
     # Modifica metadati
     # ======================================================================
+
     def set_title(self, new_title: str) -> bool:
         """Modifica il titolo."""
         if not self._is_loaded:
             return False
-        self._metadata.title = new_title  # ✅ Nessun errore type-check
+        self._metadata.title = new_title
         self._metadata.custom['modified_by'] = 'EpubManager'
         return True
 
@@ -336,7 +277,7 @@ class EpubManager:
         """Modifica l'autore."""
         if not self._is_loaded:
             return False
-        self._metadata.creator = new_author  # ✅ Nessun errore type-check
+        self._metadata.creator = new_author
         self._metadata.custom['modified_by'] = 'EpubManager'
         return True
 
@@ -344,42 +285,12 @@ class EpubManager:
         """Imposta un metadata custom."""
         if not self._is_loaded:
             return False
-        self._metadata.custom[key] = value  # ✅ Nessun errore type-check
+        self._metadata.custom[key] = value
         return True
 
-    def get_custom_metadata(self, key: str) -> str|None:
-        """Recupera un metadata custom."""
-        return self._metadata.custom.get(key)  # ✅ Nessun errore type-check
-
-
-    # def set_title(self, new_title: str) -> bool:
-    #     """Modifica il titolo."""
-    #     if not self._is_loaded:
-    #         return False
-    #     self._metadata.title = new_title
-    #     self._metadata.custom['modified_by'] = 'EpubManager'
-    #     return True
-
-    # def set_author(self, new_author: str) -> bool:
-    #     """Modifica l'autore."""
-    #     if not self._is_loaded:
-    #         return False
-    #     self._metadata.creator = new_author
-    #     self._metadata.custom['modified_by'] = 'EpubManager'
-    #     return True
-
-    # def set_custom_metadata(self, key: str, value: str) -> bool:
-    #     """Imposta un metadata custom."""
-    #     if not self._is_loaded:
-    #         return False
-    #     self._metadata.custom[key] = value
-    #     return True
-
-
-
     def _update_opf_metadata(self) -> bool:
-        """Aggiorna il file OPF con i metadati modificati (versione semplificata)."""
-        if not self._opf_path or not self._metadata:
+        """Aggiorna il file OPF con i metadati modificati."""
+        if not self._opf_path:
             return False
 
         try:
@@ -400,8 +311,10 @@ class EpubManager:
 
             # Aggiorna DC metadata
             dc_ns = NAMESPACES['dc']
-            for dc_key in ['title', 'creator', 'language', 'publisher',
-                          'date', 'identifier', 'description', 'rights']:
+            dc_fields = ['title', 'creator', 'language', 'publisher',
+                        'date', 'identifier', 'description', 'rights']
+
+            for dc_key in dc_fields:
                 value = getattr(self._metadata, dc_key, None)
                 old_elem = metadata_elem.find(f'.//{{{dc_ns}}}{dc_key}')
 
@@ -415,7 +328,7 @@ class EpubManager:
                 elif old_elem is not None:
                     metadata_elem.remove(old_elem)
 
-            # Rimuovi vecchi custom metadata (tag <meta property="...">)
+            # Rimuovi vecchi custom metadata
             for meta in metadata_elem.findall('.//opf:meta', namespaces=NAMESPACES):
                 prop = meta.get('property', '')
                 if prop and prop.startswith('custom:'):
@@ -443,35 +356,24 @@ class EpubManager:
             return True
 
         except Exception as e:
-            self.logger.error("Errore nell'aggiornamento del OPF: %s", e, show_stack=True)
-            # raise Exception(f"Errore nell'aggiornamento del OPF: {e}")
-
-        return False
-
-
+            raise Exception(f"Errore nell'aggiornamento del OPF: {e}")
 
     # ======================================================================
     # Salvataggio
     # ======================================================================
+
     def save(self, output_path: str | Path) -> bool:
-        """
-        Salva il libro modificato in un nuovo file.
-        Non tocca l'originale.
-        """
+        """Salva il libro modificato in un nuovo file. Non tocca l'originale."""
         if not self._is_loaded or not self._temp_dir:
-            self.logger.error("Libro non caricato: %s", self._source_path, show_stack=True)
-            # raise Exception("Libro non caricato")
+            raise Exception("Libro non caricato")
 
         output_path = Path(output_path)
 
         try:
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-            # Aggiorna il file OPF con i metadati
             self._update_opf_metadata()
 
-            # Crea il nuovo EPUB
             with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zip_ref:
-                temp_path = Path(self._temp_dir)  # type: ignore
+                temp_path = Path(self._temp_dir)
                 for file_path in temp_path.rglob('*'):
                     if file_path.is_file():
                         arcname = str(file_path.relative_to(temp_path))
@@ -480,14 +382,12 @@ class EpubManager:
             return True
 
         except Exception as e:
-            self.logger.error("Errore nel salvataggio: %s", e, show_stack=True)
-            # raise Exception(f"Errore nel salvataggio: {e}")
-
-        return False
+            raise Exception(f"Errore nel salvataggio: {e}")
 
     # ======================================================================
     # Pulizia
     # ======================================================================
+
     def cleanup(self):
         """Rimuove i file temporanei."""
         if self._temp_dir and Path(self._temp_dir).exists():
@@ -496,7 +396,6 @@ class EpubManager:
     def __del__(self):
         self.cleanup()
 
-    # -  vieneseguito all'apertura/init della classe
     def __enter__(self):
         self.load()
         return self
@@ -535,8 +434,7 @@ class EpubManager:
                 if self.metadata.custom:
                     f.write("\n--- Metadati Custom ---\n")
                     for key, value in self.metadata.custom.items():
-                        # f.write(f"{key}: {value}\n")
-                        f.writelines(f"{key}: {value}\n")
+                        f.write(f"{key}: {value}\n")
 
             f.write("\n" + "=" * 60 + "\n")
             f.write("CONTENUTO\n")
@@ -555,8 +453,6 @@ class EpubManager:
 
 
 
-
-
 # !/usr/bin/env python3
 
 # from pathlib import Path
@@ -568,7 +464,7 @@ class EpubManager:
 """
 test_epub_manager.py - Script di test per EpubManager
 """
-def test_epub_operations(epub_path: Path|str):
+def test_epub_operations(epub_path: str):
     """Test completo delle operazioni EPUB."""
 
     epub_path = Path(epub_path)

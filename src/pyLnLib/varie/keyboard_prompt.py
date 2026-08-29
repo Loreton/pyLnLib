@@ -32,6 +32,7 @@ def caller_info(message: str, stacknum: int = 2) -> str:
 def keyboardPrompt( text_msg: str,
                     validKeys: list[str] = ["y", "n"],
                     exitKeys: list[str] = ["x", "q"],
+                    # skipKeys: list[str] = ["s"],
                     multi_choices: bool = False, ) -> list[str]:
     """
     Funzione per input da tastiera con validazione.
@@ -47,7 +48,7 @@ def keyboardPrompt( text_msg: str,
     """
 
     # # -------------------------------
-    def check_MC(choice: str, validKeys: List[str]) -> bool:
+    def check_MC(choice: str, validKeys: list[str]) -> bool:
         if not choice:
             return False
         for ch in choice.split():
@@ -66,6 +67,7 @@ def keyboardPrompt( text_msg: str,
         newLine = False
 
     # Costruzione del messaggio
+    # text_msg += " - [" + "|".join(skipKeys) + "]skip"
     text_msg += " - [" + "|".join(exitKeys) + "]quit ->: "
     text_msg = caller_info(message=text_msg)
 
@@ -76,21 +78,29 @@ def keyboardPrompt( text_msg: str,
         if newLine:
             print()
 
-        choice = input(text_msg).lower()
+        choice = input(text_msg)
         if choice == "":
             choice = "ENTER"
+
         # Controllo uscita
         if choice in exitKeys:
             print("Exiting on user request.")
             playBeep("INFO")
             sys.exit(0)
 
+        # Controllo skip
+        # if choice in skipKeys:
+        #     playBeep("INFO")
+        #     print(f"\t{C.yellowH} SKIPPING key was pressed!!!.{C.reset}")
+        #     break
+
         # Controllo scelte multiple
         elif multi_choices and check_MC(choice, validKeys):
             break  # type: ignore
 
-        # Controllo scelta singola
-        elif choice in validKeys:
+        # Controllo scelta
+        # se vaildKeys==[] allora torniamo tutto il testo immesso
+        elif choice in validKeys or validKeys == []:
             break
 
         else:

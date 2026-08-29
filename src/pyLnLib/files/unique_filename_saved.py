@@ -228,12 +228,11 @@ def get_unique_filename(filename: Path|str, path_for_duplicated: Path|str|None=N
             # Same size: definitive comparison
             if file_hash(candidate) == file_digest: # it's identical/same file
                 if path_for_duplicated:
-                    return  get_unique_filename(
+                    return  get_unique_filename_on_alternative_path(
                                     filename=Path(path_for_duplicated) / filename.name,
                                     suffix_pattern=suffix_pattern,
                                     start_index=1)
-                else:
-                    return None
+                # return None
 
         index += 1
 

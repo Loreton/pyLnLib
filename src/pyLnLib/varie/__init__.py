@@ -11,7 +11,7 @@ if __INIT__PY__DEBUG:
     print(f"{__name__} - start loading")
 
 
-from .menu_from_list        import menu_select_from_list
+from .menu_from_list        import  select_from_list
 from .beep        import BeepPlayer
 from .keyboard_prompt import keyboardPrompt
 from .ln_utils import flatten_and_filter, flatten_nested_list
@@ -23,7 +23,7 @@ __all__ = [
     "flatten_and_filter",
     "flatten_nested_list",
     "keyboardPrompt",
-    "menu_select_from_list",
+    "select_from_list",
 ]
 
 if __INIT__PY__DEBUG:

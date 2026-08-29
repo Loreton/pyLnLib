@@ -36,7 +36,7 @@ from .colors import get_colors
 from .emoji import get_emoji
 from .context import ctx, pVars
 # varie
-from .varie.menu_from_list import menu_select_from_list
+from .varie.menu_from_list import  select_from_list
 from .varie.keyboard_prompt import keyboardPrompt
 from .varie.ln_utils import flatten_and_filter, flatten_nested_list
 from .varie.beep import BeepPlayer
@@ -71,7 +71,7 @@ from .system.signal_handler import signalHandler, start_signal_handler
 from .regex.ln_regex import replace, and_search, or_search, search_term, processContext
 
 # pub
-from .epub.epub_manager import EpubProcessor, get_epub_processor, manage_epub_processor
+from .epub.epub_manager import EpubManager
 from .epub.author_registry import AuthorRegistry
 from .epub.calibre_metadata_reader import CalibreMetadataReader, calibre_test
 
@@ -130,7 +130,7 @@ __all__ = [
     "writeIni",
 
     # epub
-    "EpubProcessor",
+    "EpubManager",
     "get_epub_processor",
     "manage_epub_processor",
     "AuthorRegistry",
@@ -147,9 +147,10 @@ __all__ = [
     "zipDir",
 
     # varie
-    "menu_select_from_list",
+    # "menu_select_from_list",
     "clean_doc",
     "keyboardPrompt",
+    "select_from_list",
 
     # varie - ln_utils
     "flatten_and_filter",

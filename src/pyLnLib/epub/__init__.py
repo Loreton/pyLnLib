@@ -18,13 +18,13 @@ if __INIT__PY__DEBUG:
     print(f"{__name__} - start loading")
 
 
-from .epub_manager import EpubProcessor, get_epub_processor, manage_epub_processor
+from .epub_manager import EpubManager
 from .author_registry import AuthorRegistry
 from .calibre_metadata_reader import CalibreMetadataReader, calibre_test
 
 # Definisci cosa esportare quando si fa "from pyLnLib.logger import *"
 __all__ = [
-    "EpubProcessor",
+    "EpubManager",
     "get_epub_processor",
     "manage_epub_processor",
     "AuthorRegistry",

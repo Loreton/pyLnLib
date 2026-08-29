@@ -445,19 +445,24 @@ class AuthorRegistry:
             authors = [authors.strip()]
 
         result_author=[]
-        separators = ["&", " and ", ";", ","]
+        separators = ["&", " and ", ";"]
         for sep in separators:
             if sep in authors[0]:
                 authors = [author.strip() for author in authors[0].split(sep)]
                 break
 
+        # if len(authors) == 1 and ',' in authors[0]:
+        #     surname, name = authors[0].split(',')
         for author in authors: # oppure strip("&")????
             if not author:
                 continue
 
+            # if ',' in author:
+            #     surname, name = author.split(',')
+            # else:
             author = author.strip()
             if any( self._key(item) == self._key(author) for item in self.ignore ):
-                self.logger.warning(f"{author} - Autore ignorato")
+                self.logger.warning(f"{author = } - ignorato!")
                 continue
 
             author = self._identify(author, registry_update=registry_update)

@@ -446,13 +446,25 @@ def and_search(source_data: str,
 
     flags = re.UNICODE | re.IGNORECASE if ignore_case else re.UNICODE
     p = re.compile(pattern, flags=flags)
-    return _processOccurrencies(p,
+    occurrencies_list = _processOccurrencies(p,
         source_data=source_data,
         normalize_text=normalize_text,
         context_length=context_length,
         ignore_case=ignore_case)
 
 
+    if len(occurrencies_list) > 0:
+        # -facciamo il sort per context_start
+        # occurrencies = sorted(occurrencies_list, key=lambda x: x["context_start"], reverse=False)
+        from operator import itemgetter
+        occurrencies = sorted(occurrencies_list, key=itemgetter("context_start"), reverse=False) # più veloce
+
+        # - ins eriamo nella prima occurrency il source_data
+        occurrencies[0]["source_data"] = source_data  # - il text sorgente lo trovo nella prima occurrency.
+    else:
+        occurrencies = []
+
+    return occurrencies
 
 
 

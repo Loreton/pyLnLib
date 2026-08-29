@@ -1,3 +1,9 @@
+## [0.1.43] - 2026-08-29
+
+## Other
+
+- affinameto lnRegex per il sort delle occurrencies - (Release 0.1.42) (pylnlib_commit=e3960c6)
+
 ## [0.1.42] - 2026-08-24
 
 ## Other

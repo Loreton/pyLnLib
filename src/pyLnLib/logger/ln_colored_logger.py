@@ -592,8 +592,17 @@ class lnColoredLogger:
             return False
         return level_value >= self.consoleHandler.level or forceLog
 
+
     # -------------------------------
     # Core logging
+    # custome kwargs:
+    #    exit: bool = False
+    #    force_log: bool = False
+    #    trim_line: bool = False
+    #    dry_run: bool = False
+    #    show_caller: bool = False
+    #    show_stack: bool = False
+    #    stacklevel: int = 0
     # -------------------------------
     def _log_multiline( self,
                         level_name: str,
