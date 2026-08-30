@@ -1,299 +1,186 @@
-#!/usr/bin/env python3
-# ruff: noqa: SIM102 Use a single `if` statement instead of nested `if` statements help: Combine `if` statements using `and` (Ruff SIM102)
-# ruff: noqa: I001 Import block is un-sorted or un-formatted help: Organize imports (Ruff I001)
-#
-# updated by ...: Loreto Notarantonio
-
-#
-from __future__ import annotations
-
-import sys
-
-import os
-# import stat
-import zipfile
 from pathlib import Path
-from hashlib import sha256
+import hashlib
+
+from pyLnLib.logger import get_logger
+logger=get_logger()
 
 
 
 
+# #########################################################à
+#   Riassunto della logica finale:
+#
+#   def get_unique_filename(candidate=filename):
+#
+#       if candidate.exists()
+#           if is_duplicated()
+#               ritorna None
+#
+#           elif path_for_duplicated:
+#               Controlla TUTTI i file in duplicated/
+#               Se ALMENO uno è identico:
+#                   return None
+#               else:
+#                   cerca il primo indice disponibile
+#                   ritornalo come candidate
+#           else:
+#               ritornalo come candidate
+#
+#        else:
+#            ritornalo come candidate
+#
+#
+# #########################################################à
+
+def file_hash(filepath: Path, chunk_size: int = 8192) -> str:
+    """Calculate file hash (SHA-256)."""
+    sha256 = hashlib.sha256()
+    with open(filepath, 'rb') as f:
+        for chunk in iter(lambda: f.read(chunk_size), b''):
+            sha256.update(chunk)
+    return sha256.hexdigest()
 
 
+def get_unique_filename(source_file: Path|str,
+                        dest_dir: Path|str,
+                        dest_filename: Path|str|None = None,
+                        path_for_duplicated: Path|str|None = None,
+                        suffix_pattern: str = "-{:03d}",
+                        start_index: int = 0
+                        ) -> Path|None:
 
-
-def file_hash(filename: Path, chunk_size: int = 1024 * 1024) -> str:
-    """Return the SHA-256 hash of a file."""
-
-    digest = sha256()
-
-    with filename.open("rb") as file:
-        while chunk := file.read(chunk_size):
-            digest.update(chunk)
-
-    return digest.hexdigest()
-
-
-def get_unique_filename_2( filename: Path, suffix_pattern: str = "-{:03d}", start_index:int = 0 ) -> Path | None:
-    """Return a unique filename, or None if an identical file exists.
-
-    The original filename is returned if it does not exist.
-
-    If the filename already exists, existing files with the same
-    stem/suffix are checked:
-
-    1. Files with a different size are ignored.
-    2. Files with the same size are compared using SHA-256.
-    3. If an identical file is found, None is returned.
-    4. Otherwise, the first available filename is returned.
-
-    Example:
-        report.txt
-        report-001.txt
-        report-002.txt
-        ...
-    """
-    filename = Path(filename)
-
-    if start_index > 0:
+    # ==============================================
+    def is_duplicate(candidate: Path|str) -> bool:
         """
-            nel folder "duplicated" mi fa comodo partire da 1,
-            per distinguerlo dal primo file nella dir di sopra        filename = filename.parent / (
+            Check if the candidate file is a duplicate of the source file.
         """
-        index = start_index
-        candidate = filename.parent / (
-            filename.stem +
-            suffix_pattern.format(index) +
-            filename.suffix
-        )
-    else:
-        index = 1
-        candidate = filename
-
-    if not candidate.exists():
-        return candidate
-
-    file_size = candidate.stat().st_size
-    file_digest = file_hash(candidate)
-
-    stem = candidate.stem
-    suffix = candidate.suffix
-    parent = candidate.parent
-
-    first_run: bool = True
-    while True:
-        if first_run:
-            first_run = False
-        else:
-            candidate = parent / (
-                stem +
-                suffix_pattern.format(index) +
-                suffix
-            )
-
+        candidate=Path(candidate)
         if not candidate.exists():
-            return candidate
+            return False
+        if candidate.stat().st_size != source_size:
+            return False
+        return file_hash(candidate) == source_hash
 
-        # Fast check: different size means different content
-        if candidate.stat().st_size != file_size:
-            index += 1
-            continue
+    # ==============================================
+    def get_files_with_prefix(directory, prefix):
+        """Restituisce lista di file (fullpath) che iniziano con il prefisso usando pathlib"""
+        path = Path(directory)
+        files = [path / f.name for f in path.iterdir()
+                if f.is_file() and f.name.startswith(prefix)]
+        return files
 
-        # Same size: now perform the definitive comparison
-        if file_hash(candidate) == file_digest:
+    # ==============================================
+
+    # ----- controlli di base
+    if isinstance(source_file, str):
+        source_file = Path(source_file)
+    if isinstance(dest_dir, str):
+        dest_dir = Path(dest_dir)
+    if dest_filename is None:
+        dest_filename = source_file.name
+    elif isinstance(dest_filename, str):
+        dest_filename = Path(dest_filename)
+
+    if start_index < 0:
+        raise ValueError("start_index must be >= 0")
+
+    if not source_file.exists():
+        raise FileNotFoundError(f"Source file not found: {source_file}")
+
+
+    source_size = source_file.stat().st_size
+    source_hash = file_hash(source_file)
+
+    logger.info(f"Source file: {source_file}")
+    logger.info(f"Source size: {source_size}")
+    logger.info(f"Source hash: {source_hash[:16]}...")
+
+    # ----- verifica sulla destinazione primaria
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    base_path = dest_dir / dest_filename.name
+    logger.debug(f"{base_path = }")
+    logger.debug(f"{base_path.exists() = }")
+
+
+    # ------------------------------------
+    # L'obiettivo è quello di non avere file identici salvati
+    # ------------------------------------
+    # - esiste ma anche duplicato
+    if base_path.exists():
+        if is_duplicate(base_path):
+            logger.notify(f"{base_path} exists and it's IDENTICAL!")
             return None
 
-        index += 1
+        elif path_for_duplicated:
+            """ Cerchiamo nel duplicate directory"""
+            logger.info(f"proviamo nel {path_for_duplicated = }")
+            alt_dir = Path(path_for_duplicated)
+            alt_dir.mkdir(parents=True, exist_ok=True)
+
+            stem = dest_filename.stem
+            suffix = dest_filename.suffix
+            parent = alt_dir
 
 
-
-def get_unique_filename_on_alternative_path(filename: Path|str, suffix_pattern: str = "-{:03d}", start_index: int = 0) -> Path | None:
-    """Return a unique filename, or None if an identical file exists.
-
-    Args:
-        filename: Original filename.
-        suffix_pattern: Pattern used for generated filenames.
-        start_index: Starting index.
-            0 checks the original filename first.
-            1 starts with the first generated filename.
-
-    Returns:
-        The first available filename, or None if an identical file already exists.
-
-    Example:
-        start_index=0:
-            report.txt
-            report-001.txt
-            report-002.txt
-
-        start_index=1:
-            report-001.txt
-            report-002.txt
-            report-003.txt
-    """
-
-    if isinstance(filename, str):
-        filename = Path(filename)
-
-    if not filename.exists():
-        return filename
-
-    if start_index < 0:
-        raise ValueError("start_index must be >= 0")
-
-    file_size = filename.stat().st_size
-    file_digest = file_hash(filename)
-
-    stem = filename.stem
-    suffix = filename.suffix
-    parent = filename.parent
-
-    index = start_index
-
-    while True:
-        if index == 0:
-            candidate = filename
-        else:
-            candidate = parent / ( stem + suffix_pattern.format(index) + suffix )
-
-        if not candidate.exists():
-            return candidate
-
-        # Fast check: different size means different content
-        if candidate.stat().st_size == file_size:
-            # Same size: definitive comparison
-            if file_hash(candidate) == file_digest: # it's identical/same file
-                return None
-
-        index += 1
+            # FASE 1: Cerca se esiste un file identico con QUALSIASI indice
+            logger.debug(f"FASE 1 - Cerco file identici in {alt_dir}")
+            max_check = 1000
 
 
+            file_list=get_files_with_prefix(directory=parent, prefix=stem)
 
-
-
-def get_unique_filename(filename: Path|str, path_for_duplicated: Path|str|None=None, suffix_pattern: str = "-{:03d}", start_index: int = 0) -> Path | None:
-    """Return a unique filename, or None if an identical file exists.
-
-    Args:
-        filename: Original filename.
-        suffix_pattern: Pattern used for generated filenames.
-        start_index: Starting index.
-            0 checks the original filename first.
-            1 starts with the first generated filename.
-
-    Returns:
-        The first available filename, or None if an identical file already exists.
-
-    Example:
-        start_index=0:
-            report.txt
-            report-001.txt
-            report-002.txt
-
-        start_index=1:
-            report-001.txt
-            report-002.txt
-            report-003.txt
-    """
-
-    if isinstance(filename, str):
-        filename = Path(filename)
-
-    if not filename.exists():
-        return filename
-
-    if start_index < 0:
-        raise ValueError("start_index must be >= 0")
-
-    file_size = filename.stat().st_size
-    file_digest = file_hash(filename)
-
-    stem = filename.stem
-    suffix = filename.suffix
-    parent = filename.parent
-
-    index = start_index
-
-    while True:
-        if index == 0:
-            candidate = filename
-        else:
-            candidate = parent / ( stem + suffix_pattern.format(index) + suffix )
-
-        if not candidate.exists():
-            return candidate
-
-        # Fast check: different size means different content
-        if candidate.stat().st_size == file_size:
-            # Same size: definitive comparison
-            if file_hash(candidate) == file_digest: # it's identical/same file
-                if path_for_duplicated:
-                    return  get_unique_filename(
-                                    filename=Path(path_for_duplicated) / filename.name,
-                                    suffix_pattern=suffix_pattern,
-                                    start_index=1)
-                else:
+            #  ---- vediamo se tra quelli che esistono ce ne è uno identico...
+            for file in file_list:
+                if is_duplicate(file):
+                    logger.notify(f"{file} exists and it's IDENTICAL!")
                     return None
 
-        index += 1
-
-
-def get_unique_filename_ok(filename: Path|str, suffix_pattern: str = "-{:03d}", start_index: int = 0) -> Path | None:
-    """Return a unique filename, or None if an identical file exists.
-
-    Args:
-        filename: Original filename.
-        suffix_pattern: Pattern used for generated filenames.
-        start_index: Starting index.
-            0 checks the original filename first.
-            1 starts with the first generated filename.
-
-    Returns:
-        The first available filename, or None if an identical file already exists.
-
-    Example:
-        start_index=0:
-            report.txt
-            report-001.txt
-            report-002.txt
-
-        start_index=1:
-            report-001.txt
-            report-002.txt
-            report-003.txt
-    """
-
-    if isinstance(filename, str):
-        filename = Path(filename)
-
-    if not filename.exists():
-        return filename
-
-    if start_index < 0:
-        raise ValueError("start_index must be >= 0")
-
-    file_size = filename.stat().st_size
-    file_digest = file_hash(filename)
-
-    stem = filename.stem
-    suffix = filename.suffix
-    parent = filename.parent
-
-    index = start_index
-
-    while True:
-        if index == 0:
-            candidate = filename
+            else:
+                # FASE 2: Nessun file identico trovato, cerca il primo indice disponibile
+                index = max(1, start_index) if start_index >= 0 else 1
+                while True:
+                    candidate = parent / f"{stem}{suffix_pattern.format(index)}{suffix}"
+                    if not candidate.exists():
+                        logger.notify(f"{candidate} doesn't exist, return it as candidate!")
+                        return candidate
         else:
-            candidate = parent / ( stem + suffix_pattern.format(index) + suffix )
+            """ non avendo specificato il path_for_duplicate è come se chiedesse un replace..."""
+            logger.info(f"{base_path} exists but it's DIFFERENT. return as candidate!")
+            return base_path
+    else:
+        logger.info(f"{base_path} doesn't exist, return it as candidate!")
+        return base_path
 
-        if not candidate.exists():
-            return candidate
 
-        # Fast check: different size means different content
-        if candidate.stat().st_size == file_size:
-            # Same size: definitive comparison
-            if file_hash(candidate) == file_digest: # it's identical/same file
-                return None
 
-        index += 1
+
+
+
+
+
+
+
+
+if __name__ == "__main__":
+    import shutil
+    # Nel tuo codice epub_process
+    source_file1 = Path("/home/loreto/filu/ln-eBooks/lnLibraries/test_01/Rose, Karen/Muori per me (10)/Muori per me - Rose, Karen.epub")  # Il file che stai elaborando
+    source_file2 = Path("/home/loreto/filu/ln-eBooks/lnLibraries/test_01/Rose, Karen/Muori per me (24)/Muori per me - Rose, Karen.epub")  # Il file che stai elaborando
+    source_file = source_file2
+    dest_dir = Path("/home/loreto/filu/ln-eBooks/lnCollection/new/Karen, Rose")
+    dest_filename = Path("Muori per me.epub")
+
+    save_path = get_unique_filename(
+        source_file=source_file,
+        dest_dir=dest_dir,
+        dest_filename=dest_filename,
+        path_for_duplicated=dest_dir / "duplicated",
+        start_index=0
+    )
+
+    if save_path is None:
+        print("File identico già esistente, skip!")
+    else:
+        print(f"Saving to: {save_path}")
+        # Copia/scrive il file in save_path
+        shutil.copy2(source_file, save_path)

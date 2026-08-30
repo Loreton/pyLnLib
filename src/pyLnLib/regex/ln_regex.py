@@ -161,7 +161,7 @@ def processContext(occurrencies_list: list[RegexItemsDict]) -> list[RegexItemsDi
 def _processOccurrencies(p, source_data: str,
                             normalize_text: bool,
                             context_length: int=0,
-                            ignore_case: bool=False) -> list[RegexItems]:
+                            ignore_case: bool=False) -> list[RegexItemsDict]:
 
     # logger = get_logger()
     # print(logger.name)
@@ -218,7 +218,7 @@ def search_term( source_data: str, terms: list[str],
                 normalize_text: bool = False,
                 ignore_case: bool = True,
                 context_length: int = 0,
-            ) -> list[RegexItems]:
+            ) -> list[RegexItemsDict]:
     """
     Search a single word/string in the source text.
 
@@ -413,7 +413,7 @@ def and_search(source_data: str,
                 ignore_case: bool = False,
                 any_order: bool = False,
                 context_length: int = 0,
-                boundary: bool=False) -> list[RegexItems]:
+                boundary: bool=False) -> list[RegexItemsDict]:
     """
     Cerca tutte le parole/string nel testo devono seistere.
     """
@@ -476,7 +476,7 @@ def or_search(source_data: str,
                 normalize_text: bool = False,
                 ignore_case: bool = False,
                 context_length: int = 0,
-                boundary: bool=False) -> list[RegexItems]:
+                boundary: bool=False) -> list[RegexItemsDict]:
     """
     Cerca tutte le parole/string nel testo devono seistere.
     """
