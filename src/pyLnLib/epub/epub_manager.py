@@ -602,6 +602,8 @@ def test_epub_operations(epub_path: Path|str):
                 print(f"  {i}. {title} ({len(section.text)} caratteri)")
             if len(book.sections) > 3:
                 print(f"  ... e altri {len(book.sections) - 3} capitoli")
+            print(f"  Custom metadata (before adding): {book.metadata.custom}")
+
 
             # 4. Modifica metadati
             print("\n✏️ MODIFICA METADATI:")
@@ -655,6 +657,11 @@ def test_epub_operations(epub_path: Path|str):
 if __name__ == "__main__":
     # Path del tuo EPUB di test
     test_epub = "/home/loreto/Downloads/test_epubs/Billionaire 02 - Miele - Meghan March.epub"
+    test_epub = "/home/loreto/filu/ln-eBooks/lnCollection/rows/Billionaire 02 - Miele - Meghan March.epub"
+    test_epub = "/home/loreto/filu/ln-eBooks/lnCollection/new/Karen, Rose/Grida per me.epub"
+    test_epub = "/home/loreto/filu/ln-eBooks/lnExtracted/epubs/Yap, Felicia/giorno solo, Un.epub"
+    test_epub = "/home/loreto/filu/ln-eBooks/lnLibraries/new_Entries/Hoover, Colleen/It Ends With Us_ Siamo noi a dire basta (379)/It Ends With Us_ Siamo noi a dire basta - Hoover, Colleen.epub"
+    test_epub = "/home/loreto/Downloads/a2/Hoover, Colleen/Ugly Love.epub"
 
     if test_epub:
         result = test_epub_operations(test_epub)

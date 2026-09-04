@@ -1,5 +1,5 @@
 from pathlib import Path
-import hashlib
+from hashlib import sha256
 
 from pyLnLib.logger import get_logger
 logger=get_logger()
@@ -32,13 +32,24 @@ logger=get_logger()
 #
 # #########################################################à
 
-def file_hash(filepath: Path, chunk_size: int = 8192) -> str:
-    """Calculate file hash (SHA-256)."""
-    sha256 = hashlib.sha256()
-    with open(filepath, 'rb') as f:
-        for chunk in iter(lambda: f.read(chunk_size), b''):
-            sha256.update(chunk)
-    return sha256.hexdigest()
+# ==============================================
+def _file_hash(filename: Path, chunk_size: int = 1024 * 1024) -> str:
+    """Return the SHA-256 hash of a file."""
+    digest = sha256()
+    with filename.open("rb") as file:
+        while chunk := file.read(chunk_size):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+# ==============================================
+def _get_files_with_prefix(directory, prefix):
+    """Restituisce lista di file (fullpath) che iniziano con il prefisso usando pathlib"""
+    path = Path(directory)
+    files = [path / f.name for f in path.iterdir()
+            if f.is_file() and f.name.startswith(prefix)]
+    return files
+
 
 
 def get_unique_filename(source_file: Path|str,
@@ -59,15 +70,8 @@ def get_unique_filename(source_file: Path|str,
             return False
         if candidate.stat().st_size != source_size:
             return False
-        return file_hash(candidate) == source_hash
+        return _file_hash(candidate) == source_hash
 
-    # ==============================================
-    def get_files_with_prefix(directory, prefix):
-        """Restituisce lista di file (fullpath) che iniziano con il prefisso usando pathlib"""
-        path = Path(directory)
-        files = [path / f.name for f in path.iterdir()
-                if f.is_file() and f.name.startswith(prefix)]
-        return files
 
     # ==============================================
 
@@ -89,7 +93,7 @@ def get_unique_filename(source_file: Path|str,
 
 
     source_size = source_file.stat().st_size
-    source_hash = file_hash(source_file)
+    source_hash = _file_hash(source_file)
 
     logger.info(f"Source file: {source_file}")
     logger.info(f"Source size: {source_size}")
@@ -127,7 +131,7 @@ def get_unique_filename(source_file: Path|str,
             max_check = 1000
 
 
-            file_list=get_files_with_prefix(directory=parent, prefix=stem)
+            file_list=_get_files_with_prefix(directory=parent, prefix=stem)
 
             #  ---- vediamo se tra quelli che esistono ce ne è uno identico...
             for file in file_list:
@@ -138,11 +142,17 @@ def get_unique_filename(source_file: Path|str,
             else:
                 # FASE 2: Nessun file identico trovato, cerca il primo indice disponibile
                 index = max(1, start_index) if start_index >= 0 else 1
-                while True:
+                while index<=len(file_list)+1:
                     candidate = parent / f"{stem}{suffix_pattern.format(index)}{suffix}"
+                    logger.info(f"checking: %s", candidate)
                     if not candidate.exists():
                         logger.notify(f"{candidate} doesn't exist, return it as candidate!")
                         return candidate
+                    else:
+                        logger.info(f"\t FOUND")
+                        index += 1
+
+
         else:
             """ non avendo specificato il path_for_duplicate è come se chiedesse un replace..."""
             logger.info(f"{base_path} exists but it's DIFFERENT. return as candidate!")
