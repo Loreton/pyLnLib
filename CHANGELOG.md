@@ -1,3 +1,10 @@
+## [0.1.44] - 2026-09-05
+
+## Other
+
+- update on 2026.09.04 16:54:15 - (Release 0.1.43) (pylnlib_commit=9fbbd50)
+- forse completato unique_filename - (Release 0.1.43) (pylnlib_commit=23f1654)
+
 ## [0.1.43] - 2026-09-04
 
 ## Other
