@@ -49,7 +49,7 @@ E' configurato per essere usato sia con with che senza context manager.
 import shutil
 import tempfile
 import zipfile
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from pathlib import Path
 
 from bs4 import BeautifulSoup
@@ -79,6 +79,12 @@ class BookSection:
     text: str
     order: int
 
+    def to_dict(self) -> dict[str, object]:
+        """Converte l'oggetto in un dizionario."""
+        return lnDict(asdict(self))
+
+
+
 
 @dataclass
 class EpubMetadata:
@@ -95,6 +101,12 @@ class EpubMetadata:
     rights: str | None = None
     # Campi custom
     custom: dict[str, str] = field(default_factory=dict)
+    calibre: dict[str, str] = field(default_factory=dict)
+    # sections: list[BookSection] = field(default_factory=list)
+
+    def to_dict(self) -> lnDict[str, object]:
+        """Converte l'oggetto in un dizionario."""
+        return lnDict(asdict(self))
 
 
 class EpubManager:
@@ -113,10 +125,9 @@ class EpubManager:
         self._sections: list[BookSection] = []
         self._is_loaded = False  # indica che il fileè  caricato quindi valido
         self._is_cleaned = False  # Traccia se è stato fatto cleanup
+        self.metadata_elem: etree.Element | None = None
 
-        if not self._source_path.exists():
-            raise FileNotFoundError(f"File non trovato: {self._source_path}")
-
+        self._validate_file()
         # Caricamento automatico se richiesto
         if auto_load:
             self.load()
@@ -125,7 +136,18 @@ class EpubManager:
         # con with verrà eseguito automaticamente self.__enter__()
         # -----------------------------------------------
 
+    def _validate_file(self) -> None:
+        """Valida il file prima del caricamento."""
+        if not self._source_path.exists():
+            raise FileNotFoundError(f"File non trovato: {self._source_path}")
 
+        # Controllo dimensione
+        if self._source_path.stat().st_size > 100 * 1024 * 1024:  # 100MB
+            raise ValueError(f"File troppo grande: {self._source_path}")
+
+        # Controllo estensione
+        if self._source_path.suffix.lower() != '.epub':
+            raise ValueError(f"File non EPUB: {self._source_path}")
 
         # ======================================================================
         # Pulizia
@@ -142,7 +164,10 @@ class EpubManager:
         self.logger.info("Cleanup completato")
 
     def __del__(self):
-        self.cleanup()
+        try:
+            self.cleanup()
+        except Exception:
+            pass
 
     # -  vieneseguito all'apertura/init della classe
     def __enter__(self):
@@ -160,6 +185,15 @@ class EpubManager:
     def is_loaded(self) -> bool:
         """Verifica se il libro è caricato correttamente."""
         return self._is_loaded and not self._is_cleaned
+
+
+
+
+
+
+
+
+
 
     # ======================================================================
     # Caricamento e parsing
@@ -179,10 +213,12 @@ class EpubManager:
             self._opf_path = self._find_opf(temp_path)
             if not self._opf_path:
                 self.logger.error("File OPF non trovato:\n%s", self._source_path)
+                self.cleanup()
                 return False
 
             self._metadata = self._parse_metadata(self._opf_path)
             self._sections = self._parse_sections(temp_path, self._opf_path)
+            self._metadata.calibre=self.parse_calibre_metadata()
             self._is_loaded = True
             self.logger.info("Load completato")
             return True
@@ -191,7 +227,6 @@ class EpubManager:
             self.logger.error("Errore nel caricamento dell'EPUB: %s", e)
             self.cleanup()  # Pulisci in caso di errore
             return False
-
 
 
 
@@ -233,7 +268,6 @@ class EpubManager:
         """Estrae i metadati Calibre specifici."""
         import json
 
-        # calibre_data = {}
         calibre_data = lnDict()
         metadata_elem = self.metadata_elem
         if metadata_elem is None:
@@ -260,11 +294,12 @@ class EpubManager:
               "#tipologia",
             ]
 
-        my_calibre_fields = calibre_fields + calibre_custom_column
+        # Ma usa set per evitare duplicati
+        my_calibre_fields = list(set(calibre_fields + calibre_custom_column))
 
 
         # =======================================================
-        def extract_value(meta_elem: etree.Element) -> str | None:
+        def _extract_value(meta_elem: etree.Element) -> str | None:
             """Estrae il valore da un elemento <meta>."""
             if meta_elem.text:
                 try:
@@ -296,26 +331,21 @@ class EpubManager:
                 field = name.split(":", 2)[2] if ":" in name else name
                 self.logger.debug(f"\tfield: {field}")
                 if not field in my_calibre_fields:
-                    self.logger.debug(f"\t...skipping field")
+                    self.logger.debug("\t...skipping field")
                     continue
                 self.logger.debug(f"\tfield: {field}")
-                extracted_value = extract_value(meta)
-                calibre_data[f"custom_{field}"] = extracted_value
+                extracted_value = _extract_value(meta)
+                calibre_data[field] = extracted_value
 
 
             # Cerca calibre:field
             elif name and name.startswith("calibre:"):
-                # self.logger.info(f"calibre: {name}")
                 field = name.split(":", 1)[1] if ":" in name else name
-                # if not field in calibre_fields and not field in calibre_custom_column:
-                    # continue
                 if meta.text:
                     if field in calibre_fields:
                         calibre_data[field] = meta.text.strip()
                 elif meta.attrib.get("content"):
-                    if field in calibre_fields:
-                        calibre_data[field] = meta.attrib.get("content").strip()
-                    elif field in calibre_custom_column:
+                    if field in my_calibre_fields:
                         calibre_data[field] = meta.attrib.get("content").strip()
 
             # Cerca calibre:user_metadata (JSON completo)
@@ -346,6 +376,7 @@ class EpubManager:
 
 
         self.logger.info(f"calibre data: {calibre_data}")
+        # self._metadata.calibre = calibre_data
         return calibre_data
 
 
@@ -448,7 +479,7 @@ class EpubManager:
         # ============================================================
         if metadata.custom:
             # logger.debug(f"Custom metadata trovati: {metadata.custom}")
-            print(f"Custom metadata trovati: {metadata.custom}")
+            self.logger.error(f"Custom metadata trovati: {metadata.custom}")
 
         return metadata
 
@@ -551,8 +582,9 @@ class EpubManager:
 
     @property
     def metadata(self) -> EpubMetadata:
-        """Tutti i metadati (garantito non None)."""
+        # """Tutti i metadati (garantito non None)."""
         return self._metadata
+
 
     @property
     def sections(self) -> list[BookSection]:
@@ -584,9 +616,13 @@ class EpubManager:
         self._metadata.custom[key] = value  # ✅ Nessun errore type-check
         return True
 
-    def get_custom_metadata(self, key: str) -> str | None:
+    def get_custom_key(self, key: str) -> str | None:
         """Recupera un metadata custom."""
         return self._metadata.custom.get(key)  # ✅ Nessun errore type-check
+
+    def get_custom_metadata(self) -> dict[str, str]:
+        """Recupera un metadata custom."""
+        return lnDict(self._metadata.custom)  # ✅ Nessun errore type-check
 
 
 
@@ -779,11 +815,12 @@ test_epub_manager.py - Script di test per EpubManager
 def test_read_main_metadata(book: EpubManager):
         # 2. Leggi metadati originali
         logger.debug("METADATI ORIGINALI:")
-        logger.debug(f"\tTitolo:  {book.title}")
-        logger.debug(f"\tAutore:  {book.author}")
-        logger.debug(f"\tLingua:  {book.metadata.language if book.metadata else 'N/A'}")
-        logger.debug(f"\tEditore: {book.metadata.publisher if book.metadata else 'N/A'}")
-        logger.debug(f"\tData:    {book.metadata.date if book.metadata else 'N/A'}")
+        # logger.debug(f"\tTitolo:  {book.title}")
+        # logger.debug(f"\tAutore:  {book.author}")
+        # logger.debug(f"\tLingua:  {book.metadata.language if book.metadata else 'N/A'}")
+        # logger.debug(f"\tEditore: {book.metadata.publisher if book.metadata else 'N/A'}")
+        # logger.debug(f"\tData:    {book.metadata.date if book.metadata else 'N/A'}")
+        logger.info(f"\tall metadata:    {book.metadata.to_dict() if book.metadata else 'N/A'}")
 
         # 3. Verifica sezioni
         logger.info(f"CAPITOLI: {len(book.sections)}")
@@ -808,100 +845,13 @@ def test_modify_metadata(book: EpubManager):
 
     book.set_custom_metadata("test_key", "test_value")
     book.set_custom_metadata("processed_by", "EpubManager v2.0")
-    logger.info(f"  Custom metadata: {book.metadata.custom}")
-    logger.info(f"  processed_by: {book.metadata.custom.get('processed_by')}")
+    # logger.info(f"  Custom metadata: {book.metadata.custom}")
+    # logger.info(f"  processed_by: {book.metadata.custom.get('processed_by')}")
+    # logger.info(f"  processed_by: {book.get_custom_key('processed_by')}")
+    # logger.info(f"  custom metadata: {book.get_custom_metadata()}")
+    logger.info(f"\tall metadata:    {book.metadata.to_dict() if book.metadata else 'N/A'}")
+    # breakpoint()
 
-
-
-
-
-def test_epub_operations(epub_path: Path | str):
-    """Test completo delle operazioni EPUB."""
-
-    epub_path = Path(epub_path)
-    if not epub_path.exists():
-        print(f"❌ File non trovato: {epub_path}")
-        return False
-
-    print("=" * 70)
-    print(f"📚 Test su: {epub_path.name}")
-    print("=" * 70)
-
-    try:
-        # Usa il context manager per caricamento e pulizia automatica
-        with EpubManager(epub_path) as book:
-            # 1. Verifica caricamento
-            print("\n✅ EPUB caricato con successo")
-
-            # 2. Leggi metadati originali
-            print("\n📖 METADATI ORIGINALI:")
-            print(f"  Titolo: {book.title}")
-            print(f"  Autore: {book.author}")
-            print(f"  Lingua: {book.metadata.language if book.metadata else 'N/A'}")
-            print(f"  Editore: {book.metadata.publisher if book.metadata else 'N/A'}")
-            print(f"  Data: {book.metadata.date if book.metadata else 'N/A'}")
-
-            # 3. Verifica sezioni
-            print(f"\n📑 CAPITOLI: {len(book.sections)}")
-            for i, section in enumerate(book.sections[:3], 1):  # Mostra solo primi 3
-                title = section.title or f"Capitolo {i}"
-                print(f"  {i}. {title} ({len(section.text)} caratteri)")
-            if len(book.sections) > 3:
-                print(f"  ... e altri {len(book.sections) - 3} capitoli")
-            print(f"  Custom metadata (before adding): {book.metadata.custom}")
-
-            # 4. Modifica metadati
-            print("\n✏️ MODIFICA METADATI:")
-            book.set_title("Test Titolo Modificato")
-            book.set_author("Test Autore Modificato")
-            book.set_custom_metadata("test_key", "test_value")
-            book.set_custom_metadata("processed_by", "EpubManager v2.0")
-
-            print(f"  Nuovo titolo: {book.title}")
-            print(f"  Nuovo autore: {book.author}")
-            print(f"  Custom metadata: {book.metadata.custom}")
-
-            # 5. Salva in nuovo file
-            output_file = epub_path.parent / f"test_{epub_path.name}"
-            book.save(output_file)
-            print(f"\n💾 Salvataggio completato: {output_file}")
-
-            # 6. Esporta come testo
-            txt_file = epub_path.parent / f"{epub_path.stem}_estratto.txt"
-            if book.to_text(txt_file, replace=True):
-                print(f"📄 Esportato come testo: {txt_file}")
-
-            # 7. Verifica che il file salvato abbia i metadati corretti
-            print("\n🔍 VERIFICA FILE SALVATO:")
-            with EpubManager(output_file) as test_book:
-                print(f"  Titolo: {test_book.title}")
-                print(f"  Autore: {test_book.author}")
-                print(f"  Custom: {test_book.metadata.custom}")
-                modified_by = test_book.get_custom_metadata("processed_by")
-                print(f"  Modified by: {modified_by}")
-
-                # Verifica che le modifiche siano state applicate
-                success = (
-                    test_book.title == "Test Titolo Modificato"
-                    and test_book.author == "Test Autore Modificato"
-                    and test_book.get_custom_metadata("test_key") == "test_value"
-                )
-
-                if success:
-                    print("  ✅ Tutte le modifiche sono state salvate correttamente!")
-                else:
-                    print(
-                        "  ⚠️ Attenzione: Alcune modifiche potrebbero non essere state salvate"
-                    )
-
-            return True
-
-    except Exception as e:
-        print(f"\n❌ ERRORE: {e}")
-        import traceback
-
-        traceback.print_exc()
-        return False
 
 
 def scan_directory(root_dir: Path|str, pattern: str, recursive: bool = True) -> list[Path]:
@@ -974,79 +924,3 @@ if __name__ == "__main__":
 
         finally:
             book.cleanup()
-
-        # breakpoint()
-
-    # if epub_path:
-    #     result = test_read_main_metadata(epub_path)
-    #     sys.exit("Uscita test")
-    #     result = test_epub_operations(epub_path)
-    #     print("\n" + "=" * 70)
-    #     print("✅ TEST COMPLETATO!" if result else "❌ TEST FALLITO!")
-    #     print("=" * 70)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ============================================
-# Esempio di utilizzo
-# ============================================
-
-if __name__ == "__main__xxx":
-    import sys
-
-    # Test
-    test_file = (
-        "/home/loreto/Downloads/test_epubs/Billionaire 02 - Miele - Meghan March.epub"
-    )
-
-    print("=" * 60)
-    print("TEST EPUB MANAGER (zipfile + lxml)")
-    print("=" * 60)
-
-    try:
-        with EpubManager(test_file) as book:
-            print(f"\n📖 Titolo originale: {book.title}")
-            print(f"✍️ Autore originale: {book.author}")
-            print(f"📑 Numero capitoli: {len(book.sections)}")
-
-            # Modifica metadati
-            print("\n🔄 Modifico titolo e autore...")
-            book.set_title("Nuovo Titolo Modificato")
-            book.set_author("Nuovo Autore Modificato")
-            book.set_custom_metadata("processed_by", "EpubManager v2.0")
-            book.set_custom_metadata("processed_date", "2026-08-29")
-
-            print(f"\n📖 Nuovo titolo: {book.title}")
-            print(f"✍️ Nuovo autore: {book.author}")
-
-            # Salva
-            output_file = "libro_modificato.epub"
-            book.save(output_file)
-            print(f"\n💾 Libro salvato in: {output_file}")
-
-            # Esporta come testo
-            book.to_text("libro_esportato.txt", replace=True)
-            print("📄 Esportato come testo in: libro_esportato.txt")
-
-    except Exception as e:
-        print(f"❌ Errore: {e}")
-        sys.exit(1)
-
-    print("\n✅ Test completato con successo!")
