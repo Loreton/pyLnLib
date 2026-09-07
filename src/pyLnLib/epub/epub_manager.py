@@ -30,7 +30,7 @@ class BookSection:
     content: str  # HTML / XHTML sorgente
     order: int
 
-    def to_text(self) -> str:
+    def section_to_text(self) -> str:
         """Estrae solo il testo visibile rimuovendo i tag HTML/XHTML."""
         if not self.content:
             return ""
@@ -93,7 +93,9 @@ class EpubMetadata:
 
     def set_calibre_entry(self, key: str, value: object) -> None:
         """Smista il metadato nella chiave corretta."""
-        if not key or value is None:
+        # if not key or value is None:
+        #     return
+        if not key:
             return
 
         # Pulizia prefisso calibre: se presente
@@ -112,6 +114,8 @@ class EpubMetadata:
 
         # Smistamento in calibre dict o custom dict
         if clean_key in self.CALIBRE_KNOWN_FIELDS or clean_key.startswith("#"):
+            if clean_key.startswith("#"):
+                clean_key = clean_key.removeprefix("#") # per poter gestire il campo con lnDict
             self.calibre[clean_key] = value
         else:
             self.custom[clean_key] = value
@@ -204,14 +208,15 @@ class EpubManager:
     # -------------------------------------------------------------------------
     # Getters & Setters Metadati Standard
     # -------------------------------------------------------------------------
-
-    def get_title(self) -> str:
+    @property
+    def title(self) -> str:
         return self.metadata.title
 
     def set_title(self, title: str) -> None:
         self.metadata.title = title
 
-    def get_authors(self) -> list[str]:
+    @property
+    def authors(self) -> list[str]:
         return self.metadata.authors
 
     def set_authors(self, authors: list[str] | str) -> None:
@@ -220,25 +225,29 @@ class EpubManager:
         else:
             self.metadata.authors = authors
 
-    def get_language(self) -> str:
+    @property
+    def language(self) -> str:
         return self.metadata.language
 
     def set_language(self, language: str) -> None:
         self.metadata.language = language
 
-    def get_publisher(self) -> str:
+    @property
+    def publisher(self) -> str:
         return self.metadata.publisher
 
     def set_publisher(self, publisher: str) -> None:
         self.metadata.publisher = publisher
 
-    def get_description(self) -> str:
+    @property
+    def description(self) -> str:
         return self.metadata.description
 
     def set_description(self, description: str) -> None:
         self.metadata.description = description
 
-    def get_isbn(self) -> str:
+    @property
+    def isbn(self) -> str:
         return self.metadata.isbn
 
     def set_isbn(self, isbn: str) -> None:
@@ -298,10 +307,12 @@ class EpubManager:
 
     def get_text(self, separator: str = "\n\n") -> str:
         """Restituisce il testo completo del libro convertito da HTML a testo piano."""
-        sections_text = [section.to_text() for section in self.sections]
+        sections_text = [section.section_to_text() for section in self.sections]
         return separator.join(filter(None, sections_text))
 
-    def save_text(self, output_file: str | Path, replace: bool = False) -> bool:
+
+
+    def save_text_prev(self, output_file: str | Path, replace: bool = False) -> bool:
         """Esporta il libro come file di testo formattato e pulito (senza HTML).
 
         Args:
@@ -371,9 +382,7 @@ class EpubManager:
                         f.write(f"\n--- {section.title} ---\n\n")
 
                     # Recupera l'HTML e lo converte in testo pulito
-                    raw_html = getattr(section, "content", None) or getattr(
-                        section, "text", ""
-                    )
+                    raw_html = getattr(section, "content", None) or getattr( section, "text", "" )
                     clean_text = self._clean_html(raw_html)
 
                     f.write(clean_text)
@@ -385,6 +394,100 @@ class EpubManager:
         except OSError as e:
             logger.error(f"Errore durante l'esportazione del testo: {e}")
             return False
+
+    def to_text(self, output_file: str | Path | None = None, replace: bool = False) -> str:
+        """Esporta il libro come file di testo formattato e pulito (senza HTML).
+
+        Args:
+            output_file: Percorso del file TXT di output.
+            replace: Se True, sovrascrive il file se esiste già.
+
+        Returns:
+            bool: True se l'esportazione è andata a buon fine.
+        """
+        data: str = ""
+
+        # Intestazione Metadati
+        data += "=" * 60 + "\n"
+        data += "METADATI DEL LIBRO\n"
+        data += "=" * 60 + "\n\n"
+
+        if self.metadata:
+            authors_str = (
+                ", ".join(self.metadata.authors)
+                if self.metadata.authors
+                else "N/A"
+            )
+            subjects_str = (
+                ", ".join(self.metadata.subject)
+                if self.metadata.subject
+                else "N/A"
+            )
+
+            data += f"Titolo:         {self.metadata.title or 'N/A'}\n"
+            data += f"Autore/i:       {authors_str}\n"
+            data += f"Lingua:         {self.metadata.language or 'N/A'}\n"
+            data += f"Editore:        {self.metadata.publisher or 'N/A'}\n"
+            data += f"Data Pubbl.:    {self.metadata.pub_date or 'N/A'}\n"
+            data += (
+                f"Identificatore: {self.metadata.identifier or 'N/A'}\n"
+            )
+            if self.metadata.isbn:
+                data += f"ISBN:           {self.metadata.isbn}\n"
+
+            if self.metadata.series:
+                data += (
+                    f"Serie:          {self.metadata.series} (Vol."
+                    f" {self.metadata.series_index})\n"
+                )
+            data += f"Soggetti:       {subjects_str}\n"
+
+            if self.metadata.custom:
+                data += "\n--- Metadati Custom ---\n"
+                for key, value in self.metadata.custom.items():
+                    data += f"{key}: {value}\n"
+
+            if self.metadata.calibre:
+                data += "\n--- Metadati Calibre ---\n"
+                for key, value in self.metadata.calibre.items():
+                    data += f"{key}: {value}\n"
+
+
+        # Contenuto del libro
+        data += "\n" + "=" * 60 + "\n"
+        data += "CONTENUTO\n"
+        data += "=" * 60 + "\n\n"
+
+        for section in self.sections:
+            if section.title:
+                data += f"\n--- {section.title} ---\n\n"
+
+            # Recupera l'HTML e lo converte in testo pulito
+            raw_html = getattr(section, "content", None) or getattr(section, "text", "")
+            clean_text = self._clean_html(raw_html)
+
+            data += clean_text
+            data += "\n\n"
+
+
+        if output_file:
+            output_file = Path(output_file)
+            if output_file.exists() and not replace:
+                logger.warning(f"File di output già esistente: {output_file}")
+
+            else:
+                try:
+                    with open(output_file, "w", encoding="utf-8") as f:
+                        f.write(data)
+                    logger.info(f"Testo esportato correttamente: {output_file.name}")
+
+                except OSError as e:
+                    logger.error(f"Errore durante l'esportazione del testo: {e}")
+                    return ""
+
+        return data
+
+
 
     # -------------------------------------------------------------------------
     # Parsing ed Elaborazione Interna
@@ -522,37 +625,36 @@ class EpubManager:
             # Estrae il valore effettivo memorizzato nel dizionario JSON da Calibre
             if isinstance(data, dict) and "#value#" in data:
                 val = data["#value#"]
-                if val is not None:
-                    meta.set_calibre_entry(col_name, val)
+                meta.set_calibre_entry(col_name, val)
 
         except (json.JSONDecodeError, TypeError, KeyError):
             pass
 
-    def set_calibre_entry(self, key: str, value: object) -> None:
-        """Aggiunge una chiave nel dizionario calibre se valida.
+    # def set_calibre_entry(self, key: str, value: object) -> None:
+    #     """Aggiunge una chiave nel dizionario calibre se valida.
 
-        Supporta campi noti Calibre o colonne custom (#).
-        """
-        if not key:
-            return
+    #     Supporta campi noti Calibre o colonne custom (#).
+    #     """
+    #     if not key:
+    #         return
 
-        # Gestisce direttamente serie e serie_index se passate qui
-        if key == "series":
-            self.series = str(value or "")
-            return
-        if key == "series_index":
-            try:
-                self.series_index = float(value)
-            except (ValueError, TypeError):
-                self.series_index = 0.0
-            return
+    #     # Gestisce direttamente serie e serie_index se passate qui
+    #     if key == "series":
+    #         self.series = str(value or "")
+    #         return
+    #     if key == "series_index":
+    #         try:
+    #             self.series_index = float(value)
+    #         except (ValueError, TypeError):
+    #             self.series_index = 0.0
+    #         return
 
-        # Popola il dizionario calibre se è un campo noto o una colonna custom (#)
-        if key in self.CALIBRE_KNOWN_FIELDS or key.startswith("#"):
-            self.metadata.calibre[key] = value
-        else:
-            # Se non fa parte del mondo Calibre, va in custom generico
-            self.metadata.custom[key] = value
+    #     # Popola il dizionario calibre se è un campo noto o una colonna custom (#)
+    #     if key in self.CALIBRE_KNOWN_FIELDS or key.startswith("#"):
+    #         self.metadata.calibre[key] = value
+    #     else:
+    #         # Se non fa parte del mondo Calibre, va in custom generico
+    #         self.metadata.custom[key] = value
 
     def _parse_sections(self, opf_path: Path) -> None:
         tree = ET.parse(opf_path)
@@ -738,8 +840,8 @@ def test_read_main_metadata(book: EpubManager):
     """Verifica e stampa i metadati iniziali e la struttura delle sezioni."""
     logger.info("--- METADATI ORIGINALI ---")
     if book.metadata:
-        logger.info(f"  Titolo:  {book.get_title()}")
-        logger.info(f"  Autori:  {book.get_authors()}")
+        logger.info(f"  Titolo:  {book.title}")
+        logger.info(f"  Autori:  {book.authors}")
         logger.info(f"  Dizionario completo: {book.metadata.to_dict()}")
 
     logger.info(f"--- CAPITOLI TROVATI: {len(book.sections)} ---")
@@ -760,8 +862,8 @@ def test_modify_metadata(book: EpubManager):
     book.set_title("Test Titolo Modificato")
     book.set_authors(["Test Autore Modificato"])  # Passare lista o stringa in base all'implementazione di set_authors
 
-    logger.info(f"  Nuovo titolo: {book.get_title()}")
-    logger.info(f"  Nuovo autore: {book.get_authors()}")
+    logger.info(f"  Nuovo titolo: {book.title}")
+    logger.info(f"  Nuovo autore: {book.authors}")
 
     book.set_custom_metadata("test_key", "test_value")
     book.set_custom_metadata("processed_by", "EpubManager v2.0")
@@ -804,5 +906,5 @@ if __name__ == "__main__":
 
             # Esportazione in TXT
             txt_file = epub_out_path / f"{book.epub_path.stem}_estratto.txt"
-            if book.save_text(txt_file, replace=True):
+            if book.to_text(txt_file, replace=True):
                 logger.notify(f"Testo esportato: {txt_file}")
