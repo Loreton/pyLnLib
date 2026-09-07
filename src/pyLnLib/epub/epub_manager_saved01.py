@@ -4,7 +4,7 @@ Requisiti: Python 3.10+ (Ottimizzato per Python 3.14+)
 """
 
 import json
-# import logging
+import logging
 import re
 import shutil
 import tempfile
@@ -13,14 +13,12 @@ from dataclasses import dataclass, field, asdict
 from pathlib import Path
 import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
-# import json
-# import re
-# import xml.etree.ElementTree as ET
 
 
 from pyLnLib import lnDict
 from pyLnLib.logger import get_logger
 logger = get_logger()
+
 
 @dataclass
 class BookSection:
@@ -52,11 +50,9 @@ class BookSection:
 
 
 
-
 @dataclass
 class EpubMetadata:
     """Rappresenta i metadati completi del libro (Dublin Core + Calibre + Custom)."""
-
     # Dublin Core standard
     title: str = ""
     authors: list[str] = field(default_factory=list)
@@ -69,52 +65,13 @@ class EpubMetadata:
     subject: list[str] = field(default_factory=list)
     rights: str = ""
 
-    # Serie (scorciatoie di livello base)
+    # Serie e Calibre
     series: str = ""
     series_index: float = 0.0
-
-    # Metadati specifici Calibre (campi noti + colonne custom #)
     calibre: dict[str, object] = field(default_factory=dict)
 
-    # Campi custom generici (non-Calibre)
+    # Campi estensibili / custom
     custom: dict[str, object] = field(default_factory=dict)
-
-    CALIBRE_KNOWN_FIELDS = {
-        "title_sort",
-        "author_link_map",
-        "user_categories",
-        "user_metadata",
-        "rating",
-        "timestamp",
-        "pubdate",
-        "last_modified",
-        "modified_by",
-    }
-
-    def set_calibre_entry(self, key: str, value: object) -> None:
-        """Smista il metadato nella chiave corretta."""
-        if not key or value is None:
-            return
-
-        # Pulizia prefisso calibre: se presente
-        clean_key = key.replace("calibre:", "")
-
-        # Gestione Serie
-        if clean_key == "series":
-            self.series = str(value)
-            return
-        if clean_key == "series_index":
-            try:
-                self.series_index = float(value)
-            except (ValueError, TypeError):
-                self.series_index = 0.0
-            return
-
-        # Smistamento in calibre dict o custom dict
-        if clean_key in self.CALIBRE_KNOWN_FIELDS or clean_key.startswith("#"):
-            self.calibre[clean_key] = value
-        else:
-            self.custom[clean_key] = value
 
     def to_dict(self) -> lnDict[str, object]:
         """Converte l'oggetto in un lnDict."""
@@ -133,9 +90,6 @@ class EpubManager:
         "calibre": "http://calibre.kovidgoyal.net/2009/metadata",
     }
 
-
-
-
     def __init__(self, epub_path: str | Path, auto_load: bool = True):
         self.epub_path = Path(epub_path)
         self.logger = logger
@@ -143,7 +97,6 @@ class EpubManager:
         self.metadata: EpubMetadata = EpubMetadata()
         self.sections: list[BookSection] = []
         self._opf_relative_path: Path | None = None
-
 
         if auto_load:
             self.load()
@@ -408,9 +361,6 @@ class EpubManager:
 
         raise ValueError("Impossibile determinare il percorso del file OPF da container.xml")
 
-
-
-
     def _parse_metadata(self, opf_path: Path) -> None:
         tree = ET.parse(opf_path)
         root = tree.getroot()
@@ -422,137 +372,65 @@ class EpubManager:
 
         meta = EpubMetadata()
 
-        # --- 1. Dublin Core Standard ---
         title_elem = metadata_elem.find("dc:title", self.NS)
-        meta.title = (
-            title_elem.text if title_elem is not None and title_elem.text else ""
-        )
+        meta.title = title_elem.text if title_elem is not None and title_elem.text else ""
 
         authors = metadata_elem.findall("dc:creator", self.NS)
         meta.authors = [a.text for a in authors if a.text]
 
         lang_elem = metadata_elem.find("dc:language", self.NS)
-        meta.language = (
-            lang_elem.text if lang_elem is not None and lang_elem.text else ""
-        )
+        meta.language = lang_elem.text if lang_elem is not None and lang_elem.text else ""
 
         pub_elem = metadata_elem.find("dc:publisher", self.NS)
-        meta.publisher = (
-            pub_elem.text if pub_elem is not None and pub_elem.text else ""
-        )
+        meta.publisher = pub_elem.text if pub_elem is not None and pub_elem.text else ""
 
         date_elem = metadata_elem.find("dc:date", self.NS)
-        meta.pub_date = (
-            date_elem.text if date_elem is not None and date_elem.text else ""
-        )
+        meta.pub_date = date_elem.text if date_elem is not None and date_elem.text else ""
 
         desc_elem = metadata_elem.find("dc:description", self.NS)
-        meta.description = (
-            desc_elem.text if desc_elem is not None and desc_elem.text else ""
-        )
+        meta.description = desc_elem.text if desc_elem is not None and desc_elem.text else ""
 
-        rights_elem = metadata_elem.find("dc:rights", self.NS)
-        meta.rights = (
-            rights_elem.text if rights_elem is not None and rights_elem.text else ""
-        )
-
-        subjects = metadata_elem.findall("dc:subject", self.NS)
-        meta.subject = [s.text for s in subjects if s.text]
-
-        # Identifiers & ISBN
         for identifier in metadata_elem.findall("dc:identifier", self.NS):
             text = identifier.text or ""
-            scheme = identifier.attrib.get(f"{{{self.NS['opf']}}}scheme", "").lower()
-
-            if not meta.identifier:
-                meta.identifier = text
-
-            if "isbn" in scheme or "isbn" in text.lower():
+            if "isbn" in identifier.attrib.get(f"{{{self.NS['opf']}}}scheme", "").lower() or "isbn" in text.lower():
                 meta.isbn = re.sub(r"[^\dX]", "", text.upper())
+                break
 
-        # --- 2. Meta Tags (Calibre EPUB 2 e EPUB 3) ---
         for meta_tag in metadata_elem.findall("opf:meta", self.NS):
-            # Supporta sia EPUB 2 ('name') che EPUB 3 ('property')
-            key = meta_tag.attrib.get("name") or meta_tag.attrib.get("property") or ""
+            name = meta_tag.attrib.get("name", "")
+            content = meta_tag.attrib.get("content", "")
 
-            # Recupera il valore da 'content' oppure dal testo interno del nodo
-            value = meta_tag.attrib.get("content") or meta_tag.text or ""
-
-            if not key:
-                continue
-
-            # Gestione Colonne Custom Calibre (calibre:user_metadata:#colonna)
-            if "user_metadata:" in key:
-                self._parse_calibre_custom_metadata(meta_tag, meta, key, value)
-
-            # Metadati Calibre Standard (es. calibre:series, calibre:title_sort)
-            elif key.startswith("calibre:"):
-                meta.set_calibre_entry(key, value)
-
-            # Altri metadati generici
-            else:
-                meta.custom[key] = value
+            if name == "calibre:series":
+                meta.series = content
+            elif name == "calibre:series_index":
+                try:
+                    meta.series_index = float(content)
+                except ValueError:
+                    meta.series_index = 0.0
+            elif name.startswith("calibre:user_metadata:"):
+                self._parse_calibre_custom_metadata(meta_tag, meta)
 
         self.metadata = meta
-        self.logger.debug(
-            f"Metadati letti | Calibre: {len(meta.calibre)} voci | Custom:"
-            f" {len(meta.custom)} voci"
-        )
+        self.logger.debug(f"Metadati personalizzati letti: {len(meta.custom)}")
 
 
-    def _parse_calibre_custom_metadata(
-        self, meta_tag: ET.Element, meta: EpubMetadata, key: str, value: str
-    ) -> None:
-        """Decodifica i metadati custom in formato JSON da Calibre."""
-        # Se 'content' o 'text' non contengono il JSON, cerca se il testo è nel nodo figlio
-        raw_json = value.strip() if value else ""
 
-        if not raw_json and len(meta_tag) > 0:
-            raw_json = meta_tag.text or ""
 
-        if not raw_json:
+
+
+    def _parse_calibre_custom_metadata(self, meta_tag: ET.Element, meta: EpubMetadata) -> None:
+        content = meta_tag.attrib.get("content", "")
+        if not content:
             return
 
         try:
-            data = json.loads(raw_json)
-
-            # Ricava il nome della colonna (es. #status, #tipologia)
-            col_name = key.split("user_metadata:")[-1]
-
-            # Estrae il valore effettivo memorizzato nel dizionario JSON da Calibre
-            if isinstance(data, dict) and "#value#" in data:
-                val = data["#value#"]
-                if val is not None:
-                    meta.set_calibre_entry(col_name, val)
-
+            data = json.loads(content)
+            name = meta_tag.attrib.get("name", "").replace("calibre:user_metadata:", "")
+            if "#value#" in data:
+                meta.custom[name] = data["#value#"]
+                meta.calibre[name] = data["#value#"]   # sto cercando di separare custo da calibre
         except (json.JSONDecodeError, TypeError, KeyError):
             pass
-
-    def set_calibre_entry(self, key: str, value: object) -> None:
-        """Aggiunge una chiave nel dizionario calibre se valida.
-
-        Supporta campi noti Calibre o colonne custom (#).
-        """
-        if not key:
-            return
-
-        # Gestisce direttamente serie e serie_index se passate qui
-        if key == "series":
-            self.series = str(value or "")
-            return
-        if key == "series_index":
-            try:
-                self.series_index = float(value)
-            except (ValueError, TypeError):
-                self.series_index = 0.0
-            return
-
-        # Popola il dizionario calibre se è un campo noto o una colonna custom (#)
-        if key in self.CALIBRE_KNOWN_FIELDS or key.startswith("#"):
-            self.metadata.calibre[key] = value
-        else:
-            # Se non fa parte del mondo Calibre, va in custom generico
-            self.metadata.custom[key] = value
 
     def _parse_sections(self, opf_path: Path) -> None:
         tree = ET.parse(opf_path)
@@ -783,7 +661,7 @@ def scan_directory(root_dir: Path | str, pattern: str = "*.epub", recursive: boo
 
 
 if __name__ == "__main__":
-    epub_inp_path = Path("/home/loreto/Downloads/epubs_test/Owens, Ivy")
+    epub_inp_path = Path("/home/loreto/Downloads/epubs_test")
     epub_out_path = Path("/home/loreto/Downloads/epubs_out")
 
     file_list = scan_directory(epub_inp_path, "*.epub")
