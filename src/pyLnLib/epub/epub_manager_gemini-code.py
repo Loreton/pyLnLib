@@ -209,10 +209,9 @@ class EpubManager:
         self.metadata.series_index = index
 
     def get_custom_metadata(self, key: str | None = None) -> dict | str | int | float | list | None:
-        _dict=lnDict(self.metadata.custom)
         if key:
-            return _dict.get(key)
-        return _dict
+            return self.metadata.custom.get(key)
+        return self.metadata.custom
         # return lnDict(self.metadata.custom)
 
     def set_custom_metadata(self, key: str, value: str | int | float | list) -> None:
@@ -630,7 +629,6 @@ def test_modify_metadata(book: EpubManager):
 
     book.set_custom_metadata("test_key", "test_value")
     book.set_custom_metadata("processed_by", "EpubManager v2.0")
-    logger.info(f"  processed_by: {book.get_custom_metadata(key='processed_by')}")
 
     logger.info(f"  Custom metadata (dopo): {book.get_custom_metadata()}")
 
