@@ -68,7 +68,7 @@ def lnRun(
                     logger.debug(line, color=C.blue)
 
             # log stderr
-            if result.stderr:
+            if result.stderr and not "git push" in result.stderr:
                 logger.error( f"executing: {command!r}", color=C.blueH, show_caller=True )
                 for line in result.stderr.splitlines():
                     logger.error(line, color=C.redH, show_caller=True)
