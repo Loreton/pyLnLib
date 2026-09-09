@@ -192,16 +192,15 @@ class lnRunStream_Class:
     # #                     "unnecessary_starting_with": [".f.", ".d.", ], linee starting_with non necessarie alla visualizzazione
     # #                     }
     ############################################################
-    def runStream(
-        self,
-        cmd: str,
-        stdout_file=None,
-        to_console=True,
-        get_output=False,
-        dry_run=False,
-        process_strings: dict = {},
-        ignore_case=False,
-    ):
+    def runStream( self,
+                    cmd: str,
+                    stdout_file=None,
+                    to_console=True,
+                    get_output=False,
+                    dry_run=False,
+                    process_strings: dict = {},
+                    ignore_case=False,
+                ):
         self.ignore_case = ignore_case
 
         self.prepareWords(process_strings)

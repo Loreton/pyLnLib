@@ -479,7 +479,7 @@ class EpubManager:
                 try:
                     with open(output_file, "w", encoding="utf-8") as f:
                         f.write(data)
-                    logger.info(f"Testo esportato correttamente: {output_file.name}")
+                    logger.info(f"Testo esportato correttamente: {output_file}")
 
                 except OSError as e:
                     logger.error(f"Errore durante l'esportazione del testo: {e}")

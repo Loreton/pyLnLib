@@ -19,8 +19,8 @@ from   .ln_dict_resolver_class     import LnDictResolver
 
 # Definisci cosa esportare quando si fa "from pyLnLib.logger import *"
 __all__ = [
-    'lnDict',
     'LnDictResolver',
+    'lnDict',
 ]
 
 

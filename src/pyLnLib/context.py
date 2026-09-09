@@ -86,24 +86,22 @@ class lnContext:
             }
         )
 
-    #=========================================
-    # - Optional
-    #=========================================
-    # def initialize_calibre(self, calibre_path: str):
-    #     from .calibre.calibre_metadata_reader import CalibreMetadataReader
-    #     try:
-    #         self.calibre = CalibreMetadataReader(calibre_path)
-    #     except FileNotFoundError as e:
-    #         print(f"❌ Errore: {e}")
-    #         sys.exit(1)
+    @property
+    def temp_dir(self) -> Path:
+        return self.project_temp_dir
 
-    # def initialize_epub(self, top_dir: str):
-    #     from .epub,epub_manager import EpubProcessor
-    #     try:
-    #         self.epub = EpubProcessor(top_dir)
-    #     except FileNotFoundError as e:
-    #         print(f"❌ Errore: {e}")
-    #         sys.exit(1)
+    @property
+    def log_dir(self) -> Path:
+        return self.project_log_dir
+
+    @property
+    def config_dir(self) -> Path:
+        return self.project_config_dir
+
+    @property
+    def prj_root_dir(self) -> Path:
+        return self.project_root
+
 
 
 

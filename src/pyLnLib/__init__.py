@@ -39,7 +39,13 @@ from .context import ctx, pVars
 from .varie.menu_from_list import  select_from_list
 from .varie.keyboard_prompt import keyboardPrompt
 from .varie.ln_utils import flatten_and_filter, flatten_nested_list
-from .varie.beep import BeepPlayer
+from .varie.beep import (
+                    BeepPlayer,
+                    playBeep,
+                    play_success_sound,
+                    play_error_sound,
+                    play_notification_sound,
+                )
 
 
 # files
@@ -93,7 +99,6 @@ __all__ = [
     "ctx",
     "pVars",
 
-    "BeepPlayer",
     "acquire_lock",
     "get_colors",
     "get_emoji",
@@ -151,6 +156,13 @@ __all__ = [
     "clean_doc",
     "keyboardPrompt",
     "select_from_list",
+
+    # varie beep
+    "BeepPlayer",
+    "playBeep",
+    "play_success_sound",
+    "play_error_sound",
+    "play_notification_sound",
 
     # varie - ln_utils
     "flatten_and_filter",
