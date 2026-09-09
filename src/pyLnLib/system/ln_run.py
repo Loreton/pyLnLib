@@ -31,8 +31,9 @@ def lnRun(
     stacklevel: int = 0,
     f_execute: bool = False,
     timeout: int = 15,
-    logger_level: str = "warning",  # questo pervitare di scrivere se non richiesto
+    # logger_level: str = "warning",  # questo pervitare di scrivere se non richiesto
     shell: bool = False,
+    force_log:bool=False,
 ) -> tuple[int, str, str]:
     # logger = get_logger()
     result: SimpleNamespace = SimpleNamespace(rcode=0, stdout="", stderr="")
@@ -40,11 +41,12 @@ def lnRun(
     command_args = shlex.split(command) if isinstance(command, str) else command
     str_command = " ".join(command_args)
 
-    saved_logger_level = logger.getConsoleLoggerLevel()
-    logger.setConsoleLoggerLevel(logger_level)
+    # saved_logger_level = logger.getConsoleLoggerLevelName()
+    # logger.setConsoleLoggerLevel(logger_level)
     logger.notify(
         f"[{'executing' if f_execute else 'dry-run'}] {str_command}",
         stacklevel=stacklevel + 1,
+        force_log=force_log,
     )
 
     if f_execute:
@@ -65,7 +67,7 @@ def lnRun(
             # log stdout
             if result.stdout:
                 for line in result.stdout.splitlines():
-                    logger.debug(line, color=C.blue)
+                    logger.debug(line, color=C.blue, force_log=force_log)
 
             # log stderr
             if result.stderr and not "git push" in result.stderr:
@@ -82,7 +84,7 @@ def lnRun(
             if exit_on_error:
                 raise SystemExit(1)
 
-    logger.setConsoleLoggerLevel(saved_logger_level)
+    # logger.setConsoleLoggerLevel(saved_logger_level)
     return result.rcode, result.stdout, result.stderr
 
 

@@ -235,7 +235,7 @@ class lnColoredLogger:
     def setConsoleLoggerLevel(self, level: str|int) -> None:
         if self.consoleHandler is not None:
             if isinstance(level, str):
-                self.consoleHandler.setLevel(level.upper)
+                self.consoleHandler.setLevel(level.upper())
             else:
                 self.consoleHandler.setLevel(level)
             # self.trace("console log level has been set to: %s", level.upper())

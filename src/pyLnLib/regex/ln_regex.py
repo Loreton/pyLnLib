@@ -16,7 +16,7 @@ import re
 import time
 from _collections_abc import Callable
 # from itertools import permutations
-from dataclasses import dataclass, asdict
+# from dataclasses import dataclass, asdict
 from typing import TypedDict
 
 from pyLnLib.logger import get_logger
