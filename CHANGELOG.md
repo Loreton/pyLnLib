@@ -1,3 +1,11 @@
+## [0.1.47] - 2026-09-09
+
+## Other
+
+- update on 2026.09.09 (regarding project: gitCommit)
+- update on 2026.09.09 (regarding project: eBooks)
+- update on 2026.09.08 (regarding project: lnSync)
+
 ## [0.1.45] - 2026-09-07
 
 ## Other

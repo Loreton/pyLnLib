@@ -70,13 +70,18 @@ def lnRun(
                     logger.debug(line, color=C.blue, force_log=force_log)
 
             # log stderr
-            if result.stderr and not "git push" in result.stderr:
+            # breakpoint()
+            # if result.stderr and not "git push" in result.stderr:
+            #     logger.error( f"executing: {command!r}", color=C.blueH, show_caller=True )
+            #     for line in result.stderr.splitlines():
+            #         logger.error(line, color=C.redH, show_caller=True)
+
+            if result.rcode != 0:
                 logger.error( f"executing: {command!r}", color=C.blueH, show_caller=True )
                 for line in result.stderr.splitlines():
                     logger.error(line, color=C.redH, show_caller=True)
-
-            if result.rcode != 0 and exit_on_error:
-                raise SystemExit(result.rcode)
+                if exit_on_error:
+                    raise SystemExit(result.rcode)
 
         except Exception as e:
             logger.error("Exception: %s", str(e), color=C.redH, show_caller=True)
