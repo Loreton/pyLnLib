@@ -2,6 +2,11 @@
 EPUB Manager - Modulo per la manipolazione, estrazione e modifica di metadati e contenuti EPUB.
 Requisiti: Python 3.10+ (Ottimizzato per Python 3.14+)
 """
+# ruff: noqa: I001  - Import block is un-sorted or un-formatted help: Organize imports (Ruff I001)
+# ruff: noqa: BLE001 - Do not catch blind exception: `Exception` (Ruff BLE001)
+#
+
+from __future__ import annotations
 
 import json
 # import logging
@@ -13,9 +18,6 @@ from dataclasses import dataclass, field, asdict
 from pathlib import Path
 import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
-# import json
-# import re
-# import xml.etree.ElementTree as ET
 
 
 from pyLnLib import lnDict
@@ -97,9 +99,9 @@ class EpubMetadata:
         #     return
         if not key:
             return
-
         # Pulizia prefisso calibre: se presente
         clean_key = key.replace("calibre:", "")
+        # breakpoint()
 
         # Gestione Serie
         if clean_key == "series":
@@ -583,10 +585,23 @@ class EpubManager:
 
             if not key:
                 continue
-
             # Gestione Colonne Custom Calibre (calibre:user_metadata:#colonna)
             if "user_metadata:" in key:
                 self._parse_calibre_custom_metadata(meta_tag, meta, key, value)
+
+            # by Loreto - su alcuni libri mi trovo questa entry con tutti i metadata calibre
+            # quindi devo fare un subscan....
+            elif ":user_metadata" in key:
+                value01 = json.loads(value)
+                # print(key); breakpoint()
+                for k01, v01 in value01.items():
+                    if isinstance(v01, dict):
+                        if "#value#" in v01:
+                            meta.set_calibre_entry(k01, v01.get('#value#'))
+                    else:
+                        meta.set_calibre_entry(k01, v01)
+
+                # self._parse_calibre_custom_metadata(meta_tag, meta, key, value)
 
             # Metadati Calibre Standard (es. calibre:series, calibre:title_sort)
             elif key.startswith("calibre:"):
@@ -603,9 +618,7 @@ class EpubManager:
         )
 
 
-    def _parse_calibre_custom_metadata(
-        self, meta_tag: ET.Element, meta: EpubMetadata, key: str, value: str
-    ) -> None:
+    def _parse_calibre_custom_metadata( self, meta_tag: ET.Element, meta: EpubMetadata, key: str, value: str ) -> None:
         """Decodifica i metadati custom in formato JSON da Calibre."""
         # Se 'content' o 'text' non contengono il JSON, cerca se il testo è nel nodo figlio
         raw_json = value.strip() if value else ""

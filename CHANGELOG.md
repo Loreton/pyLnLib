@@ -1,3 +1,12 @@
+## [0.1.48] - 2026-09-11
+
+## Other
+
+- update di ln_run.py - (Release 0.1.47) (pylnlib_commit=5003945)
+- update on 2026.09.09 (regarding project: gitCommit)
+- update on 2026.09.09 (regarding project: eBooks)
+- update on 2026.09.08 (regarding project: lnSync)
+
 ## [0.1.47] - 2026-09-09
 
 ## Other

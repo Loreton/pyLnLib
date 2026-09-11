@@ -671,13 +671,13 @@ class lnColoredLogger:
         self._log_multiline("INFO", msg, *args, color=color, **kwargs)
 
     def warning( self, msg: str|list, *args: object, color: str | None = None, **kwargs: object ) -> None:
-        self._log_multiline("WARNING", f"⚠️ {msg}", *args, color=color, **kwargs)
+        self._log_multiline("WARNING", f"⚠️  {msg}", *args, color=color, **kwargs)
 
     def error( self, msg: str|list, *args: object, color: str | None = None, **kwargs: object ) -> None:
-        self._log_multiline("ERROR", f"🔴 {msg}", *args, color=color, **kwargs)
+        self._log_multiline("ERROR", f"🔴  {msg}", *args, color=color, **kwargs)
 
     def critical( self, msg: str|list, *args: object, color: str | None = None, **kwargs: object ) -> None:
-        self._log_multiline("CRITICAL", f"💀 {msg}", *args, color=color, **kwargs)
+        self._log_multiline("CRITICAL", f"💀  {msg}", *args, color=color, **kwargs)
 
     # def exception( self, msg: str|list, *args: object, color: str | None = None, **kwargs: object ) -> None:
     #     self._log_multiline("ERROR", msg, *args, exc_info=True, exit=True, **kwargs) da una riga dirrore:  NoneType: None

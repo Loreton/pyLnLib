@@ -476,18 +476,19 @@ def or_search(source_data: str,
                 normalize_text: bool = False,
                 ignore_case: bool = False,
                 context_length: int = 0,
-                boundary: bool=False) -> list[RegexItemsDict]:
+                boundary: bool=False,
+                force_log: bool = False) -> list[RegexItemsDict]:
     """
     Cerca tutte le parole/string nel testo devono seistere.
     """
     # logger = get_logger()
-    logger.function(clean_doc(f"""or_search called with:
+    logger.trace(clean_doc(f"""or_search called with:
         words_list={words_list}
         normalize_text={normalize_text}
         ignore_case={ignore_case}
         context_length={context_length}
         boundary={boundary}
-        """))
+        """), force_log=force_log)
 
     # facciamolo solo una volta
     if normalize_text:
@@ -498,12 +499,12 @@ def or_search(source_data: str,
 
     occurrencies_list = []
     for term in words_list:
-        logger.info("searching for term: %s", term)
+        logger.trace("searching for term: %s", term, force_log=force_log)
         pattern = _build_sequence_pattern(terms=[term], boundary=boundary)
         # matches = re.findall(pattern, source_data, flags=flags)
         p = re.compile(pattern, flags=flags)
         positions = [ (m.start(), m.end()) for m in p.finditer(source_data) ]
-        logger.info("   found: %s matches", len(positions))
+        logger.trace("   found: %s matches", len(positions), force_log=force_log)
         result = _processOccurrencies(p,
                 source_data=source_data,
                 normalize_text=normalize_text,

@@ -2,16 +2,16 @@
 #
 # updated by ...: Loreto Notarantonio
 #
+#  ruff: noqa: E402 Module level import not at top of file (Ruff E402)
+#  ruff: noqa: E701 Multiple statements on one line (colon) (Ruff E701)
 
 import sys; sys.dont_write_bytecode=True;
-import os
-
 from pathlib import Path
 from datetime import datetime
 import inspect
 
 
-class DummyPrintLogger:
+class PrintLogger:
     class Color:
         red        = '\033[31m'; redH       = '\033[91m'
         green      = '\033[32m'; greenH     = '\033[92m'
@@ -24,7 +24,7 @@ class DummyPrintLogger:
 
 
 
-    def __init__(self, name: str="DummyPrintLogger", console_logger_level: str="info", logger_time: bool=False):
+    def __init__(self, name: str="PrintLogger", console_logger_level: str="info", time_caller_prefix: bool=False):
         self.LEVELS = {
             "trace":     (5,  "TRACE", self.Color.white),
             "debug":     (10, "DEBUG", self.Color.cyan),
@@ -40,13 +40,15 @@ class DummyPrintLogger:
         self.show_caller = True
         self.module = True
         self.function = False
-        self.test = testLogger
-        self.logger_time = logger_time
+        # self.test = testLogger
+        self.time_caller_prefix = time_caller_prefix
 
-    def setLevel(self, level):
+    # ==========================================================
+    def setMaxLevel(self, level):
         self.level = self.LEVELS[level.lower()][0]
 
 
+    # ==========================================================
     def _caller(self):
         f = inspect.currentframe()
         for _ in range(3):  # salta stack interno logger
@@ -66,11 +68,12 @@ class DummyPrintLogger:
         return caller
         return f"{filename}.{func}:{lineno}"
 
+
+    # ==========================================================
     def _log(self, lvl, msg, *args, **kwargs):
         lvl_num, tag, default_color = self.LEVELS[lvl.lower()]
         if lvl_num < self.level:
             return
-
 
         if args:
             try:
@@ -78,13 +81,15 @@ class DummyPrintLogger:
             except Exception:
                 msg = f"{msg} {args}"
 
-
         # extract kwargs arguments
-        logger_time = kwargs.get("logger_time", self.logger_time)
-        color     = kwargs.get("color", default_color)
+        time_caller_prefix = kwargs.get("time_caller_prefix", self.time_caller_prefix)
+        color       = kwargs.get("color", default_color)
+        # nel caso abbiamo qualche substring videnziata con altro colore
+        if self.Color.reset in msg:
+            msg = msg.replace(self.Color.reset, color)
 
-        # se si vuole datetime caller ...
-        if logger_time:
+        # se si vuole datetime + caller ...
+        if time_caller_prefix:
             now = datetime.now().strftime("%H:%M:%S")
             caller = f"{self._caller()}" if self.show_caller else ""
             prefix = f"{color}{now} [{caller}] [{tag}]: "
@@ -93,6 +98,7 @@ class DummyPrintLogger:
 
         print(f"{prefix}{msg}{self.Color.reset}")
 
+    # ==========================================================
     def trace(self,     msg, *args, **kwargs): self._log("trace",  msg, *args, **kwargs)
     def notify(self,    msg, *args, **kwargs): self._log("notify",   msg, *args, **kwargs)
     def debug(self,     msg, *args, **kwargs): self._log("debug",  msg, *args, **kwargs)
@@ -103,42 +109,23 @@ class DummyPrintLogger:
 
 
 
-def testLogger(logger):
-    print("\n")
-    print("*"*60)
-    print(f"--- Logger name: {logger.name}")
-    print("*"*60)
-
-    print("\n--- base colors ---")
-    logger.debug("DEBUG default")
-    logger.info("INFO default")
-    logger.warning("WARNING default")
-    logger.error("ERROR default")
-    logger.critical("CRITICAL default")
-    logger.notify("NOTIFY default")
 
 
-    print("\n--- custom colors ---")
-    logger.info("INFO in magenta", color=Color.magenta)
-    logger.warning("WARNING in cyan", color=Color.cyan)
-    logger.error("ERROR in yellowH", color=Color.yellowH)
-    print("\n")
-
-
-
-
+##################################################################
+#
+##################################################################
 if __name__ == '__main__':
-    C = DummyPrintLogger.Color
-    # logger=DummyPrintLogger()
-    log = DummyPrintLogger(name="prova", console_logger_level="warning", logger_time=True)
-    # log = DummyPrintLogger(level="WARN", show_caller=True)
+    C = PrintLogger.Color
+    # logger=PrintLogger()
+    log = PrintLogger(name="prova", console_logger_level="warning", time_caller_prefix=True)
+    # log = PrintLogger(level="WARN", show_caller=True)
     log.info("non lo vedi")
     log.error("questo sì")
 
-    log.setLevel("trace")
+    log.setMaxLevel("trace")
     log.debug("ora sì: %s", "ok")
     log.info("Ciao: %s", "loreto", color=C.magentaH)
     log.error("Ciao")
     log.trace("Ciao")
-    log.trace("Ciao", color=C.yellow, logger_time=True)
+    log.trace("Ciao", color=C.yellow, time_caller_prefix=True)
     log.notify("Ciao")
