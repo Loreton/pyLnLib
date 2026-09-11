@@ -3,7 +3,7 @@
 #
 # updated by ...: Loreto Notarantonio
 
-#
+from __future__ import annotations
 
 import sys
 sys.dont_write_bytecode=True
@@ -28,7 +28,7 @@ logger = get_logger()
 # - WRITE - FILE
 # - writeFile version: 18-07-2023 12.54.30
 ##############################################################
-def writeFile(data: (str| list), filepath: (str| os.PathLike), *, replace: bool=False, write_datetime: bool=True, **kwargs) -> bool:
+def writeFile(filepath: str| Path, data: str|list, *, replace: bool=False, write_datetime: bool=True, **kwargs) -> bool:
     logger.function(__name__, force_log=False)
     fout=Path(filepath).resolve()
     stacklevel = kwargs.pop("stacklevel", 0)
@@ -61,7 +61,7 @@ def writeFile(data: (str| list), filepath: (str| os.PathLike), *, replace: bool=
         try:
             with open(fout, "w") as f:
                 f.write(_data)
-            logger.notify('wf_file %s has been written', fout, stacklevel=stacklevel)
+            logger.notify('file %s has been written', fout, stacklevel=stacklevel)
             ret_code = True
 
         except (Exception) as e:
