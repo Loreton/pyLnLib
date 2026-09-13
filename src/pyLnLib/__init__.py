@@ -35,7 +35,11 @@ from .logger.ln_colored_logger import (
 from .colors import get_colors
 from .emoji import get_emoji
 from .context import ctx, pVars
+
+
 # varie
+from .varie.crypto_fernet import decrypt, encrypt
+
 from .varie.menu_from_list import  select_from_list
 from .varie.keyboard_prompt import keyboardPrompt
 from .varie.ln_utils import flatten_and_filter, flatten_nested_list
@@ -50,6 +54,8 @@ from .varie.beep import (
 
 # files
 from .files.write_file import writeFile
+from .files.yaml_file import dictToYaml
+
 from .files.yaml_loader_class import get_yaml_engine
 from .files import searchFileInZip, zipDir
 from .files import get_file_list, searchFile, searchFileOnFS, scan_directory, get_unique_filename
@@ -133,6 +139,8 @@ __all__ = [
     "updateIniKey",
     "writeFile",
     "writeIni",
+    "dictToYaml",
+
 
     # epub
     "EpubManager",
@@ -167,6 +175,10 @@ __all__ = [
     # varie - ln_utils
     "flatten_and_filter",
     "flatten_nested_list",
+
+    # varie - crypto_fernet
+    "decrypt",
+    "encrypt",
 
 ]
 

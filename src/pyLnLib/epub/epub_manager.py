@@ -93,6 +93,8 @@ class EpubMetadata:
         "modified_by",
     }
 
+
+
     def set_calibre_entry(self, key: str, value: object) -> None:
         """Smista il metadato nella chiave corretta."""
         # if not key or value is None:
@@ -269,13 +271,19 @@ class EpubManager:
     def get_metadata(self) -> lnDict:
         return self.metadata.to_dict()
 
-
     def get_custom_metadata(self, key: str | None = None) -> dict | str | int | float | list | None:
         _dict=lnDict(self.metadata.custom)
         if key:
             return _dict.get(key)
         return _dict
         # return lnDict(self.metadata.custom)
+
+
+    def get_calibre_metadata(self) -> lnDict:
+        calibre = self.metadata.to_dict()
+        return lnDict(calibre.get("calibre", {}))
+
+
 
     def set_custom_metadata(self, key: str, value: str | int | float | list) -> None:
         """Aggiunge o aggiorna un campo personalizzato nei metadati."""

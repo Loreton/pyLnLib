@@ -21,6 +21,7 @@ if __INIT__PY__DEBUG:
 from .file_utils import get_file_list, searchFile, searchFileOnFS, scan_directory
 from .unique_filename import get_unique_filename
 from .ini_file import loadIni, writeIni
+from .yaml_file import dictToYaml
 from .write_file import writeFile
 from .yaml_loader_class import get_yaml_engine  # YamlEngine
 from .zip_file_utils import searchFileInZip, zipDir
@@ -38,6 +39,8 @@ __all__ = [
     "writeFile",
     "writeIni",
     "zipDir",
+    "dictToYaml",
+
 ]
 
 if __INIT__PY__DEBUG:

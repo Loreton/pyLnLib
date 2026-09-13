@@ -15,11 +15,14 @@ from .menu_from_list        import  select_from_list
 from .beep        import BeepPlayer
 from .keyboard_prompt import keyboardPrompt
 from .ln_utils import flatten_and_filter, flatten_nested_list
+from .crypto_fernet import encrypt, decrypt
 
 
 # Definisci cosa esportare quando si fa "from pyLnLib.logger import *"
 __all__ = [
     "BeepPlayer",
+    "decrypt",
+    "encrypt",
     "flatten_and_filter",
     "flatten_nested_list",
     "keyboardPrompt",

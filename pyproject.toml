@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pyLnLib"
-version = "0.1.48"
+version = "0.1.49"
 description = "Libreria personale di utility Python"
 authors = [
     { name = "Loreto Notarantonio" },
@@ -15,6 +15,7 @@ readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
     "bs4>=0.0.2",
+    "cryptography>=47.0.0",
     "ebooklib>=0.20",
     "PyYAML>=6.0.2",
     "tomli-w>=1.0.0",
