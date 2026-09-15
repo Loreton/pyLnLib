@@ -18,7 +18,7 @@ if __INIT__PY__DEBUG:
     print(f"{__name__} - start loading")
 
 
-from .file_utils import get_file_list, searchFile, searchFileOnFS, scan_directory
+from .file_utils import get_file_list, get_dir_list, get_paths, searchFileOnFS, searchFile
 from .unique_filename import get_unique_filename
 from .ini_file import loadIni, writeIni
 from .yaml_file import dictToYaml
@@ -29,9 +29,11 @@ from .zip_file_utils import searchFileInZip, zipDir
 # Definisci cosa esportare quando si fa "from pyLnLib.logger import *"
 __all__ = [
     "get_file_list",
+    "get_dir_list",
+    "get_paths",
     "get_yaml_engine",
     "loadIni",
-    "scan_directory",
+    # "scan_directory",
     "searchFile",
     "searchFileInZip",
     "searchFileOnFS",

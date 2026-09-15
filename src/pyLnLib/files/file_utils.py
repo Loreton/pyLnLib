@@ -15,6 +15,8 @@ import zipfile
 from pathlib import Path
 from hashlib import sha256
 
+
+
 from types import SimpleNamespace
 
 from ..context import ctx
@@ -115,20 +117,8 @@ def searchFileOnFS(filename: str|Path,
                     recursive: bool=False,
                     extract_to: str | None = None,
                     stacklevel=-1) -> SimpleNamespace:
-    # import pdb; pdb.set_trace(); # by Loreto
-    # getLogger()
-    # import pdb; pdb.set_trace(); # by Loreto
     result = SimpleNamespace(content=None, filepath=None, is_recursive=recursive)
     content: str | None = None  # definizione di content
-    #------------------------------------
-    # def result_and_exit() -> SimpleNamespace:
-    #     if result.filepath:
-    #         logger.info("%s FOUND on fileSystem", result.filepath, color=C.magenta, stacklevel=2)
-    #     else:
-    #         logger.warning("%s NOT FOUND on fileSystem", filename, stacklevel=2) # type: ignorex
-    #     return result
-    #------------------------------------
-
 
 
     STACKLEVEL = stacklevel+1
@@ -142,11 +132,6 @@ def searchFileOnFS(filename: str|Path,
     if str(filename).startswith('/'): ### absolute path inutile cercarlo altrove se non già trovato nel filesystem
         return result
 
-
-    # ff = Path(filename)
-    # fname=ff.name.__str__()
-    # fpath=ff.parent.__str__()
-
     # --- 1. Ricerca Esterna (Filesystem) tramite search_paths ---
     search_paths.append(str(ctx.project_config_dir))
     for base_path in search_paths:
@@ -155,7 +140,6 @@ def searchFileOnFS(filename: str|Path,
         if os.path.exists(base_path):
             if recursive:
                 for root, _, files in os.walk(base_path):
-
                     if filename in files:
                         if (content := read_file_content(os.path.join(root, filename))) is not None:
                             result.content = content
@@ -191,6 +175,12 @@ def searchFile(filename:           str|Path,
                     extract_to:         str | None = None, ### se si viuole copiare il file in altra destinazione
                     exit_on_not_found:  bool=False,
                     stacklevel:         int=-1):
+    """
+        searchFile:
+            ricerca il filename nella lista dei search_path tramite searchFileOnFS()
+            se non lo trova allora verifica se ci troviamo all'interno di uno zip
+            e se così richiama searchFileInZip()
+    """
     ### --- copy_to importante perché il file rclone.conf dovro' passarlo come parametro a rclone,
 
     result = searchFileOnFS(filename=filename, search_paths=search_paths, recursive=recursive, extract_to=extract_to, stacklevel=stacklevel+1)
@@ -211,33 +201,69 @@ def searchFile(filename:           str|Path,
 
 
 
-# ######################################################################
-# ''' example:
-#    for file in dirlist(top_dir='/usr/share/sounds/freedesktop/stereo', file_pattern="*.oga", recursive=False):
-#         print(file)
-#     sys.exit()
-# '''
-# ######################################################################
-# def dirList(top_dir: str|Path, file_pattern: str, recursive: bool=False):
-#     files=Path(top_dir).glob(file_pattern)
-#     yield from files
-#     for _element in files:
-#         y = _element
-#         yield y
-#     # for file in files:
-#     #     yield file
+def get_pattern(top_dir: Path|str, recursive: bool):
+    return my_list
 
-
-
-def get_file_list(top_dir, file_pattern="*", verbose=False):
+# ====== Solo file  ========
+# glob(f"**/{pattern}")   # non include top_dir stessa
+# rglob(pattern)          # include top_dir stessa (better)
+def get_file_list(top_dir, file_pattern="*", recursive: bool=True, verbose=False):
     """Genera lista file che soddisfano i filtri"""
-    for filepath in Path(top_dir).glob(f"**/{file_pattern}"):
-        if not filepath.is_file():
-            continue
+    base = Path(top_dir)
+    if recursive:
+        my_list = base.rglob(file_pattern)
+    else:
+        my_list = base.glob(file_pattern)  # glob niente **/
 
+    for filepath in my_list:
+        if filepath.is_file():
+            if verbose:
+                print(f"Included: {filepath}")
+            yield filepath
+
+
+
+# ====== Solo directory ========
+def get_dir_list(top_dir, dir_pattern="*", recursive: bool=True, verbose=False):
+    """Genera lista directory che soddisfano i filtri"""
+    base = Path(top_dir)
+    if recursive:
+        my_list = base.rglob(dir_pattern)
+    else:
+        my_list = base.glob(dir_pattern)
+
+    for dirpath in my_list:
+        if dirpath.is_dir():
+            if verbose:
+                print(f"Included: {dirpath}")
+            yield dirpath
+
+
+# ====== Versione unificata (file E/o directory) ========
+def get_paths(top_dir, pattern="*", kind="file", recursive: bool=True, verbose=False):
+    """
+    Genera path che soddisfano i filtri.
+
+    kind: "file" | "dir" | "both"
+    """
+    check = {
+        "file": lambda p: p.is_file(),
+        "dir":  lambda p: p.is_dir(),
+        "both": lambda p: True,
+    }[kind]
+
+    base = Path(top_dir)
+    if recursive:
+        my_list = base.rglob(pattern)
+    else:
+        my_list = base.glob(pattern)
+
+    for path in my_list:
+        if not check(path):
+            continue
         if verbose:
-            print(f"{C.yellow}Included: {filepath}{C.reset}")
-        yield filepath
+            print(f"Included: {path}")
+        yield path
 
 
 

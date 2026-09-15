@@ -12,12 +12,14 @@ import json
 # import logging
 import re
 import shutil
+from symtable import Class
 import tempfile
 import zipfile
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
+from typing import ClassVar
 
 
 from pyLnLib import lnDict
@@ -81,7 +83,11 @@ class EpubMetadata:
     # Campi custom generici (non-Calibre)
     custom: dict[str, object] = field(default_factory=dict)
 
-    CALIBRE_KNOWN_FIELDS = {
+    # ---------------------------------------------------------------------------
+    # - Questo comunica a chi legge il codice (e a Ruff) che CALIBRE_KNOWN_FIELDS
+    # - è una costante di classe, immutabile e condivisa tra le varie istanze.
+    # ---------------------------------------------------------------------------
+    CALIBRE_KNOWN_FIELDS: ClassVar[frozenset[str]] = frozenset({
         "title_sort",
         "author_link_map",
         "user_categories",
@@ -91,19 +97,17 @@ class EpubMetadata:
         "pubdate",
         "last_modified",
         "modified_by",
-    }
+    })
+
 
 
 
     def set_calibre_entry(self, key: str, value: object) -> None:
         """Smista il metadato nella chiave corretta."""
-        # if not key or value is None:
-        #     return
         if not key:
             return
         # Pulizia prefisso calibre: se presente
         clean_key = key.replace("calibre:", "")
-        # breakpoint()
 
         # Gestione Serie
         if clean_key == "series":
@@ -130,11 +134,10 @@ class EpubMetadata:
 
 
 
-
 class EpubManager:
     """Gestore completo per la lettura, modifica e salvataggio di file EPUB."""
 
-    NS = {
+    NS: ClassVar[dict[str, str]] = {
         "container": "urn:oasis:names:tc:opendocument:xmlns:container",
         "opf": "http://www.idpf.org/2007/opf",
         "dc": "http://purl.org/dc/elements/1.1/",
@@ -489,7 +492,7 @@ class EpubManager:
                 try:
                     with open(output_file, "w", encoding="utf-8") as f:
                         f.write(data)
-                    logger.info(f"Testo esportato correttamente: {output_file}")
+                    logger.debug(f"Testo esportato correttamente: {output_file}")
 
                 except OSError as e:
                     logger.error(f"Errore durante l'esportazione del testo: {e}")
@@ -852,7 +855,6 @@ test_epub_manager.py - Script di test per EpubManager
 test_epub_manager.py - Script di test per EpubManager
 """
 
-from pathlib import Path
 # Assicurati di importare logger ed EpubManager dal tuo modulo
 # from epub_manager import EpubManager, logger
 

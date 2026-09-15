@@ -492,12 +492,13 @@ class lnColoredLogger:
             # lines = formatted_msg.split('\n')
             lines = formatted_msg.splitlines()
 
+            TAB2='  '
             for i, line in enumerate(lines):
                 if i > 0:
                     # Aggiungi indentazione per le righe successive
                     if trim_line:
                         line = line.strip()
-                    line = f"\t{line}" if line else ""
+                    line = f"{TAB2}{line}" if line else ""
 
                     extra["msg_color"] = C.logger_second_line
                 else:

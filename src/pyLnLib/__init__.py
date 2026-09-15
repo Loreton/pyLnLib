@@ -58,7 +58,7 @@ from .files.yaml_file import dictToYaml
 
 from .files.yaml_loader_class import get_yaml_engine
 from .files import searchFileInZip, zipDir
-from .files import get_file_list, searchFile, searchFileOnFS, scan_directory, get_unique_filename
+from .files import get_file_list, get_dir_list, get_paths, searchFileOnFS, get_unique_filename, searchFile
 from .files.ini_file import loadIni, updateIniKey, writeIni
 
 
@@ -130,8 +130,9 @@ __all__ = [
     # files
     "get_yaml_engine",
     "get_file_list",
+    "get_dir_list",
+    "get_paths",
     "loadIni",
-    "scan_directory",
     "searchFile",
     "searchFileInZip",
     "searchFileOnFS",
