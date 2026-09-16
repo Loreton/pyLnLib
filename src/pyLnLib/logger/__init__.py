@@ -21,7 +21,6 @@ from .ln_colored_logger import lnColoredLogger as lnLogger, testLogger, get_logg
 
 # Definisci cosa esportare quando si fa "from pyLnLib.logger import *"
 __all__ = [
-    # 'DummyPrintLogger',
     'get_logger',
     'lnLogger',
     'testLogger',

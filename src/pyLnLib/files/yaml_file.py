@@ -57,8 +57,8 @@ def dictToYaml(mydict: dict, title: str="", filepath: Path|str="", **kwargs) -> 
             #     f.write(yaml_data)
 
 
-        # self.logger.notify("lnd_file: [%s] has been written", filepath, stacklevel=stacklevel, show_stack=False)
-        logger.notify("file: [%s] has been written", filepath, show_stack=False)
+        # self.logger.notify("lnd_file: [%s] has been written", filepath, stacklevel=stacklevel, stack_trace=False)
+        logger.notify("file: [%s] has been written", filepath, stack_trace=False)
 
 
 # #############################################################################
@@ -74,5 +74,5 @@ def dictToYaml(mydict: dict, title: str="", filepath: Path|str="", **kwargs) -> 
 #     with open(filepath, 'w', encoding='utf-8') as f:
 #         f.write(yaml_data)
 
-#     # self.logger.notify("lnd_file: [%s] has been written", filepath, stacklevel=stacklevel, show_stack=False)
-#     logger.notify("file: [%s] has been written", filepath, show_stack=False)
+#     # self.logger.notify("lnd_file: [%s] has been written", filepath, stacklevel=stacklevel, stack_trace=False)
+#     logger.notify("file: [%s] has been written", filepath, stack_trace=False)

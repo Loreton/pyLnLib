@@ -25,6 +25,7 @@ from .yaml_file import dictToYaml
 from .write_file import writeFile
 from .yaml_loader_class import get_yaml_engine  # YamlEngine
 from .zip_file_utils import searchFileInZip, zipDir
+from .create_link import create_link, is_valid_link
 
 # Definisci cosa esportare quando si fa "from pyLnLib.logger import *"
 __all__ = [
@@ -33,7 +34,8 @@ __all__ = [
     "get_paths",
     "get_yaml_engine",
     "loadIni",
-    # "scan_directory",
+    "create_link",
+    "is_valid_link",
     "searchFile",
     "searchFileInZip",
     "searchFileOnFS",

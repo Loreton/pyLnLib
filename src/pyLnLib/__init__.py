@@ -55,6 +55,7 @@ from .varie.beep import (
 # files
 from .files.write_file import writeFile
 from .files.yaml_file import dictToYaml
+from .files.create_link import create_link, is_valid_link
 
 from .files.yaml_loader_class import get_yaml_engine
 from .files import searchFileInZip, zipDir
@@ -78,6 +79,7 @@ from .system.acquire_lock import acquire_lock
 from .system.ln_run import lnRun
 from .system.ln_run_stream_class import lnRunStream_Class as lnRunStream
 from .system.signal_handler import signalHandler, start_signal_handler
+from .system.timing import timing_base, timing_logger
 
 # regex
 from .regex.ln_regex import replace, and_search, or_search, search_term, processContext
@@ -141,12 +143,14 @@ __all__ = [
     "writeFile",
     "writeIni",
     "dictToYaml",
+    "create_link",
+    "is_valid_link",
 
 
     # epub
     "EpubManager",
-    "get_epub_processor",
-    "manage_epub_processor",
+    # "get_epub_processor",
+    # "manage_epub_processor",
     "AuthorRegistry",
 
     # calibre
@@ -159,6 +163,8 @@ __all__ = [
     "signalHandler",
     "start_signal_handler",
     "zipDir",
+    "timing_base",
+    "timing_logger",
 
     # varie
     # "menu_select_from_list",

@@ -24,18 +24,18 @@ logger = get_logger()
 # ##################################################
 # # lnRun
 # ##################################################
-def lnRun(
-    command: str | list,
-    cwd: str | None = None,
-    exit_on_error: bool = False,
-    stacklevel: int = 0,
-    f_execute: bool = False,
-    timeout: int = 15,
-    # logger_level: str = "warning",  # questo pervitare di scrivere se non richiesto
-    shell: bool = False,
-    force_log:bool=False,
-) -> tuple[int, str, str]:
-    # logger = get_logger()
+def lnRun(  command: str | list,
+            cwd: str | None = None,
+            exit_on_error: bool = False,
+            stacklevel: int = 0,
+            f_execute: bool = False,
+            timeout: int = 15,
+            # logger_level: str = "warning",  # questo pervitare di scrivere se non richiesto
+            shell: bool = False,
+            # force_log:bool=False,
+            log_it: int = logger.log_NOLOG,
+        ) -> tuple[int, str, str]:
+
     result: SimpleNamespace = SimpleNamespace(rcode=0, stdout="", stderr="")
 
     command_args = shlex.split(command) if isinstance(command, str) else command
@@ -43,11 +43,7 @@ def lnRun(
 
     # saved_logger_level = logger.getConsoleLoggerLevelName()
     # logger.setConsoleLoggerLevel(logger_level)
-    logger.notify(
-        f"[{'executing' if f_execute else 'dry-run'}] {str_command}",
-        stacklevel=stacklevel + 1,
-        force_log=force_log,
-    )
+    logger.notify( f"[{'executing' if f_execute else 'dry-run'}] {str_command}", stacklevel=stacklevel + 1, log_it=log_it )
 
     if f_execute:
         try:
@@ -67,14 +63,8 @@ def lnRun(
             # log stdout
             if result.stdout:
                 for line in result.stdout.splitlines():
-                    logger.debug(line, color=C.blue, force_log=force_log)
+                    logger.debug(line, color=C.blue, log_it=log_it )
 
-            # log stderr
-            # breakpoint()
-            # if result.stderr and not "git push" in result.stderr:
-            #     logger.error( f"executing: {command!r}", color=C.blueH, show_caller=True )
-            #     for line in result.stderr.splitlines():
-            #         logger.error(line, color=C.redH, show_caller=True)
 
             if result.rcode != 0:
                 logger.error( f"executing: {command!r}", color=C.blueH, show_caller=True )

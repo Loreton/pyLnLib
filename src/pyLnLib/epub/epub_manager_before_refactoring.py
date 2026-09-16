@@ -693,7 +693,7 @@ class EpubManager:
             return True
 
         except Exception as e:
-            self.logger.error( "Errore nell'aggiornamento del OPF: %s", e, show_stack=True )
+            self.logger.error( "Errore nell'aggiornamento del OPF: %s", e, stack_trace=True )
 
         return False
 
@@ -724,7 +724,7 @@ class EpubManager:
             return True
 
         except Exception as e:
-            self.logger.error("Errore nel salvataggio: %s", e, show_stack=True)
+            self.logger.error("Errore nel salvataggio: %s", e, stack_trace=True)
             # raise Exception(f"Errore nel salvataggio: {e}")
 
         return False

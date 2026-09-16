@@ -20,14 +20,17 @@ from .ln_run import lnRun
 from .ln_run_stream_class import lnRunStream_Class as lnRunStream
 from .signal_handler import signalHandler, start_signal_handler
 from .clean_doc import clean_doc
+from .timing import timing_base, timing_logger
 
-all = [
-    acquire_lock,
-    lnRun,
-    lnRunStream,
-    signalHandler,
-    clean_doc,
-    start_signal_handler
+__all__ = [
+    "acquire_lock",
+    "clean_doc",
+    "lnRun",
+    "lnRunStream",
+    "signalHandler",
+    "start_signal_handler",
+    "timing_base",
+    "timing_logger",
 ]
 
 

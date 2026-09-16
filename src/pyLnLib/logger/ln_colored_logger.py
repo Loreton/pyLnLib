@@ -12,6 +12,7 @@ import sys
 import traceback
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
+from dataclasses import dataclass
 
 # from webbrowser import get
 from ..colors import get_colors
@@ -41,6 +42,15 @@ my_ERROR_value: int = 40
 my_CRITICAL_value: int = 50
 
 
+
+@dataclass(frozen=True)
+class log_it_class:
+    FORCE = 2
+    LOG_IT = 1
+    DEFAULT = 0
+
+
+
 # -------------------------------
 # Formatter semplice + safe + TTY
 # -------------------------------
@@ -64,7 +74,6 @@ class ColorFormatter(logging.Formatter):
             record.reset = ""
 
         return super().format(record)
-
 
 # -------------------------------
 # Logger principale
@@ -93,11 +102,25 @@ class lnColoredLogger:
         # - parametri
         self.name: str = name
         # self.test: Callable = testLogger
-
+        # self.log_it = log_it_class
+        self._log_FORCE = 3 # force log anche per livelli diversi dal current
+        self._log_NOLOG = 2 # utile per le funzioni per non farle loggare di default
+        self._log_IT = 1  # default logging
 
         self.initialize(name=name, console_logger_level="info", f_temporary=True)
 
 
+    @property
+    def log_FORCE(self):
+        return self._log_FORCE
+
+    @property
+    def log_NOLOG(self):
+        return self._log_NOLOG
+
+    @property
+    def log_IT(self):
+        return self._log_IT
 
 
     #############################################################
@@ -118,6 +141,7 @@ class lnColoredLogger:
             f_temporary: bool=False,
         ) -> None:
 
+        # self.log_it =
         self.name = name
         self.threads_str: str = "%(threadName)-5.5s." if threads else ""
         self.logging_dir = Path(logging_dir) if logging_dir else None
@@ -382,7 +406,7 @@ class lnColoredLogger:
     # 3  info() / debug() / etc. (metodo pubblico)
     # 4  chiamante originale (test function)
     # ######################################################
-    def _caller(self, stacklevel: int, show_stack: bool = False) -> tuple[str, str]:
+    def _caller(self, stacklevel: int, stack_trace: bool = False) -> tuple[str, str]:
         """Restituisce (module_formatted, caller_formatted)
 
         Args:
@@ -399,7 +423,7 @@ class lnColoredLogger:
         # - lvl: 3 call to log
         # - lvl: 4 caller of lev.3
         # ---------------------------
-        if show_stack:
+        if stack_trace:
             x = traceback.extract_stack()
             print("-" * 40)
             print(f"required stacklevel: {stacklevel}")
@@ -432,7 +456,7 @@ class lnColoredLogger:
             caller_lineno = caller_frame.lineno
             caller_func = caller_frame.function
 
-        if show_stack:
+        if stack_trace:
             print("-" * 40)
             print("module:", module_idx, module_filename, module_lineno, module_func)
             print("caller:", caller_idx, caller_filename, caller_lineno, caller_func)
@@ -534,16 +558,16 @@ class lnColoredLogger:
                                 **kwargs: object,
                             ) -> dict:
         ### ok processiamo la linea
-        stacklevel: int = kwargs.pop("stacklevel", 0)
-        showCaller: bool = kwargs.pop("show_caller", False)
-        show_stack: bool = kwargs.pop("show_stack", False)
-        dry_run: bool = kwargs.pop("dry_run", False)
-        trim_line = kwargs.pop("trim_line", False)
+        stacklevel  = kwargs.pop("stacklevel", 0)
+        showCaller  = kwargs.pop("show_caller", False)
+        stack_trace = kwargs.pop("stack_trace", False)
+        dry_run     = kwargs.pop("dry_run", False)
+        trim_line   = kwargs.pop("trim_line", False)
 
-        kwargs["stacklevel"] = stacklevel + 4
+        kwargs["stacklevel"]= stacklevel + 4
 
         # Calcola caller formattato se necessario
-        module_formatted, caller_formatted = self._caller( stacklevel=kwargs["stacklevel"], show_stack=show_stack )
+        module_formatted, caller_formatted = self._caller( stacklevel=kwargs["stacklevel"], stack_trace=stack_trace )
 
         if showCaller or self.show_caller:
             ...
@@ -588,10 +612,10 @@ class lnColoredLogger:
     # -------------------------------
     # - check if level is valid
     # -------------------------------
-    def _is_valid_level(self, level_value: int, forceLog: bool) -> bool:
+    def _is_valid_level(self, level_value: int, force_log: bool) -> bool:
         if not self.consoleHandler:
             return False
-        return level_value >= self.consoleHandler.level or forceLog
+        return level_value >= self.consoleHandler.level or force_log
 
 
     # -------------------------------
@@ -602,7 +626,7 @@ class lnColoredLogger:
     #    trim_line: bool = False
     #    dry_run: bool = False
     #    show_caller: bool = False
-    #    show_stack: bool = False
+    #    stack_trace: bool = False
     #    stacklevel: int = 0
     # -------------------------------
     def _log_multiline( self,
@@ -614,12 +638,18 @@ class lnColoredLogger:
                     ) -> None:
 
         f_level_changed = False
-        forceExit: bool = kwargs.pop("exit", False)
-        forceLog: bool = kwargs.pop("force_log", False)
+        forceExit = kwargs.pop("exit", False)
+        force_log1  = kwargs.pop("force_log", False)
+        # log_it    = kwargs.pop("log_it", True)   # di default log. utile per funzioni di libreria se vogliamo che facciano log
 
+        log_it    = kwargs.pop("log_it", self.log_IT)   # di default log. utile per funzioni di libreria se vogliamo che facciano log
+
+        force_log = (log_it == self.log_FORCE)
+        no_log = (log_it == self.log_NOLOG)
+        log_it = (log_it == self.log_IT)
 
         # ----------------------------------------------------------------------
-        # - qui cerchiamo di gestire il forceLog utile per i messaggi
+        # - qui cerchiamo di gestire il force_log utile per i messaggi
         # - che provengono da funzioni di libreria e che normalmente non vengono loggati
         # - saved_curr_level_value:
         #       valore del livello di default per la console
@@ -632,13 +662,16 @@ class lnColoredLogger:
         saved_curr_level_value = self.consoleHandler.level
         req_level_value = getattr(logging, level_name, logging.INFO)
 
-        if forceLog and req_level_value < saved_curr_level_value:
+        if no_log:
+            return
+
+        if force_log and req_level_value < saved_curr_level_value:
             self.setConsoleLoggerLevel(req_level_value)
             f_level_changed = True
             self.show_caller = True
 
 
-        if not self._is_valid_level(req_level_value, forceLog):
+        if not self._is_valid_level(req_level_value, force_log):
             if f_level_changed:
                 self.setConsoleLoggerLevel(saved_curr_level_value)
                 self.show_caller=saved_show_caller

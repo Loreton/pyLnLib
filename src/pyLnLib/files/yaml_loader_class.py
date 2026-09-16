@@ -209,7 +209,7 @@ class YamlEngine:
             self.logger.error(
                 "filename: %s is empty or not found",
                 target_file,
-                show_stack=True,
+                stack_trace=True,
                 exit=True
             )
 

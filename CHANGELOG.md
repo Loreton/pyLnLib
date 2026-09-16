@@ -1,3 +1,9 @@
+## [0.1.50] - 2026-09-16
+
+## Other
+
+- update on 2026.09.15 (regarding project: lnSync)
+
 ## [0.1.49] - 2026-09-13
 
 ## Other

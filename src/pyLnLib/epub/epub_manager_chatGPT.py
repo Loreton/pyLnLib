@@ -213,7 +213,7 @@ class EpubManager:
             self.logger.error(
                 "Errore nel caricamento dell'EPUB: %s",
                 exc,
-                show_stack=True,
+                stack_trace=True,
             )
 
             self._is_loaded = False
@@ -880,7 +880,7 @@ class EpubManager:
             self.logger.error(
                 "Errore nell'aggiornamento dell'OPF: %s",
                 exc,
-                show_stack=True,
+                stack_trace=True,
             )
             return False
 
@@ -1025,7 +1025,7 @@ class EpubManager:
             self.logger.error(
                 "Errore nel salvataggio dell'EPUB: %s",
                 exc,
-                show_stack=True,
+                stack_trace=True,
             )
             return False
 

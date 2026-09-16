@@ -15,7 +15,7 @@ import inspect
 import traceback
 
 
-def _show_stack():
+def _show_stack_trace():
     frames: list[inspect.FrameInfo] = inspect.stack()
     n_levels = len(frames)
     # ---------------------------
@@ -39,7 +39,7 @@ def _show_stack():
 def signalHandler(signalLevel, frame):
     ### Ctrl-c
     if int(signalLevel)==2:
-        _show_stack()
+        _show_stack_trace()
         # raise AttributeError(f"{__name__} object has no attribute")
         print('\n'*1)
         choice = input("       Ctrl-c was pressed. [c]continue [any-key] quit \n\n")
