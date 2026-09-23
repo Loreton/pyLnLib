@@ -170,6 +170,11 @@ class EpubManager:
     def __del__(self):
         self.close()
 
+    def is_loaded(self) -> bool:
+        """Torna se la temp dirè  definita."""
+        return self._temp_dir
+
+
     def cleanup(self) -> None:
         """Pulisce la directory temporanea allocata."""
         self.close()
@@ -223,8 +228,12 @@ class EpubManager:
         self.metadata.title = title
 
     @property
-    def authors(self) -> list[str]:
+    def authors(self) -> list[str]: # per compatibilità
         return self.metadata.authors
+
+    @property
+    def author(self) -> list[str]:
+        return self.metadata.authors[0]
 
     def set_authors(self, authors: list[str] | str) -> None:
         if isinstance(authors, str):
