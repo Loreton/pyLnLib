@@ -52,9 +52,7 @@ class RegexItemsDict(TypedDict, total=False):
     #     """Converte l'oggetto in un dizionario."""
     #     return asdict(self)
 
-# def _escape_term(term: str, boundary: bool) -> str:
-#     term = re.escape(term)
-#     return rf"\b{term}\b" if boundary else term
+
 
 def _escape_terms(terms: list[str], boundary: bool) -> list[str]:
     """
@@ -95,8 +93,7 @@ def processContext(occurrencies_list: list[RegexItemsDict]) -> list[RegexItemsDi
     if n_occurrencies <= 1:
         return occurrencies_list
 
-    # context_len = occurrencies[0].context_length
-    # source_data = occurrencies[0].source_data
+
     '''
         _range=list(range(n_occurrencies))
         _range=list(range(1, -1, -1))  # start=1, stop=-1 (escluso), step=-1
@@ -129,31 +126,7 @@ def processContext(occurrencies_list: list[RegexItemsDict]) -> list[RegexItemsDi
 
     return occurrencies_list
 
-# def processContext_01(occurrencies: list[RegexItems], source_data: str) -> list[RegexItems]:
-#     n_occurrencies = len(occurrencies)
-#     # print(f"{n_occurrencies = }")
-#     if n_occurrencies <= 1:
-#         return occurrencies
 
-#     context_len= occurrencies[0].context_length
-#     data = source_data
-
-#     for index in range(n_occurrencies):
-#         # print(f"{index  = }")
-#         curr = occurrencies[index]
-#         if not curr.valid:
-#             continue
-#         if index+1 < n_occurrencies:
-#             next=occurrencies[index+1]
-#             if curr.start-context_len <= next.start <= curr.end+context_len: # se start_nextè  all'interno del primo range
-#                 context = data[curr.start-context_len:next.end+context_len]
-#                 next.valid = False
-#             else:
-#                 context = data[curr.start-context_len:curr.end+context_len]
-
-#             curr.context = context
-
-#     return occurrencies
 
 #################################
 #

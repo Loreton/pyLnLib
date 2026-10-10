@@ -81,8 +81,8 @@ from .system.ln_run_stream_class import lnRunStream_Class as lnRunStream
 from .system.signal_handler import signalHandler, start_signal_handler
 from .system.timing import timing_base, timing_logger
 
-# regex
-from .regex.ln_regex import replace, and_search, or_search, search_term, processContext
+# sqlite
+from .sqlite.SQLite_Class_LnNew import Table, Database
 
 # pub
 from .epub.epub_manager import EpubManager
@@ -124,6 +124,10 @@ __all__ = [
     "search_term",
     "processContext",
 
+
+    # sqlite
+    "Table",
+    "Database",
 
     # git
     "ChangeLogManager",

@@ -232,8 +232,8 @@ class EpubManager:
         return self.metadata.authors
 
     @property
-    def author(self) -> list[str]:
-        return self.metadata.authors[0]
+    def author(self) -> str:
+        return ' '.join(self.metadata.authors)
 
     def set_authors(self, authors: list[str] | str) -> None:
         if isinstance(authors, str):
@@ -843,6 +843,32 @@ class EpubManager:
             self.logger.error(f"Errore durante la creazione del file ZIP EPUB: {e}")
             return False
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # ============================================
 # Esempio di utilizzo
 # 1. Pulizia dei file temporanei
@@ -858,15 +884,6 @@ class EpubManager:
 """
 test_epub_manager.py - Script di test per EpubManager
 """
-
-
-"""
-test_epub_manager.py - Script di test per EpubManager
-"""
-
-# Assicurati di importare logger ed EpubManager dal tuo modulo
-# from epub_manager import EpubManager, logger
-
 
 def test_read_main_metadata(book: EpubManager):
     """Verifica e stampa i metadati iniziali e la struttura delle sezioni."""

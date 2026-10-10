@@ -24,12 +24,12 @@ from .calibre_metadata_reader import CalibreMetadataReader, calibre_test
 
 # Definisci cosa esportare quando si fa "from pyLnLib.logger import *"
 __all__ = [
-    "EpubManager",
-    "get_epub_processor",
-    "manage_epub_processor",
     "AuthorRegistry",
-    'CalibreMetadataReader',
+    "EpubManager",
     "calibre_test",
+    # "get_epub_processor",
+    # "manage_epub_processor",
+    'CalibreMetadataReader',
 ]
 
 if __INIT__PY__DEBUG:
