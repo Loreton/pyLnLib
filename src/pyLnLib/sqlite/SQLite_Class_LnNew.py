@@ -1,7 +1,23 @@
+# /home/loreto/filu/Programming/gitREPO/pyLnLib/src/pyLnLib/sqlite/SQLite_Class_LnNew.py
+#
+# ruff: noqa: I001 Import block is un-sorted or un-formatted help: Organize imports (Ruff I001)
+#
+
 from __future__ import annotations
+
 
 import sqlite3
 from _collections_abc import Sequence
+
+
+# from pyLnLib.colors import get_colors
+from pyLnLib.logger import get_logger
+from pyLnLib.system.clean_doc import clean_doc
+
+# C=get_colors()
+# logger=get_logger()
+
+# from eBooks.input.library_scan_options import logger
 
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS books (
@@ -27,9 +43,46 @@ CREATE TABLE IF NOT EXISTS books (
 
 
 
+
+class Database:
+    """Classe principale per la connessione e la gestione dello schema."""
+
+    def __init__(self, db_path: str, schema_sql: str | None = None):
+        self.logger=get_logger()
+        self.conn = sqlite3.connect(db_path)
+        self.conn.row_factory = sqlite3.Row
+        self._tables: dict[str, Table] = {}
+        self.path=db_path
+
+        # 1. Inizializza il DB se viene passato uno schema
+        if schema_sql:
+            self._init_schema(schema_sql)
+
+    def _init_schema(self, schema_sql: str) -> None:
+        """Esegue le istruzioni DDL per creare le tabelle iniziali."""
+        cursor = self.conn.cursor()
+        cursor.executescript(schema_sql)
+        self.conn.commit()
+
+    def table(self, table_name: str) -> Table:
+        """Ritorna l'istanza della classe Table per la tabella richiesta."""
+        if table_name not in self._tables:
+            self._tables[table_name] = Table(self.conn, table_name)
+        return self._tables[table_name]
+
+    def __getitem__(self, table_name: str) -> Table:
+        """Permette di usare la sintassi a quadre: db['nome_tabella']"""
+        return self.table(table_name)
+
+    def close(self) -> None:
+        self.conn.close()
+
+
+
 class Table:
 
     def __init__(self, db_connection: sqlite3.Connection, table_name: str):
+        self.logger=get_logger()
         self.conn = db_connection
         self.name = table_name
         self.struct_dict: dict[str, dict[str, object]] = {}
@@ -57,14 +110,20 @@ class Table:
             for row in rows
         }
 
-    def _run_query( self, sql: str, params: list[object], fExecute: bool
-                ) -> int | None:
+    def _run_query( self, sql: str, params: list[object], fExecute: bool ) -> int | None:
         """Helper interno per gestire l'esecuzione o il dry-run (fExecute=False)."""
         if not fExecute:
-            print("\n[DRY-RUN / NO-EXECUTE]")
-            print(f"SQL    : {sql.strip()}")
-            print(f"PARAMS : {params}\n")
+            _params = '\n'.join(params)
+            # self.logger.info(clean_doc(f"""[DRY-RUN / NO-EXECUTE]
+            #                             SQL:\n {sql.strip()}
+            #                             PARAMS:\n {_params}"
+            #                 """))
+            # self.logger.info(clean_doc("""[DRY-RUN / NO-EXECUTE]\n  SQL:\n%s\n  PARAMS:\n%s
+            #                 """, sql.strip(), _params))
+            self.logger.info("SELECT:\n%s", sql)
+            self.logger.info("PARAMS:\n%s", params)
             return None
+
 
         cursor = self.conn.cursor()
         cursor.execute(sql, params)
@@ -82,6 +141,31 @@ class Table:
 
         return self._run_query(sql, list(data.values()), fExecute)
 
+
+    # ===============================================
+    def recordPreProcess(self, data: dict[str, object], skip_nulls: bool=True) ->dict[str, object]:
+        """ Provvede a ripulire il nuovo record da tutte le colonne
+             che non nono presenti nella tabella.
+             Compara con self.struct_dict
+
+             :data:   Dizionario con i dati da inserire/aggiornare.
+             :skip_nulls:   if True -> Ignora le colonne che hanno un valore null
+             :return: record dict only with right columns
+        """
+        new_rec:dict[str,object] = {}
+        valid_col_names=list(self.struct_dict.keys())
+        for col_name, value in data.items():
+            if not value and skip_nulls:
+                continue
+            if col_name in valid_col_names:
+                new_rec[col_name] = value
+            else:
+                self.logger.info(f"skipping attibute: %s", col_name)
+
+        return new_rec
+
+
+    # ===============================================
     def upsert( self, data: dict[str, object],
                 conflict_target: str | Sequence[str] = ("author", "title"),
                 fExecute: bool = True,
@@ -92,6 +176,8 @@ class Table:
         :param conflict_column: Nome della colonna con vincolo UNIQUE (es.
         'path').
         """
+        record = self.recordPreProcess(data, skip_nulls=True)
+
         if isinstance(conflict_target, str):
             target_cols = [conflict_target]
             target_str = conflict_target
@@ -101,12 +187,12 @@ class Table:
 
         # Verifica che i campi di conflitto siano presenti nei dati
         for col in target_cols:
-            if col not in data:
+            if col not in record:
                 raise ValueError(
                     f"Colonna di conflitto '{col}' mancante nei dati forniti."
                 )
 
-        columns = list(data.keys())
+        columns = list(record.keys())
         cols_str = ", ".join(columns)
         placeholders = ", ".join(["?"] * len(columns))
 
@@ -123,11 +209,12 @@ class Table:
 
         sql = f"INSERT INTO {self.name} ({cols_str}) VALUES ({placeholders}) {on_conflict}"
 
-        return self._run_query(sql, list(data.values()), fExecute)
+        return self._run_query(sql, list(record.values()), fExecute)
 
 
 
 
+    # ===============================================
     def _selectRecord( self,
                         whereString: str = "",
                         to_dict: bool = True,
@@ -157,7 +244,7 @@ class Table:
 
         # Gestione fExecute = False (Dry-Run / Display della select)
         if not fExecute:
-            print("DRY-RUN:", sql, params)
+            self.logger.info("DRY-RUN:", sql, params)
             # print("\n[DRY-RUN / SELECT PREVIEW]")
             # print(f"SQL    : {sql.strip()}")
             # print(f"PARAMS : {params}\n")
@@ -212,39 +299,6 @@ class Table:
 
 
 
-
-
-class Database:
-    """Classe principale per la connessione e la gestione dello schema."""
-
-    def __init__(self, db_path: str, schema_sql: str | None = None):
-        self.conn = sqlite3.connect(db_path)
-        self.conn.row_factory = sqlite3.Row
-        self._tables: dict[str, Table] = {}
-        self.path=db_path
-
-        # 1. Inizializza il DB se viene passato uno schema
-        if schema_sql:
-            self._init_schema(schema_sql)
-
-    def _init_schema(self, schema_sql: str) -> None:
-        """Esegue le istruzioni DDL per creare le tabelle iniziali."""
-        cursor = self.conn.cursor()
-        cursor.executescript(schema_sql)
-        self.conn.commit()
-
-    def table(self, table_name: str) -> Table:
-        """Ritorna l'istanza della classe Table per la tabella richiesta."""
-        if table_name not in self._tables:
-            self._tables[table_name] = Table(self.conn, table_name)
-        return self._tables[table_name]
-
-    def __getitem__(self, table_name: str) -> Table:
-        """Permette di usare la sintassi a quadre: db['nome_tabella']"""
-        return self.table(table_name)
-
-    def close(self) -> None:
-        self.conn.close()
 
 
 

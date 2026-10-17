@@ -2,14 +2,11 @@
 #
 # updated by ...: Loreto Notarantonio
 
+# ruff: noqa: I001 Import block is un-sorted or un-formatted help: Organize imports (Ruff I001)
 
-# import sys
-# sys.dont_write_bytecode = True
 from pathlib import Path
-# from typing import Optional #, TYPE_CHECKING
 
 ### - project modules
-# if TYPE_CHECKING:
 from pyLnLib import get_logger
 
 class PyProjectManager:
