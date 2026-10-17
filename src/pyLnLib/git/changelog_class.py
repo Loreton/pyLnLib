@@ -6,10 +6,9 @@
 from datetime import datetime
 from pathlib import Path
 
-# from typing import TYPE_CHECKING
 
 ### - project modules
-# if TYPE_CHECKING:
+
 from ..logger import get_logger
 from ..system import lnRun
 
@@ -21,14 +20,13 @@ class ChangeLogManager:
 
 
     # def __init__(self, git_root: str, new_version: str, last_tag: str|None = None):
-    def __init__(self, git_root: str, last_tag: str | None = None):
+    def __init__(self, git_root: str):
         """
         Inizializza il manager del changelog
 
         Args:
             git_root: Percorso della root del repository git
-            new_version: Nuova versione da rilasciare
-            last_tag: Ultimo tag (opzionale, se non fornito verrà ricavato)
+
         """
         # Tipi che NON devono apparire nel changelog (di solito)
         self.IGNORE_TYPES = ["chore", "style", "ci", "build"]  # opzionale, puoi escluderli
@@ -60,6 +58,24 @@ class ChangeLogManager:
         if _rcode == 0 and stdout:
             return stdout.strip()
         return None
+
+    def _get_previous_tag(self, new_version: str) -> str | None:
+        # prende il tag più recente che NON è v<new_version>
+        rc, out, _ = lnRun("git tag --sort=-creatordate", cwd=self.git_root, f_execute=True)
+        if rc != 0 or not out:
+            return None
+        # target = f"v{new_version}"
+        # for tag in out.splitlines():
+        #     tag = tag.strip()
+        #     if tag and tag != target:
+        #         return tag
+
+        tags = [t.strip() for t in out.splitlines() if t.strip()]
+        if tags and tags[0] == f"v{new_version}":
+            return tags[1] if len(tags) > 1 else None
+        return tags[0] if tags else None
+        # return None
+
 
     def _commits_since_last_tag(self) -> list[str]:
         """
@@ -174,9 +190,7 @@ class ChangeLogManager:
 
         return section
 
-    def update(
-        self, new_version: str, last_tag: str | None = None, f_execute: bool = True
-    ) -> bool:
+    def update(self, new_version: str, last_tag: str | None = None, f_execute: bool = True) -> bool:
         """
         Aggiorna il file CHANGELOG.md con i commit dall'ultimo tag
 
@@ -187,19 +201,28 @@ class ChangeLogManager:
             bool: True se l'operazione è riuscita
         """
         self.new_version = new_version
-        self.last_tag = last_tag
+        self.logger.info(f"DEBUG new_version: {self.new_version!r}")
+        # self.last_tag = last_tag
 
         # Se non abbiamo il tag, proviamo a ricavarlo
-        if self.last_tag is None:
-            self.last_tag = self._get_last_tag()
+        self.last_tag = self._get_previous_tag(new_version) 
+        self.last_tag = self._get_last_tag()
+        # if self.last_tag is None:
+        self.logger.info(f"DEBUG last_tag effettivo: {self.last_tag!r}")
 
         # 1. Recupera i commit
         commits = self._commits_since_last_tag()
+        self.logger.info(f"DEBUG: last_tag={self.last_tag!r}, commits={len(commits)}")
+        for c in commits[:5]:
+            self.logger.info(f"  {c}")
+
 
         if not commits:
             self.logger.info("Nessun commit trovato dall'ultimo tag")
             return False
 
+        # 4. Preview o scrittura
+        
         # 2. Categorizza i commit
         categorized = self._categorize_commits(commits)
 
@@ -210,15 +233,14 @@ class ChangeLogManager:
         # 3. Genera la nuova sezione
         new_section = self._generate_section(categorized)
 
-        # 4. Preview o scrittura
         if not f_execute:
             self.logger.info("=== CHANGELOG.md preview (dry-run) ===")
             self.logger.info(f"Version: {self.new_version}")
             self.logger.info(f"Last_tag: {self.last_tag}")
             self.logger.info(f"Commit found: {len(commits)}")
             self.logger.debug("\n" + new_section)
-            self.logger.info("=== CHANGELOG.md end (dry-run) ===")
             return True
+        # self.logger.info("=== CHANGELOG.md end (dry-run) ===")
 
         # 5. Leggi il contenuto esistente o crea nuovo file
         if self.changelog_path.exists():
