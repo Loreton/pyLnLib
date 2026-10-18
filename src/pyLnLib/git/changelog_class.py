@@ -11,6 +11,7 @@ from pathlib import Path
 
 from ..logger import get_logger
 from ..system import lnRun
+from ..system import clean_doc
 
 logger = get_logger()
 
@@ -59,7 +60,7 @@ class ChangeLogManager:
             return stdout.strip()
         return None
 
-    def _get_previous_tag(self, new_version: str) -> str | None:
+    def _get_previous_tag_(self, new_version: str) -> str | None:
         # prende il tag più recente che NON è v<new_version>
         rc, out, _ = lnRun("git tag --sort=-creatordate", cwd=self.git_root, f_execute=True)
         if rc != 0 or not out:
@@ -75,6 +76,26 @@ class ChangeLogManager:
             return tags[1] if len(tags) > 1 else None
         return tags[0] if tags else None
         # return None
+        #
+    def _get_previous_tag(self, new_version: str) -> str | None:
+        # prende il tag più recente che NON è v<new_version>
+        rc, out, _ = lnRun("git tag --sort=-creatordate", cwd=self.git_root, f_execute=True)
+        if rc != 0 or not out:
+            return None
+        tags = [t.strip() for t in out.splitlines() if t.strip()]
+
+        new_version=tags[1]
+        if tags:
+            for inx, tag in enumerate(tags):
+                if tag == f"v{new_version}":
+                    return tags[inx+1] if len(tags[inx+1]) > 1 else None
+            else:
+                return tags[0]
+
+        # if tags and tags[0] == f"v{new_version}":
+        #     return tags[1] if len(tags) > 1 else None
+        # return tags[0] if tags else None
+        return None
 
 
     def _commits_since_last_tag(self) -> list[str]:
@@ -95,6 +116,28 @@ class ChangeLogManager:
             cwd=self.git_root,
             f_execute=True,
         )
+        if stdout:
+            return stdout.splitlines()
+        return []
+
+    def _commits_since_tag(self, tag:str|None) -> list[str]:
+        """
+        Recupera i commit dall'ultimo tag fino a HEAD
+        Esclude i commit di merge
+        """
+        if tag:
+            log_range = f"{tag}..HEAD"
+
+        elif self.last_tag:
+            log_range = f"{self.last_tag}..HEAD"
+
+        else:
+            # Se non c'è un tag, prendi tutti i commit
+            log_range = "HEAD"
+            self.logger.warning("Nessun tag trovato, prendo tutti i commit dalla storia")
+
+        # Comando git: prendiamo anche l'hash per eventuale debug
+        _rcode, stdout, _stderr = lnRun( f'git log {log_range} --pretty=format:"%h|%s" --no-merges', cwd=self.git_root, f_execute=True, )
         if stdout:
             return stdout.splitlines()
         return []
@@ -201,31 +244,25 @@ class ChangeLogManager:
             bool: True se l'operazione è riuscita
         """
         self.new_version = new_version
-        self.logger.info(f"DEBUG new_version: {self.new_version!r}")
+        self.logger.debug(f"new_version: {self.new_version!r}")
         # self.last_tag = last_tag
 
         # Se non abbiamo il tag, proviamo a ricavarlo
-        self.last_tag = self._get_previous_tag(new_version) 
-        self.last_tag = self._get_last_tag()
-        # if self.last_tag is None:
-        self.logger.info(f"DEBUG last_tag effettivo: {self.last_tag!r}")
+        self.last_tag = self._get_previous_tag(new_version)
+        self.logger.debug(f"last_tag effettivo: {self.last_tag!r}")
 
         # 1. Recupera i commit
-        commits = self._commits_since_last_tag()
-        self.logger.info(f"DEBUG: last_tag={self.last_tag!r}, commits={len(commits)}")
-        for c in commits[:5]:
-            self.logger.info(f"  {c}")
-
-
+        commits = self._commits_since_tag(tag=self.last_tag)
         if not commits:
             self.logger.info("Nessun commit trovato dall'ultimo tag")
             return False
 
-        # 4. Preview o scrittura
-        
+        self.logger.debug(f"last_tag={self.last_tag!r}, commits={len(commits)}")
+        for c in commits[:5]:
+            self.logger.info(f"  {c}")
+
         # 2. Categorizza i commit
         categorized = self._categorize_commits(commits)
-
         if not categorized:
             self.logger.info("Nessun commit significativo trovato (tutti ignorati)")
             return False
@@ -234,13 +271,21 @@ class ChangeLogManager:
         new_section = self._generate_section(categorized)
 
         if not f_execute:
-            self.logger.info("=== CHANGELOG.md preview (dry-run) ===")
-            self.logger.info(f"Version: {self.new_version}")
-            self.logger.info(f"Last_tag: {self.last_tag}")
-            self.logger.info(f"Commit found: {len(commits)}")
+            data = clean_doc(f"""
+                === CHANGELOG.md preview (dry-run) ===
+                Version: {self.new_version}
+                Last_tag: {self.last_tag}
+                Commit found: {len(commits)}
+                === CHANGELOG.md end (dry-run) ===
+                """)
+
+            # self.logger.notify("=== CHANGELOG.md preview (dry-run) ===")
+            # self.logger.info(f"Version: {self.new_version}")
+            # self.logger.info(f"Last_tag: {self.last_tag}")
+            # self.logger.info(f"Commit found: {len(commits)}")
+            # self.logger.notify("=== CHANGELOG.md end (dry-run) ===")
             self.logger.debug("\n" + new_section)
             return True
-        # self.logger.info("=== CHANGELOG.md end (dry-run) ===")
 
         # 5. Leggi il contenuto esistente o crea nuovo file
         if self.changelog_path.exists():
@@ -256,11 +301,11 @@ class ChangeLogManager:
         self.logger.notify(f"✅ CHANGELOG.md aggiornato con versione {self.new_version}")
         return True
 
-    def get_summary(self) -> dict[str, int]:
+    def get_summary(self, tag: str) -> dict[str, int]:
         """
         Ottiene un riepilogo dei commit per tipo (utile per debug)
         """
-        commits = self._commits_since_last_tag()
+        commits = self._commits_since_tag(tag=tag)
         categorized = self._categorize_commits(commits)
 
         summary = {}
