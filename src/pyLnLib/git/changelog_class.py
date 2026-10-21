@@ -271,13 +271,14 @@ class ChangeLogManager:
         new_section = self._generate_section(categorized)
 
         if not f_execute:
-            data = clean_doc(f"""
-                === CHANGELOG.md preview (dry-run) ===
-                Version: {self.new_version}
-                Last_tag: {self.last_tag}
-                Commit found: {len(commits)}
-                === CHANGELOG.md end (dry-run) ===
-                """)
+            self.logger.notify( clean_doc(f"""
+                                === CHANGELOG.md preview (dry-run) ===
+                                Version: {self.new_version}
+                                Last_tag: {self.last_tag}
+                                Commit found: {len(commits)}
+                                """)
+                )
+                # === CHANGELOG.md end (dry-run) ===
 
             # self.logger.notify("=== CHANGELOG.md preview (dry-run) ===")
             # self.logger.info(f"Version: {self.new_version}")
