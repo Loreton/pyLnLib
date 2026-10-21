@@ -114,6 +114,9 @@ class PyProjectManager:
         # Ottieni la versione corrente
         cur_version = self.get_version()
 
+        if new_version == cur_version:
+            return False
+
         # Assicurati che la struttura "project" esista
         if "project" not in self._data:  # type: ignore
             self._data["project"] = {}  # type: ignore
