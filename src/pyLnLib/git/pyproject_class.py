@@ -3,11 +3,13 @@
 # updated by ...: Loreto Notarantonio
 
 # ruff: noqa: I001 Import block is un-sorted or un-formatted help: Organize imports (Ruff I001)
+# ruff: noqa:  SIM102
 
 from pathlib import Path
 
 ### - project modules
 from pyLnLib import get_logger
+from ..system import clean_doc
 
 class PyProjectManager:
     """Classe per gestire la lettura e scrittura del file pyproject.toml"""
@@ -69,7 +71,7 @@ class PyProjectManager:
                     tomli_w.dump(self._data, f)
                 self.logger.info(f"pyproject.toml aggiornato con successo in {self.pyproject_path}")
             else:
-                self.logger.notify("DRY-RUN: pyproject.toml will be modified")
+                self.logger.notify("pyproject.toml will be modified\n")
             return True
         except Exception as e:
             self.logger.error(f"Errore nella scrittura di pyproject.toml: {e}")
@@ -104,7 +106,7 @@ class PyProjectManager:
             bool: True se l'operazione è riuscita, False altrimenti
         """
         # Leggi i dati correnti se non sono già stati letti
-        if self._data is None:
+        if self._data is None:  # ruff: noqa: SIM102
             if not self.read():
                 self.logger.error("Impossibile leggere pyproject.toml")
                 return False
@@ -120,8 +122,11 @@ class PyProjectManager:
         self._data["project"]["version"] = new_version
 
         # Log delle informazioni
-        self.logger.info(f"Versione corrente: {cur_version}")
-        self.logger.info(f"Nuova versione: {new_version}")
+        self.logger.notify(clean_doc(f"""pyproject.toml\n
+                curr version: {cur_version}
+                new  version: {new_version}
+                """)
+        )
 
         # Scrivi il file se richiesto
         return self.write(f_execute)

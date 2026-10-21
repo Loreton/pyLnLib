@@ -285,7 +285,8 @@ class ChangeLogManager:
             # self.logger.info(f"Last_tag: {self.last_tag}")
             # self.logger.info(f"Commit found: {len(commits)}")
             # self.logger.notify("=== CHANGELOG.md end (dry-run) ===")
-            self.logger.debug("\n" + new_section)
+            self.logger.notify("new section:\n" + new_section)
+            self.logger.info(" \n")
             return True
 
         # 5. Leggi il contenuto esistente o crea nuovo file
