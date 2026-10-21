@@ -110,10 +110,13 @@ class Table:
             for row in rows
         }
 
+
+
+    # ===============================================
     def _run_query( self, sql: str, params: list[object], fExecute: bool ) -> int | None:
         """Helper interno per gestire l'esecuzione o il dry-run (fExecute=False)."""
         if not fExecute:
-            _params = '\n'.join(params)
+            # _params = '\n'.join(params)
             # self.logger.info(clean_doc(f"""[DRY-RUN / NO-EXECUTE]
             #                             SQL:\n {sql.strip()}
             #                             PARAMS:\n {_params}"
@@ -130,6 +133,9 @@ class Table:
         self.conn.commit()
         return cursor.lastrowid
 
+
+
+    # ===============================================
     def insert( self, data: dict[str, object], fExecute: bool = True ) -> int | None:
         """Inserimento semplice."""
         if not data:
