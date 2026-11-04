@@ -116,13 +116,6 @@ class Table:
     def _run_query( self, sql: str, params: list[object], fExecute: bool ) -> int | None:
         """Helper interno per gestire l'esecuzione o il dry-run (fExecute=False)."""
         if not fExecute:
-            # _params = '\n'.join(params)
-            # self.logger.info(clean_doc(f"""[DRY-RUN / NO-EXECUTE]
-            #                             SQL:\n {sql.strip()}
-            #                             PARAMS:\n {_params}"
-            #                 """))
-            # self.logger.info(clean_doc("""[DRY-RUN / NO-EXECUTE]\n  SQL:\n%s\n  PARAMS:\n%s
-            #                 """, sql.strip(), _params))
             self.logger.info("SELECT:\n%s", sql)
             self.logger.info("PARAMS:\n%s", params)
             return None

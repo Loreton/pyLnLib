@@ -2,21 +2,20 @@
 #
 # Progamma per testare regex
 #
+# ruff: noqa: I001 - Import block is un-sorted or un-formatted
 # ruff: noqa: C401 - Unnecessary generator (rewrite as a set comprehension) help: Rewrite as a set comprehension (Ruff C401)
 # ruff: noqa: 113 - Use `enumerate()` for index variable `index` in `for` loop (Ruff SIM113)
 #
 
+from __future__ import annotations
 
-import sys
-
-
-sys.dont_write_bytecode = True
+import sys; sys.dont_write_bytecode = True
 
 import re
 import time
 from _collections_abc import Callable
-# from itertools import permutations
-# from dataclasses import dataclass, asdict
+
+from dataclasses import dataclass, asdict
 from typing import TypedDict
 
 from pyLnLib.logger import get_logger
@@ -25,6 +24,31 @@ from pyLnLib.lndict import lnDict
 
 logger = get_logger()
 
+
+@dataclass(frozen=True)
+class RegexItemsDataClass():
+    # - source_data sarà riempito solo per il primo item dell'occurrencies
+    # - perché l'originale potrebbessere stato normalizzato
+    source_data: str
+    index: list[int] # contiene gli indici delle occurrencies. Se più di uno vuol dire che include altri context poi disabilitati
+    ignore_case: bool
+
+    matched_string: str
+    matched_string_length: int
+
+    start: int
+    end: int
+
+    context_string: str
+    context_start: int
+    context_end: int
+    context_length: int # intesa come parte prima/dopo di start/end
+
+    valid: bool
+
+    def to_dict(self) -> dict[str, object]:
+        """Converte l'oggetto in un dizionario."""
+        return asdict(self)
 
 
 class RegexItemsDict(TypedDict, total=False):
@@ -88,7 +112,11 @@ def this_function_executing_time(func: Callable) -> Callable:
     return wrapper
 
 
-def processContext(occurrencies_list: list[RegexItemsDict]) -> list[RegexItemsDict]:
+def ___processContext___(occurrencies_list: list[RegexItemsDict]) -> list[RegexItemsDict]:
+    """ provvede a fare un merge, sorted, dei context trovati
+        se trova due contesti che si sopvarppongono, provvede
+        ad allargare quello più idoneo
+    """
     n_occurrencies = len(occurrencies_list)
     if n_occurrencies <= 1:
         return occurrencies_list
@@ -112,7 +140,51 @@ def processContext(occurrencies_list: list[RegexItemsDict]) -> list[RegexItemsDi
 
         # ----------------------------------------------------
         # Se ci troviamo nelle condizioni che seguono allora
-        # sil allargheranno i context_start context_end di curr per ospitare
+        # si allargheranno i context_start context_end di curr per ospitare
+        # gli spazi di prev e flagghiamo prev come invalido
+        # prev !-----------------!
+        # curr      !---------!            # (non credo che possa capitare...))
+        # curr      !-----------------!
+        # ----------------------------------------------------
+        if prev.context_start <= curr.context_start <= prev.context_end: # se current rientra nel precedente context
+            prev.valid = False
+            curr.index.extend(prev.index)  # estendiamo l'indice di curr con quello di prev
+            curr.context_start = prev.context_start  # allarghiamo il contesto attuale
+            curr.context_end = max(curr.context_end, prev.context_end)
+
+    return occurrencies_list
+
+
+
+def mergeOccurrencies(occurrencies_list: list[RegexItemsDict]) -> list[RegexItemsDict]:
+    """ provvede a fare un merge, sorted, dei context trovati
+        se trova due contesti che si sopvarppongono, provvede
+        ad allargare quello più idoneo
+    """
+    n_occurrencies = len(occurrencies_list)
+    if n_occurrencies <= 1:
+        return occurrencies_list
+
+
+    '''
+        _range=list(range(n_occurrencies))
+        _range=list(range(1, -1, -1))  # start=1, stop=-1 (escluso), step=-1
+        _range=list(reversed(range(2)))  # [1, 0] range(2) è iterabile, reversed lo gestisce direttamente
+        # devo fare un reversed range che si fermi al secondo (1) item
+        _range=list(range(n_occurrencies, 0, -1))  # start=1, stop=0 (escluso), step=-1
+        # devo fare un ascendente range che parti dal secondo (1) item
+        _range=list(range(1, n_occurrencies, 1))  # start=1, stop=max (escluso), step=1
+    '''
+
+    _range=list(range(1, n_occurrencies, 1))  # start=1, stop=max (escluso), step=1  [1,2,3,...,n]
+    for index in _range:
+        # print(f"{index  = }")
+        curr = lnDict(occurrencies_list[index])
+        prev = lnDict(occurrencies_list[index-1])
+
+        # ----------------------------------------------------
+        # Se ci troviamo nelle condizioni che seguono allora
+        # si allargheranno i context_start context_end di curr per ospitare
         # gli spazi di prev e flagghiamo prev come invalido
         # prev !-----------------!
         # curr      !---------!            # (non credo che possa capitare...))
@@ -498,3 +570,15 @@ def or_search(source_data: str,
         occurrencies = []
 
     return occurrencies
+
+
+
+# ======================================================
+def find_variables(value: str):
+    # import re
+    pattern = r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}"
+
+    return [
+        (match.start(), match.end(), match.group(1))
+        for match in re.finditer(pattern, value)
+    ]

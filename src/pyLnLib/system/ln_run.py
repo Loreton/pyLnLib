@@ -33,7 +33,7 @@ def lnRun(  command: str | list,
             # logger_level: str = "warning",  # questo pervitare di scrivere se non richiesto
             shell: bool = False,
             # force_log:bool=False,
-            log_it: int = logger.log_NOLOG,
+            log_it: int = logger.NOLOG,
         ) -> tuple[int, str, str]:
 
     result: SimpleNamespace = SimpleNamespace(rcode=0, stdout="", stderr="")

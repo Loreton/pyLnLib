@@ -327,95 +327,29 @@ class EpubManager:
         return clean_text
 
 
-    def get_text(self, separator: str = "\n\n") -> str:
-        """Restituisce il testo completo del libro convertito da HTML a testo piano."""
-        sections_text = [section.section_to_text() for section in self.sections]
-        return separator.join(filter(None, sections_text))
-
-
-
-    def save_text_prev(self, output_file: str | Path, replace: bool = False) -> bool:
-        """Esporta il libro come file di testo formattato e pulito (senza HTML).
-
-        Args:
-            output_file: Percorso del file TXT di output.
-            replace: Se True, sovrascrive il file se esiste già.
-
-        Returns:
-            bool: True se l'esportazione è andata a buon fine.
-        """
+    def to_file(self, output_file: str | Path, replace: bool = False) -> None:
+        """Esporta il libro come file di testo formattato e pulito (senza HTML)."""
         output_file = Path(output_file)
-
         if output_file.exists() and not replace:
-            logger.warning(f"File di output già esistente: {output_file}")
-            return False
+            self.logger.warning(f"File di output già esistente: {output_file}")
+            return
 
+        content = self.get_text(section_separator="\n\n")
         try:
             with open(output_file, "w", encoding="utf-8") as f:
-                # Intestazione Metadati
-                f.write("=" * 60 + "\n")
-                f.write("METADATI DEL LIBRO\n")
-                f.write("=" * 60 + "\n\n")
-
-                if self.metadata:
-                    authors_str = (
-                        ", ".join(self.metadata.authors)
-                        if self.metadata.authors
-                        else "N/A"
-                    )
-                    subjects_str = (
-                        ", ".join(self.metadata.subject)
-                        if self.metadata.subject
-                        else "N/A"
-                    )
-
-                    f.write(f"Titolo:         {self.metadata.title or 'N/A'}\n")
-                    f.write(f"Autore/i:       {authors_str}\n")
-                    f.write(f"Lingua:         {self.metadata.language or 'N/A'}\n")
-                    f.write(f"Editore:        {self.metadata.publisher or 'N/A'}\n")
-                    f.write(f"Data Pubbl.:    {self.metadata.pub_date or 'N/A'}\n")
-                    f.write(
-                        f"Identificatore: {self.metadata.identifier or 'N/A'}\n"
-                    )
-                    if self.metadata.isbn:
-                        f.write(f"ISBN:           {self.metadata.isbn}\n")
-
-                    if self.metadata.series:
-                        f.write(
-                            f"Serie:          {self.metadata.series} (Vol."
-                            f" {self.metadata.series_index})\n"
-                        )
-                    f.write(f"Soggetti:       {subjects_str}\n")
-
-                    if self.metadata.custom:
-                        f.write("\n--- Metadati Custom ---\n")
-                        for key, value in self.metadata.custom.items():
-                            # f.write(f"{k}: {v}\n")
-                            f.writelines(f"{key}: {value}\n")
-
-
-                # Contenuto del libro
-                f.write("\n" + "=" * 60 + "\n")
-                f.write("CONTENUTO\n")
-                f.write("=" * 60 + "\n\n")
-
-                for section in self.sections:
-                    if section.title:
-                        f.write(f"\n--- {section.title} ---\n\n")
-
-                    # Recupera l'HTML e lo converte in testo pulito
-                    raw_html = getattr(section, "content", None) or getattr( section, "text", "" )
-                    clean_text = self._clean_html(raw_html)
-
-                    f.write(clean_text)
-                    f.write("\n\n")
-
-            logger.info(f"Testo esportato correttamente: {output_file.name}")
-            return True
-
+                f.write(content)
+            self.logger.notify(f"Testo esportato correttamente: {output_file}")
         except OSError as e:
-            logger.error(f"Errore durante l'esportazione del testo: {e}")
-            return False
+            self.logger.error(f"Errore durante l'esportazione del testo: {e}")
+
+            
+
+    def get_text(self, section_separator: str = "\n\n") -> str:
+        """Restituisce il testo completo del libro convertito da HTML a testo piano."""
+        sections_text = [section.section_to_text() for section in self.sections]
+        return section_separator.join(filter(None, sections_text))
+
+
 
     def to_text(self, output_file: str | Path | None = None, replace: bool = False) -> str:
         """Esporta il libro come file di testo formattato e pulito (senza HTML).
@@ -425,7 +359,7 @@ class EpubManager:
             replace: Se True, sovrascrive il file se esiste già.
 
         Returns:
-            bool: True se l'esportazione è andata a buon fine.
+            str: contenuto del libro in formato testo.
         """
         data: str = ""
 
@@ -501,7 +435,7 @@ class EpubManager:
                 try:
                     with open(output_file, "w", encoding="utf-8") as f:
                         f.write(data)
-                    logger.debug(f"Testo esportato correttamente: {output_file}")
+                    logger.notify(f"Testo esportato correttamente: {output_file}")
 
                 except OSError as e:
                     logger.error(f"Errore durante l'esportazione del testo: {e}")

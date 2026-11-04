@@ -1,6 +1,6 @@
 # pyLnLib/regex/__init__.py
 
-
+# ruff: noqa: I001
 import os
 
 """
@@ -13,16 +13,17 @@ if __INIT__PY__DEBUG:
     print(f"{__name__} - start loading")
 
 
-from .ln_regex import replace, and_search, or_search, search_term, processContext
-
+# from .ln_regex import replace, and_search, or_search, search_term, mergeOccurrencies
+from . import ln_regex
 # Definisci cosa esportare quando si fa "from pyLnLib.regex import *"
+# ruff: noqa: RUF022 - `__all__` is not sorted help: Apply an isort-style sorting to `__all__`
 __all__ = [
-    'and_search',
-    'or_search',
-    'processContext',
-    'replace',
-    'search_term',
-
+    # 'and_search',
+    # 'mergeOccurrencies',
+    # 'or_search',
+    # 'replace',
+    # 'search_term',
+    'ln_regex',
 ]
 
 if __INIT__PY__DEBUG:

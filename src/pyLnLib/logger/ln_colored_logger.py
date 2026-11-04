@@ -43,11 +43,11 @@ my_CRITICAL_value: int = 50
 
 
 
-@dataclass(frozen=True)
-class log_it_class:
-    FORCE = 2
-    LOG_IT = 1
-    DEFAULT = 0
+# @dataclass(frozen=True)
+# class log_it_class:
+#     FORCE = 2
+#     LOG_IT = 1
+#     DEFAULT = 0
 
 
 
@@ -103,23 +103,23 @@ class lnColoredLogger:
         self.name: str = name
         # self.test: Callable = testLogger
         # self.log_it = log_it_class
-        self._log_FORCE = 3 # force log anche per livelli diversi dal current
-        self._log_NOLOG = 2 # utile per le funzioni per non farle loggare di default
         self._log_IT = 1  # default logging
+        self._log_NOLOG = 2 # utile per le funzioni per non farle loggare di default
+        self._log_FORCE = 3 # force log anche per livelli diversi dal current
 
         self.initialize(name=name, console_logger_level="info", f_temporary=True)
 
 
     @property
-    def log_FORCE(self):
+    def FORCE(self):
         return self._log_FORCE
 
     @property
-    def log_NOLOG(self):
+    def NOLOG(self):
         return self._log_NOLOG
 
     @property
-    def log_IT(self):
+    def logIT(self):
         return self._log_IT
 
 
@@ -639,24 +639,24 @@ class lnColoredLogger:
 
         f_level_changed = False
         forceExit = kwargs.pop("exit", False)
-        force_log1  = kwargs.pop("force_log", False)
+        # force_log1  = kwargs.pop("force_log", False)
         # log_it    = kwargs.pop("log_it", True)   # di default log. utile per funzioni di libreria se vogliamo che facciano log
 
-        log_it    = kwargs.pop("log_it", self.log_IT)   # di default log. utile per funzioni di libreria se vogliamo che facciano log
 
-        force_log = (log_it == self.log_FORCE)
-        no_log = (log_it == self.log_NOLOG)
-        log_it = (log_it == self.log_IT)
+        _log_it = kwargs.pop("log_it", self._log_IT)   # di default log. utile per funzioni di libreria se vogliamo che facciano log
+        force_log = (_log_it == self._log_FORCE)
+        no_log = (_log_it == self._log_NOLOG)
+        # log_it = (_log_it == self._log_IT)
 
         # ----------------------------------------------------------------------
         # - qui cerchiamo di gestire il force_log utile per i messaggi
         # - che provengono da funzioni di libreria e che normalmente non vengono loggati
         # - saved_curr_level_value:
-        #       valore del livello di default per la console
+        #               valore del livello di default per la console
         # - req_level_value:
-        #       valore del livello richiesto per il messaggio corrente
+        #               valore del livello richiesto per il messaggio corrente
         # - f_level_changed: flag per indicare se il livello di default è
-        #       stato cambiato in modo da sapere se ripristinalro
+        #               stato cambiato in modo da poter ripristinarlo prima di uscire
         # ----------------------------------------------------------------------
         saved_show_caller = self.show_caller
         saved_curr_level_value = self.consoleHandler.level
@@ -665,13 +665,17 @@ class lnColoredLogger:
         if no_log:
             return
 
+        # se è richiesto il force_log
         if force_log and req_level_value < saved_curr_level_value:
+            # modifuchiamo il logger level e salviamo il corrente
             self.setConsoleLoggerLevel(req_level_value)
             f_level_changed = True
             self.show_caller = True
 
 
+        # verifichiamo il livello di logger corretto considerando il force_log
         if not self._is_valid_level(req_level_value, force_log):
+            # se non valido e level_changed, allora ripristana livello logger ritorna
             if f_level_changed:
                 self.setConsoleLoggerLevel(saved_curr_level_value)
                 self.show_caller=saved_show_caller

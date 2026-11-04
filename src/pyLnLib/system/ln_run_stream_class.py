@@ -43,10 +43,10 @@ from types import SimpleNamespace
 
 # pyLnLib modules
 from ..colors import get_colors
-C = get_colors()
-
 from ..logger import get_logger
+
 logger = get_logger()
+C = get_colors()
 
 
 class lnRunStream_Class:
@@ -200,7 +200,7 @@ class lnRunStream_Class:
                     dry_run=False,
                     process_strings: dict = {},
                     ignore_case=False,
-                ):
+                ) -> SimpleNamespace:
         self.ignore_case = ignore_case
 
         self.prepareWords(process_strings)

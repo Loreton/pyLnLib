@@ -54,14 +54,16 @@ from .varie.beep import (
 
 # files
 from .files.write_file import writeFile
-from .files.yaml_file import dictToYaml
 from .files.create_link import create_link, is_valid_link
 
-from .files.yaml_loader_class import get_yaml_engine
 from .files import searchFileInZip, zipDir
 from .files import get_file_list, get_dir_list, get_paths, searchFileOnFS, get_unique_filename, searchFile
 from .files.ini_file import loadIni, updateIniKey, writeIni
 
+# yaml
+from .yaml_loader import lnYamlLoader, YamlEngine
+# from .files.yaml_file import dictToYaml
+# from .files.yaml_loader_class import get_yaml_engine
 
 # git
 from .git.pyproject_class import PyProjectManager
@@ -80,6 +82,10 @@ from .system.ln_run import lnRun
 from .system.ln_run_stream_class import lnRunStream_Class as lnRunStream
 from .system.signal_handler import signalHandler, start_signal_handler
 from .system.timing import timing_base, timing_logger
+
+# regex
+# from .regex.ln_regex import and_search, mergeOccurrencies, or_search, replace, search_term
+from .regex import ln_regex
 
 # sqlite
 from .sqlite.SQLite_Class_LnNew import Table, Database
@@ -118,11 +124,12 @@ __all__ = [
 
 
     # regex
-    "and_search",
-    "or_search",
-    "replace",
-    "search_term",
-    "processContext",
+    "ln_regex",
+    # "and_search",
+    # "mergeOccurrencies",
+    # "or_search",
+    # "replace",
+    # "search_term",
 
 
     # sqlite
@@ -150,6 +157,9 @@ __all__ = [
     "create_link",
     "is_valid_link",
 
+    # yaml
+    "YamlEngine",
+    "lnYamlLoader",
 
     # epub
     "EpubManager",

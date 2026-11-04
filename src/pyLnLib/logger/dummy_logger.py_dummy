@@ -2,9 +2,12 @@
 #
 # updated by ...: Loreto Notarantonio
 #
+# ruff: noqa: I001 - Import block is un-sorted or un-formatted help: Organize imports (Ruff I001)
+# ruff: noqa: E702 - Multiple statements on one line (semicolon)
+# ruff: noqa: E402 - Module level import not at top of file
 
-import sys; sys.dont_write_bytecode=True;
-import os
+import sys; sys.dont_write_bytecode=True
+# import os
 
 from pathlib import Path
 from datetime import datetime

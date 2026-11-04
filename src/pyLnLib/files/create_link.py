@@ -12,7 +12,7 @@ from ..logger import get_logger
 logger = get_logger()
 
 
-def is_valid_link(source_file: str|Path, link_name: str|Path, log_it: int=logger.log_NOLOG) -> tuple(int, bool):
+def is_valid_link(source_file: str|Path, link_name: str|Path, log_it: int=logger.NOLOG) -> tuple(int, bool):
     link_name=Path(link_name)
     source_file=Path(source_file)
     f_is_valid: bool = False
@@ -55,7 +55,7 @@ def is_valid_link(source_file: str|Path, link_name: str|Path, log_it: int=logger
 
 
 
-def create_link(source_file: str|Path, link_name: str|Path, replace: bool, log_it: int=logger.log_NOLOG) -> bool:
+def create_link(source_file: str|Path, link_name: str|Path, replace: bool, log_it: int=logger.NOLOG) -> bool:
     link_name=Path(link_name)
     source_file=Path(source_file)
     STACK_LEVEL=1
