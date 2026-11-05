@@ -30,6 +30,7 @@ from .logger.ln_colored_logger import (
                                         testLogger,
                                     )
 
+from .logger.print_logger import PrintLogger
 
 
 from .colors import get_colors
@@ -61,7 +62,7 @@ from .files import get_file_list, get_dir_list, get_paths, searchFileOnFS, get_u
 from .files.ini_file import loadIni, updateIniKey, writeIni
 
 # yaml
-from .yaml_loader import lnYamlLoader, YamlEngine
+from .yaml.yaml_loader import lnYamlLoader, YamlEngine
 # from .files.yaml_file import dictToYaml
 # from .files.yaml_loader_class import get_yaml_engine
 
@@ -107,6 +108,7 @@ __all__ = [
     "lnLogger",
     "get_logger",
     "testLogger",
+    "PrintLogger",
 
 
     # generics

@@ -5,7 +5,11 @@ import sys; sys.dont_write_bytecode=True
 import os
 import base64
 import hashlib
-from cryptography.fernet import Fernet
+try:
+    from cryptography.fernet import Fernet
+except (Exception) as e:
+    print("import error: cryptography.fernet not found!", str(e))
+
 
 
 def _get_fernet(master_key: str) -> Fernet:

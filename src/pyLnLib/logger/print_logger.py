@@ -5,34 +5,27 @@
 #  ruff: noqa: E402 Module level import not at top of file (Ruff E402)
 #  ruff: noqa: E701 Multiple statements on one line (colon) (Ruff E701)
 
-import sys; sys.dont_write_bytecode=True;
+import sys
+from webbrowser import get; sys.dont_write_bytecode=True;
 from pathlib import Path
 from datetime import datetime
 import inspect
 
+from ..colors import get_colors
 
 class PrintLogger:
-    class Color:
-        red        = '\033[31m'; redH       = '\033[91m'
-        green      = '\033[32m'; greenH     = '\033[92m'
-        yellow     = '\033[33m'; yellowH    = '\033[93m'
-        blue       = '\033[34m'; blueH      = '\033[94m'
-        magenta    = '\033[35m'; magentaH   = '\033[95m'
-        cyan       = '\033[36m'; cyanH      = '\033[96m'
-        white      = '\033[37m'; whiteH     = '\033[97m'
-        reset      = '\033[0m'
-
-
-
     def __init__(self, name: str="PrintLogger", console_logger_level: str="info", time_caller_prefix: bool=False):
+        self.Colors = get_colors() # per chi volesse prelevare i Colori (per dargli un nome parlante))
+        self.C = self.Colors # per questa classe
+
         self.LEVELS = {
-            "trace":     (5,  "TRACE", self.Color.white),
-            "debug":     (10, "DEBUG", self.Color.cyan),
-            "info":      (20, "INFO ", self.Color.green),
-            "notify":    (25, "NOTFY", self.Color.greenH),
-            "warning":   (30, "WARN ", self.Color.yellow),
-            "error":     (40, "ERROR", self.Color.red),
-            "critical":  (50, "CRIT ", self.Color.magenta),
+            "trace":     (5,  "TRACE", self.C.trace),
+            "debug":     (10, "DEBUG", self.C.debug),
+            "info":      (20, "INFO ", self.C.info),
+            "notify":    (25, "NOTFY", self.C.notify),
+            "warning":   (30, "WARN ", self.C.warning),
+            "error":     (40, "ERROR", self.C.error),
+            "critical":  (50, "CRIT ", self.C.critical),
         }
 
         self.level = self.LEVELS[console_logger_level.lower()][0]
@@ -40,7 +33,6 @@ class PrintLogger:
         self.show_caller = True
         self.module = True
         self.function = False
-        # self.test = testLogger
         self.time_caller_prefix = time_caller_prefix
 
     # ==========================================================
@@ -53,8 +45,7 @@ class PrintLogger:
         f = inspect.currentframe()
         for _ in range(3):  # salta stack interno logger
             f = f.f_back  # type: ignore
-        # breakpoint()
-        # filename = Path(os.path.basename(f.f_code.co_filename)).stem # type: ignore
+
         filename = Path(f.f_code.co_filename).stem # type: ignore
         lineno = f.f_lineno # type: ignore
         func = f.f_code.co_name # type: ignore
@@ -85,27 +76,27 @@ class PrintLogger:
         time_caller_prefix = kwargs.get("time_caller_prefix", self.time_caller_prefix)
         color       = kwargs.get("color", default_color)
         # nel caso abbiamo qualche substring videnziata con altro colore
-        if self.Color.reset in msg:
-            msg = msg.replace(self.Color.reset, color)
+        if self.C.reset in msg:
+            msg = msg.replace(self.C.reset, color)
 
         # se si vuole datetime + caller ...
         if time_caller_prefix:
             now = datetime.now().strftime("%H:%M:%S")
             caller = f"{self._caller()}" if self.show_caller else ""
-            prefix = f"{color}{now} [{caller}] [{tag}]: "
+            prefix = f"{self.C.blue}{now} [{caller}] [{tag}]: {color}"
         else:
             prefix = f"{color}"
 
-        print(f"{prefix}{msg}{self.Color.reset}")
+        print(f"{prefix}{msg}{self.C.reset}")
 
     # ==========================================================
-    def trace(self,     msg, *args, **kwargs): self._log("trace",  msg, *args, **kwargs)
+    def trace(self,     msg, *args, **kwargs): self._log("trace",    msg, *args, **kwargs)
     def notify(self,    msg, *args, **kwargs): self._log("notify",   msg, *args, **kwargs)
-    def debug(self,     msg, *args, **kwargs): self._log("debug",  msg, *args, **kwargs)
-    def info (self,     msg, *args, **kwargs): self._log("info",   msg, *args, **kwargs)
-    def warning(self,   msg, *args, **kwargs): self._log("warning",   msg, *args, **kwargs)
-    def error(self,     msg, *args, **kwargs): self._log("error",  msg, *args, **kwargs)
-    def critical(self,  msg, *args, **kwargs): self._log("critical",   msg, *args, **kwargs)
+    def debug(self,     msg, *args, **kwargs): self._log("debug",    msg, *args, **kwargs)
+    def info (self,     msg, *args, **kwargs): self._log("info",     msg, *args, **kwargs)
+    def warning(self,   msg, *args, **kwargs): self._log("warning",  msg, *args, **kwargs)
+    def error(self,     msg, *args, **kwargs): self._log("error",    msg, *args, **kwargs)
+    def critical(self,  msg, *args, **kwargs): self._log("critical", msg, *args, **kwargs)
 
 
 

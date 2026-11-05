@@ -12,13 +12,17 @@ import json
 # import logging
 import re
 import shutil
-from symtable import Class
+# from symtable import Class
 import tempfile
 import zipfile
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 import xml.etree.ElementTree as ET
-from bs4 import BeautifulSoup
+try:
+    from bs4 import BeautifulSoup
+except (Exception) as e:
+    print("import error: ", str(e))
+
 from typing import ClassVar
 
 
@@ -342,7 +346,7 @@ class EpubManager:
         except OSError as e:
             self.logger.error(f"Errore durante l'esportazione del testo: {e}")
 
-            
+
 
     def get_text(self, section_separator: str = "\n\n") -> str:
         """Restituisce il testo completo del libro convertito da HTML a testo piano."""

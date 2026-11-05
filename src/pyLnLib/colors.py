@@ -46,6 +46,7 @@ class Colors:
     bg_cyan: str = "\033[46m"
     bg_white: str = "\033[47m"
 
+    trace: str = blue
     debug: str = cyan
     info: str = green
     warning: str = yellow
