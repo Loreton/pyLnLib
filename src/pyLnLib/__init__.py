@@ -5,6 +5,7 @@
 # ruff: noqa: I001 Import block is un-sorted or un-formatted help: Organize imports (Ruff I001)
 # ruff: noqa: I022
 # ruff: noqa: RUF022 `__all__` is not sorted help: Apply an isort-style sorting to `__all__` (Ruff RUF022)
+# ruff: noqa: E402 Module level import not at top of file
 
 """
 pyLnLib - Libreria di utility per Python
@@ -25,7 +26,6 @@ if __INIT__PY__DEBUG == "True":
 # ============================================================
 from .logger.ln_colored_logger import (
                                         lnColoredLogger as lnLogger,
-                                        # init_logger,
                                         get_logger,
                                         testLogger,
                                     )
@@ -63,8 +63,7 @@ from .files.ini_file import loadIni, updateIniKey, writeIni
 
 # yaml
 from .yaml.yaml_loader import lnYamlLoader, YamlEngine
-# from .files.yaml_file import dictToYaml
-# from .files.yaml_loader_class import get_yaml_engine
+
 
 # git
 from .git.pyproject_class import PyProjectManager
@@ -85,7 +84,6 @@ from .system.signal_handler import signalHandler, start_signal_handler
 from .system.timing import timing_base, timing_logger
 
 # regex
-# from .regex.ln_regex import and_search, mergeOccurrencies, or_search, replace, search_term
 from .regex import ln_regex
 
 # sqlite

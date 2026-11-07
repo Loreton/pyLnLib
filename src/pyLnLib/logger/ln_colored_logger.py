@@ -1,53 +1,106 @@
 #!/usr/bin/env python3
 # ruff: noqa: PLE1205 Too many arguments for `logging` format string (Ruff PLE1205
 # ruff: noqa: BLE001 Do not catch blind exception: `Exception`
+# ruff: noqa: E402 Module level import not at top of file
+# ruff: noqa: E702 Multiple statements on one line (semicolon)
 #
 from __future__ import annotations
+import sys; sys.dont_write_bytecode = True
 
 import inspect
 import logging
-# import emoji
 import os
-import sys
 import traceback
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from dataclasses import dataclass
 
-# from webbrowser import get
-from ..colors import get_colors
 
-C = get_colors()
-# Type aliases
-LevelName = str
-Message = str
-ColorCode = str
-StackLevel = int
-LoggerName = str
 
-sys.dont_write_bytecode = True
+# ##################################################
+# # colori
+# ##################################################
+@dataclass(frozen=True)  # "frozen" rende i colori non modificabili per errore
+class Colors:
+    """Classe per i codici colore ANSI per il terminale."""
+    red:     str = "\033[31m"
+    redH:    str = "\033[91m"
+    green:   str = "\033[32m"
+    greenH:  str = "\033[92m"
+    yellow:  str = "\033[33m"
+    yellowH: str = "\033[93m"
+    blue:    str = "\033[34m"
+    blueH:   str = "\033[94m"
+    purple:  str = "\033[35m"
+    purpleH: str = "\033[95m"
+    magenta: str = "\033[35m"
+    magentaH:str = "\033[95m"
+    cyan:    str = "\033[36m"
+    cyanH:   str = "\033[96m"
+    white:   str = "\033[37m"
+    whiteH:  str = "\033[97m"
+    reset:   str = "\033[0m"
 
+    # Costanti per stili aggiuntivi
+    bold:       str = "\033[1m"
+    underline:  str = "\033[4m"
+    blink:      str = "\033[5m"
+    reverse:    str = "\033[7m"
+    hidden:     str = "\033[8m"
+
+    # Background colors
+    bg_red:     str = "\033[41m"
+    bg_green:   str = "\033[42m"
+    bg_yellow:  str = "\033[43m"
+    bg_blue:    str = "\033[44m"
+    bg_magenta: str = "\033[45m"
+    bg_cyan:    str = "\033[46m"
+    bg_white:   str = "\033[47m"
+
+
+
+# ##################################################
+@dataclass(frozen=True)  # "frozen" rende i colori non modificabili per errore
+class LoggerColors:
+    """Classe per i codici colore ANSI per il terminale."""
+
+    trace: str = Colors.blue
+    debug: str = Colors.cyan
+    info: str = Colors.green
+    warning: str = Colors.yellow
+    error: str = Colors.red
+    critical: str = Colors.magenta
+    exception: str = Colors.magenta
+    notify: str = Colors.blueH
+
+    # logger in caso di multiline
+    # logger_first_line: str = whiteH
+    logger_first_line: str = Colors.cyanH
+    logger_second_line: str = Colors.cyan
+
+
+# # Funzione comoda per ottenere i Colors
+# def logger_internal_colors() -> Colors:
+#     """Funzione comoda per ottenere i Colors."""
+#     return Colors  # type: ignore
+
+# C = logger_internal_colors()
+C = Colors()
+CL = LoggerColors()
 
 """
     Level       Numeric value What it means / When to use it
 """
-my_NOTSET_value: int = 0
-my_TRACE_value: int = 9
-my_DEBUG_value: int = 10
-my_FUNCTION_value: int = 15
-my_INFO_value: int = 20
-my_NOTIFY_value: int = 21
-my_WARNING_value: int = 30
-my_ERROR_value: int = 40
-my_CRITICAL_value: int = 50
+my_NOTSET_value:     int = 0
+my_TRACE_value:      int = 9
+my_DEBUG_value:      int = 10
+my_FUNCTION_value:   int = 15
+my_INFO_value:       int = 20
+my_NOTIFY_value:     int = 21
+my_WARNING_value:    int = 30
+my_ERROR_value:      int = 40
+my_CRITICAL_value:   int = 50
 
-
-
-# @dataclass(frozen=True)
-# class log_it_class:
-#     FORCE = 2
-#     LOG_IT = 1
-#     DEFAULT = 0
 
 
 
@@ -55,9 +108,7 @@ my_CRITICAL_value: int = 50
 # Formatter semplice + safe + TTY
 # -------------------------------
 class ColorFormatter(logging.Formatter):
-    def __init__(
-        self, fmt: str, datefmt: str | None = None, use_color: bool = True
-    ) -> None:
+    def __init__( self, fmt: str, datefmt: str | None = None, use_color: bool = True ) -> None:
         super().__init__(fmt, datefmt)
         self.use_color: bool = use_color
 
@@ -81,14 +132,14 @@ class ColorFormatter(logging.Formatter):
 class lnColoredLogger:
     def __init__( self, name: str) -> None:
         self.LEVEL_COLORS: dict[str, str] = {
-            "trace": C.debug,
-            "debug": C.debug,
-            "function": C.debug,
-            "info": C.info,
-            "notify": C.notify,
-            "warning": C.warning,
-            "error": C.error,
-            "critical": C.critical,
+            "trace":    CL.debug,
+            "debug":    CL.debug,
+            "function": CL.debug,
+            "info":     CL.info,
+            "notify":   CL.notify,
+            "warning":  CL.warning,
+            "error":    CL.error,
+            "critical": CL.critical,
         }
         # - config di base
         self.logger: logging.Logger = logging.getLogger(name)
@@ -107,6 +158,7 @@ class lnColoredLogger:
         self._log_NOLOG = 2 # utile per le funzioni per non farle loggare di default
         self._log_FORCE = 3 # force log anche per livelli diversi dal current
 
+
         self.initialize(name=name, console_logger_level="info", f_temporary=True)
 
 
@@ -121,6 +173,14 @@ class lnColoredLogger:
     @property
     def logIT(self):
         return self._log_IT
+
+    # forse ERRATA ma mi fa comodo fare il retrieve dei colors tramite il logger
+    # def get_colors(self) -> Colors:
+        # return logger_internal_colors()
+
+    @property
+    def COLORS(self) -> Colors:
+        return Colors()
 
 
     #############################################################
@@ -175,7 +235,7 @@ class lnColoredLogger:
         if False:
             self.dump_handlers()
         if not f_temporary:
-            self.warning(f"Logger {C.white}{self.name}{C.warning} inizializzato!...")
+            self.warning(f"Logger {C.white}{self.name}{CL.warning} inizializzato!...")
 
 
     # metodo di pulizia handlers
@@ -735,7 +795,9 @@ class lnColoredLogger:
 
 
 
-def testLogger(logger: object) -> None:
+def testLogger(logger: lnColoredLogger) -> None:
+    saved_level = logger.getConsoleLoggerLevelName()
+    logger.setConsoleLoggerLevel("TRACE")
     print("\n--- base colors ---")
     logger.trace("TRACE default")
     logger.debug("DEBUG default")
@@ -746,8 +808,7 @@ def testLogger(logger: object) -> None:
     logger.error("ERROR default")
     logger.critical("CRITICAL default")
 
-    # saved_level = logger.getConsoleLoggerLevel()
-    # logger.setConsoleLoggerLevel("WARNING")
+    logger.setConsoleLoggerLevel("WARNING")
     print("\n--- base colors forzando level to WARNING---")
     logger.trace("TRACE default")
     logger.debug("DEBUG default")
@@ -758,8 +819,8 @@ def testLogger(logger: object) -> None:
     logger.error("ERROR default")
     logger.critical("CRITICAL default")
     logger.notify("NOTIFY default")
-    # logger.setConsoleLoggerLevel(saved_level)
 
+    logger.setConsoleLoggerLevel("TRACE")
     print("\n--- modifying default colors ---")
     logger.info("INFO in magenta", color=C.magenta)
     logger.warning("WARNING in cyan", color=C.cyan)
@@ -774,6 +835,7 @@ def testLogger(logger: object) -> None:
     logger.info(
         "Test con nome modulo lungo + stacklevel=1", show_caller=True, stacklevel=1
     )
+    logger.setConsoleLoggerLevel(saved_level)
 
 
 # Variabile globale per il logger singleton
@@ -794,7 +856,18 @@ def get_logger( name: str="TEMPORARY_LOGGER" ) -> lnColoredLogger:
     if not my_logger:
         # Crea il logger
         my_logger = lnColoredLogger(name="TEMPORARY_LOGGER")
-        my_logger.warning( f"Logger {C.white}{my_logger.name}{C.warning} in attesa di init_logger()...", exit=False, )
+        C=my_logger.COLORS
+        my_logger.warning( f"Logger {C.white}{my_logger.name}{CL.warning} in attesa di init_logger()...", exit=False, )
     # - questa riga per indicare i moduli che la caricano prima di initialize()
     my_logger.debug("my_logger.name: %s", my_logger.name, stacklevel=1    )
     return my_logger
+
+
+
+
+if __name__ == "__main__":
+    logger = get_logger()
+    logger.initialize("logger_TEST", console_logger_level="info")
+    C = logger.COLORS
+    print(C.redH, "Ciao", C.reset)
+    testLogger(logger)
