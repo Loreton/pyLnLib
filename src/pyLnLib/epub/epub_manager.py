@@ -21,7 +21,7 @@ import xml.etree.ElementTree as ET
 try:
     from bs4 import BeautifulSoup
 except (Exception) as e:
-    print("import error: ", str(e))
+    print("\timport error (ignore if project doesn't use it): ", str(e))
 
 from typing import ClassVar
 

@@ -18,13 +18,15 @@ if __INIT__PY__DEBUG:
     print(f"{__name__} - start loading")
 
 
-from .yaml_loader import lnYamlLoader, YamlEngine
+# from .yaml_loader import lnYamlLoader, YamlEngine, get_yamlEngine
+from .yaml_loader import get_yamlEngine
 
 
 # Definisci cosa esportare quando si fa "from pyLnLib.logger import *"
 __all__ = [
-    "YamlEngine",
-    "lnYamlLoader",
+    # "YamlEngine",
+    # "lnYamlLoader",
+    "get_yamlEngine",
 ]
 
 if __INIT__PY__DEBUG:

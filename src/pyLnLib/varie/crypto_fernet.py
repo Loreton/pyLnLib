@@ -2,13 +2,13 @@
 # by Loreto Notarantonio
 
 import sys; sys.dont_write_bytecode=True
-import os
+# import os
 import base64
 import hashlib
 try:
     from cryptography.fernet import Fernet
 except (Exception) as e:
-    print("import error: cryptography.fernet not found!", str(e))
+    print("\timport error (ignore if project doesn't use it): ", str(e))
 
 
 

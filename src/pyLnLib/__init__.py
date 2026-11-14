@@ -62,7 +62,8 @@ from .files import get_file_list, get_dir_list, get_paths, searchFileOnFS, get_u
 from .files.ini_file import loadIni, updateIniKey, writeIni
 
 # yaml
-from .yaml.yaml_loader import lnYamlLoader, YamlEngine
+# from .yaml.yaml_loader import lnYamlLoader, YamlEngine, get_yamlEngine
+from .yaml.yaml_loader import get_yamlEngine
 
 
 # git
@@ -140,8 +141,12 @@ __all__ = [
     "ChangeLogManager",
     "PyProjectManager",
 
+    # yaml
+    "get_yamlEngine",
+    # "YamlEngine",
+    # "lnYamlLoader",
+
     # files
-    "get_yaml_engine",
     "get_file_list",
     "get_dir_list",
     "get_paths",
@@ -153,13 +158,10 @@ __all__ = [
     "updateIniKey",
     "writeFile",
     "writeIni",
-    "dictToYaml",
+    # "dictToYaml",
     "create_link",
     "is_valid_link",
 
-    # yaml
-    "YamlEngine",
-    "lnYamlLoader",
 
     # epub
     "EpubManager",

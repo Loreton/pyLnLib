@@ -25,6 +25,13 @@ def yaml_include_constructor(loader, node):
 
 
 def yaml_constructor_include_merge(loader, node):
+    """# sample
+        merge:
+            !include_merge
+                - "${ITALIAN_SONGS}/DJ_Francesco/Loreto_selection_list.yaml"
+                - "${ITALIAN_SONGS}/Domenico_Modugno/Loreto_selection_list.yaml"
+
+    """
     filenames = loader.construct_sequence(node, deep=True)
     result = {}
     for filename in filenames:
@@ -51,11 +58,24 @@ def yaml_constructor_list_merge(loader, node):
 
 
 def join_path(loader, node):
+    """# sample
+        path: !join_path
+            - /home/loreto
+            - Music
+            - Guccini
+            - Rimmel.mp3
+    """
     items = loader.construct_sequence(node, deep=True)
     return os.path.join(*(str(item) for item in items))
 
 
 def join_str(loader, node):
+    """ # sample
+        filename: !join_str
+            - Francesco_
+            - Guccini
+            - .yaml
+    """
     items = loader.construct_sequence(node, deep=True)
     return "".join(str(item) for item in items)
 
@@ -539,7 +559,7 @@ class YamlEngine:
 #################################
 # --- Funzione Factory ---
 #################################
-def get_yaml_engine( logger, search_path: list[str] | None = None, ) -> YamlEngine:
+def get_yamlEngine(logger, search_path: list[str] | None = None, ) -> YamlEngine:
     """
     Crea e restituisce un'istanza di YamlEngine.
 
@@ -580,7 +600,7 @@ if __name__ == "__main__":
     logger = PrintLogger(name="prova", console_logger_level="info", time_caller_prefix=True)
     C = logger.Colors
 
-    myYaml=get_yaml_engine(logger=logger)
+    myYaml=get_yamlEngine(logger=logger)
     myYaml.bootstrap(config_file_name, main_key='bootstrap_main_vars')
     conf=myYaml.load(config_file_name)
     myYaml.save_yaml(filepath="yaml_loader_test_file_out.yaml", title="yaml_loader_test_file", indent=4)
