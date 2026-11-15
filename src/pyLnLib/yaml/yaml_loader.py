@@ -24,10 +24,10 @@ def yaml_include_constructor(loader, node):
     return loader.engine.load( filename, _parent=loader.current_file, _stack=loader.include_stack, )
 
 
-def yaml_constructor_include_merge(loader, node):
+def yaml_constructor_dict_merge(loader, node):
     """# sample
         merge:
-            !include_merge
+            !dict_merge
                 - "${ITALIAN_SONGS}/DJ_Francesco/Loreto_selection_list.yaml"
                 - "${ITALIAN_SONGS}/Domenico_Modugno/Loreto_selection_list.yaml"
 
@@ -37,7 +37,7 @@ def yaml_constructor_include_merge(loader, node):
     for filename in filenames:
         data = loader.engine.load( filename, _parent=loader.current_file, _stack=loader.include_stack, )
         if not isinstance(data, dict):
-            raise TypeError( f"!include_merge requires a dictionary: {filename}" )
+            raise TypeError( f"!dict_merge requires a dictionary: {filename}" )
         result.update(data)
 
     return result
@@ -108,7 +108,7 @@ class lnYamlLoader(yaml.SafeLoader):
 # Registrazione dei tag
 # --------------------------------
 lnYamlLoader.add_constructor('!include', yaml_include_constructor)
-lnYamlLoader.add_constructor('!include_merge', yaml_constructor_include_merge )
+lnYamlLoader.add_constructor('!dict_merge', yaml_constructor_dict_merge )
 lnYamlLoader.add_constructor('!list_merge', yaml_constructor_list_merge )
 lnYamlLoader.add_constructor('!join_path', join_path)
 lnYamlLoader.add_constructor('!join_str', join_str)
