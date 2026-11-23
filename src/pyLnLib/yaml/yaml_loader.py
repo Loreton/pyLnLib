@@ -369,7 +369,7 @@ class YamlEngine:
     # Bootstrap
     # --------------------------------------------------
     # @timing_logger
-    def bootstrap(self, filename: str, main_key: str) -> None:
+    def bootstrap(self, filename: str, main_key: str|None, log_action: int=0) -> None:
         """
         Legge main_key dal file principale e configura l'engine.
 
@@ -392,16 +392,17 @@ class YamlEngine:
                 raise TypeError("Main YAML document must be a mapping")
 
             main_vars_node = None
-            for key_node, value_node in root.value:
-                if ( isinstance(key_node, yaml.ScalarNode) and key_node.value == main_key):
-                    main_vars_node = value_node
-                    break
+            if not main_key:
+                for key_node, value_node in root.value:
+                    if ( isinstance(key_node, yaml.ScalarNode) and key_node.value == main_key):
+                        main_vars_node = value_node
+                        break
 
             if main_vars_node is None:
                 project_main_vars = {}
             else:
                 # Costruisce soltanto il nodo main_vars come dict
-                project_main_vars = loader.construct_object( main_vars_node, deep=True, )
+                project_main_vars = loader.construct_object(main_vars_node, deep=True, )
 
         finally:
             loader.dispose()
@@ -413,30 +414,7 @@ class YamlEngine:
         # ----------------------------------------------
         # project_env_vars
         # ----------------------------------------------
-        pending_vars = self._load_project_vars(main_vars=project_main_vars)
-        # self._refine_project_vars(pending_vars=pending_vars)
-
-        '''
-        questo sotto funziona....
-        project_env_vars = project_main_vars.get("project_env_vars", {})
-        if not isinstance(project_env_vars, dict):
-            raise TypeError(f"{main_key}.project_env_vars must be a mapping" )
-
-        self.project_env_vars = {}
-        pending_vars = {} # conterrà tutte le variabili non risolte al primo passaggio, da risolvere in un secondo passaggio
-
-        for name, value in project_env_vars.items():
-            if not isinstance(name, str) or not isinstance(value, str):
-                raise TypeError("project_env_vars keys and values must be strings" )
-
-            # expanded_value = os.path.expandvars(value)
-            expanded_value = self._expand_vars(value)
-            self.project_env_vars[name] = expanded_value
-            if self._find_variables(expanded_value):
-                pending_vars[name] = expanded_value
-
-        self._refine_project_vars(pending_vars=pending_vars)
-        '''
+        _pending_vars = self._load_project_vars(main_vars=project_main_vars)
 
 
         # ----------------------------------------------
@@ -478,6 +456,7 @@ class YamlEngine:
                             self.keypath_separator,
                             len(self.search_path),
                             len(self.project_env_vars),
+                            log_it=log_action,
                         )
 
     # --------------------------------------------------
@@ -499,7 +478,7 @@ class YamlEngine:
     # --------------------------------------------------
     # Load
     # --------------------------------------------------
-    def load( self, filename_with_pointer: str, *, _parent: Path | None = None, _stack: tuple[Path, ...] = (), ) -> object:
+    def load(self, filename_with_pointer: str, *, _parent: Path | None = None, _stack: tuple[Path, ...] = (), ) -> object:
         if not self.bootstrapped:
             raise RuntimeError( "YamlEngine is not bootstrapped. " "Call bootstrap() before load()." )
 
@@ -539,7 +518,7 @@ class YamlEngine:
     # --------------------------------------------------
     # Export
     # --------------------------------------------------
-    def to_yaml( self, title: Path | str | None = None, indent: int = 4, sort_keys: bool = False, **kwargs, ) -> str:
+    def to_yaml( self, title: Path|str|None=None, indent: int=4, sort_keys: bool=False, **kwargs, ) -> str:
         """Converte lo lnDict in una stringa YAML pulita.
             title: se valorizzato viene messo in testa al dict
         """
@@ -547,14 +526,14 @@ class YamlEngine:
         return yaml.dump( data, indent=indent, sort_keys=sort_keys, default_flow_style=False, **kwargs, )
 
 
-    def save_yaml( self, filepath, title: str = "", indent: int = 4, **kwargs, ) -> None:
+    def save_yaml( self, filepath, title: str = "", indent: int=4, log_action:int=0, **kwargs, ) -> None:
         """Salva lo lnDict in un file .yaml."""
         yaml_data = self.to_yaml( title=title, indent=indent, **kwargs, )
         now = datetime.now().strftime("%d-%m-%Y_%H:%M")
         comment = f"#{'-' * 20}"
         yaml_data = ( f"{comment}\n" f"#- {now}\n" f"{comment}\n" f"{yaml_data}" )
         Path(filepath).write_text(yaml_data, encoding="utf-8")
-        self.logger.notify( "file: [%s] has been written", filepath, stack_trace=False, )
+        self.logger.notify( "file: [%s] has been written", filepath, stack_trace=False, log_it=log_action)
 
 #################################
 # --- Funzione Factory ---

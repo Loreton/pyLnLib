@@ -152,6 +152,7 @@ class lnColoredLogger:
 
         # - parametri
         self.name: str = name
+        self.logging_filename: str|None = None
         # self.test: Callable = testLogger
         # self.log_it = log_it_class
         self._log_IT = 1  # default logging
@@ -174,6 +175,13 @@ class lnColoredLogger:
     def logIT(self):
         return self._log_IT
 
+    @property
+    def filename(self):
+        return self.logging_filename if self.logging_filename else "NO_LOGGING_FILE"
+
+
+
+
     # forse ERRATA ma mi fa comodo fare il retrieve dei colors tramite il logger
     # def get_colors(self) -> Colors:
         # return logger_internal_colors()
@@ -194,7 +202,8 @@ class lnColoredLogger:
     #   Logger configurato
     #############################################################
     def initialize( self, name: str, *,
-            console_logger_level: str | None = None,
+            # console_logger_level: str | None = None,
+            console_logger_level: str = 'CRITICAL',
             file_logger_level: str = "warning",
             logging_dir: str | Path | None = None,
             threads: bool = False,
@@ -235,7 +244,7 @@ class lnColoredLogger:
         if False:
             self.dump_handlers()
         if not f_temporary:
-            self.warning(f"Logger {C.white}{self.name}{CL.warning} inizializzato!...")
+            self.warning(f"Logger {C.white}{self.name}{CL.warning} inizializzato!...", log_it=self.FORCE)
 
 
     # metodo di pulizia handlers
@@ -302,7 +311,7 @@ class lnColoredLogger:
         return ch
 
     # -------------------------------
-    # Rotating Logger
+    # --- Rotating Logger
     # -------------------------------
     def setRotatingLogger(self) -> logging.Handler:
         logging_file = f"{self.logging_dir}/{self.name.lower()}.log"
@@ -314,7 +323,10 @@ class lnColoredLogger:
             f"%(asctime)s - [{self.threads_str}%(module_formatted)s%(caller_formatted)s [%(levelname)4.4s]: %(message)s"
         )
         fh.setFormatter(formatter)
+        self.logging_filename = logging_file
         return fh
+
+
 
     def setConsoleLoggerLevel(self, level: str|int) -> None:
         if self.consoleHandler is not None:
@@ -699,14 +711,13 @@ class lnColoredLogger:
 
         f_level_changed = False
         forceExit = kwargs.pop("exit", False)
-        # force_log1  = kwargs.pop("force_log", False)
-        # log_it    = kwargs.pop("log_it", True)   # di default log. utile per funzioni di libreria se vogliamo che facciano log
-
-
         _log_it = kwargs.pop("log_it", self._log_IT)   # di default log. utile per funzioni di libreria se vogliamo che facciano log
         force_log = (_log_it == self._log_FORCE)
         no_log = (_log_it == self._log_NOLOG)
-        # log_it = (_log_it == self._log_IT)
+
+        # log_it = kwargs.pop("log_it", False)   # di default log. utile per funzioni di libreria se vogliamo che facciano log
+        # force_log = kwargs.pop("force_log", False)   # di default log. utile per funzioni di libreria se vogliamo che facciano log
+        # no_log = kwargs.pop("no_log", False)   # di default log. utile per funzioni di libreria se vogliamo che facciano log
 
         # ----------------------------------------------------------------------
         # - qui cerchiamo di gestire il force_log utile per i messaggi
@@ -720,6 +731,11 @@ class lnColoredLogger:
         # ----------------------------------------------------------------------
         saved_show_caller = self.show_caller
         saved_curr_level_value = self.consoleHandler.level
+        # if self.consoleHandler:
+        #     saved_curr_level_value = self.consoleHandler.level
+        # else:
+        #     saved_curr_level_value = my_NOTSET_value
+
         req_level_value = getattr(logging, level_name, logging.INFO)
 
         if no_log:
@@ -857,7 +873,7 @@ def get_logger( name: str="TEMPORARY_LOGGER" ) -> lnColoredLogger:
         # Crea il logger
         my_logger = lnColoredLogger(name="TEMPORARY_LOGGER")
         C=my_logger.COLORS
-        my_logger.warning( f"Logger {C.white}{my_logger.name}{CL.warning} in attesa di init_logger()...", exit=False, )
+        my_logger.debug( f"Logger {C.white}{my_logger.name}{CL.warning} in attesa di init_logger()...")
     # - questa riga per indicare i moduli che la caricano prima di initialize()
     my_logger.debug("my_logger.name: %s", my_logger.name, stacklevel=1    )
     return my_logger
