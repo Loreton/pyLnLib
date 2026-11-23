@@ -36,7 +36,7 @@ from .system.signal_handler import start_signal_handler
 
 @dataclass(frozen=False)
 class lnContext:
-    """Solo dati di configurazione - NESSUN LOGGER QUI!"""
+    """Solo dati di configurazione - NESSUN LOGGER QUI se non quello passato all'initializzazione!"""
     # def __init__(self, name: str | None = None, tmp_dir: str | None = None, version: str | None = None) -> None:
     def __init__(self) -> None:
         # creo una classe dove metto tutte le variabili del mio ambiente.
@@ -50,8 +50,9 @@ class lnContext:
 
         self.version = "0.0.1"
 
-    def initialize(self, project_name: str, *,
+    def initialize(self, project_name: str,
                         version: str,
+                        *,
                         logger: object,
                         project_root: Path | None = None,
                         project_temp_dir: str | None = None,
@@ -204,7 +205,7 @@ class lnContext:
     ###################################################################
     def read_yaml_configuration(self,
                                 config_file_name: str,
-                                logger: object,
+                                # logger: object,
                                 bootstrap_key: str|None=None,
                                 log_action: int=0,
                             ) -> lnDict:
@@ -218,7 +219,7 @@ class lnContext:
         from .yaml.yaml_loader import get_yamlEngine
 
         # --- class instance
-        myYaml=get_yamlEngine(logger=logger)
+        myYaml=get_yamlEngine(logger=self.logger)
 
         # --- read bootstrap variables
         # if bootstrap_key:

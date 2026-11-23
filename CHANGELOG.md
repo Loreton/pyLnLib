@@ -1,3 +1,9 @@
+## [0.1.58] - 2026-11-23
+
+## Other
+
+- Affinamenti di context e yaml_loader per includere il caricamento della configurazione del progetto - (Release 0.1.57)
+
 ## [0.1.53] - 2026-11-04
 
 ## Other
