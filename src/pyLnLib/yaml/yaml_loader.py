@@ -414,7 +414,7 @@ class YamlEngine:
         # ----------------------------------------------
         # project_env_vars
         # ----------------------------------------------
-        _pending_vars = self._load_project_vars(main_vars=project_main_vars)
+        # _pending_vars = self._load_project_vars(main_vars=project_main_vars)
 
 
         # ----------------------------------------------

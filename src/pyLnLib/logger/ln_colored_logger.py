@@ -57,6 +57,20 @@ class Colors:
     bg_cyan:    str = "\033[46m"
     bg_white:   str = "\033[47m"
 
+    trace: str = blue
+    debug: str = cyan
+    info: str = green
+    warning: str = yellow
+    error: str = red
+    critical: str = magenta
+    exception: str = magenta
+    notify: str = blueH
+
+    # logger in caso di multiline
+    # logger_first_line: str = whiteH
+    logger_first_line: str = cyanH
+    logger_second_line: str = cyan
+
 
 
 # ##################################################
@@ -569,7 +583,12 @@ class lnColoredLogger:
             if args:
                 try:
                     # Primo tentativo: stile %
-                    formatted_msg = msg % args
+                    new_args = tuple()
+                    for arg in args:
+                        if isinstance(arg, list):
+                            arg = f"list items ({len(arg)}):\n" + "\n".join(f"{i+1}. {item}" for i, item in enumerate(arg))
+                        new_args += (arg,)
+                    formatted_msg = msg % new_args
                 except (TypeError, ValueError):
                     try:
                         # Secondo tentativo: stile format()
@@ -715,10 +734,6 @@ class lnColoredLogger:
         force_log = (_log_it == self._log_FORCE)
         no_log = (_log_it == self._log_NOLOG)
 
-        # log_it = kwargs.pop("log_it", False)   # di default log. utile per funzioni di libreria se vogliamo che facciano log
-        # force_log = kwargs.pop("force_log", False)   # di default log. utile per funzioni di libreria se vogliamo che facciano log
-        # no_log = kwargs.pop("no_log", False)   # di default log. utile per funzioni di libreria se vogliamo che facciano log
-
         # ----------------------------------------------------------------------
         # - qui cerchiamo di gestire il force_log utile per i messaggi
         # - che provengono da funzioni di libreria e che normalmente non vengono loggati
@@ -731,11 +746,6 @@ class lnColoredLogger:
         # ----------------------------------------------------------------------
         saved_show_caller = self.show_caller
         saved_curr_level_value = self.consoleHandler.level
-        # if self.consoleHandler:
-        #     saved_curr_level_value = self.consoleHandler.level
-        # else:
-        #     saved_curr_level_value = my_NOTSET_value
-
         req_level_value = getattr(logging, level_name, logging.INFO)
 
         if no_log:
@@ -758,6 +768,11 @@ class lnColoredLogger:
             return
 
         ### ok processiamo la linea
+        # if args:
+        #     if isinstance(args, tuple[0]):
+        #         ...
+        #     if isinstance(args, list):
+        #         ...
         if isinstance(msg, list):
             # convert in string with '\n' on each item and the index of each item
             msg = f"list items ({len(msg)}):\n" + "\n".join(f"{i+1}. {item}" for i, item in enumerate(msg))

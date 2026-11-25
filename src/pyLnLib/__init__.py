@@ -35,7 +35,7 @@ from .logger.print_logger import PrintLogger
 
 from .colors import get_colors
 from .emoji import get_emoji
-from .context import ctx, pVars
+from .context import ctx, pVars, project_vars
 
 
 # varie
@@ -113,6 +113,7 @@ __all__ = [
     # generics
     "ctx",
     "pVars",
+    "project_vars",
 
     "acquire_lock",
     "get_colors",

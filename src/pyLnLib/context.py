@@ -37,7 +37,7 @@ from .system.signal_handler import start_signal_handler
 @dataclass(frozen=False)
 class lnContext:
     """Solo dati di configurazione - NESSUN LOGGER QUI se non quello passato all'initializzazione!"""
-    # def __init__(self, name: str | None = None, tmp_dir: str | None = None, version: str | None = None) -> None:
+    # def __init__(self, name: str|None = None, tmp_dir: str|None = None, version: str|None = None) -> None:
     def __init__(self) -> None:
         # creo una classe dove metto tutte le variabili del mio ambiente.
         # il tutto sarà sotto self.main
@@ -51,13 +51,13 @@ class lnContext:
         self.version = "0.0.1"
 
     def initialize(self, project_name: str,
-                        version: str,
                         *,
+                        version: str,
                         logger: object,
-                        project_root: Path | None = None,
-                        project_temp_dir: str | None = None,
-                        project_log_dir: str | None = None,
-                        project_config_dir: str = '.',
+                        project_root: Path|None = None,
+                        project_temp_dir: str|None = None,
+                        project_log_dir: str|None = None,
+                        project_config_dir: str|None = None,
                         ) -> None:
 
         self.project_name = project_name
@@ -78,6 +78,7 @@ class lnContext:
                 "version": version,
                 "config": lnDict(),
                 "args": lnDict(), # input args
+                "logger": logger,
             }
         )
 
@@ -157,7 +158,7 @@ class lnContext:
 
 
     # ======================================================================
-    def _set_log_dir(self, req_top_dir: str | Path) -> Path:
+    def _set_log_dir(self, req_top_dir: str|Path) -> Path:
         """Restituisce il path per i log."""
         top_dir = Path(req_top_dir).resolve()
         if top_dir.exists():
@@ -242,3 +243,4 @@ class lnContext:
 # Istanza globale
 ctx = lnContext()
 pVars = ctx.project_vars
+project_vars = ctx.project_vars
